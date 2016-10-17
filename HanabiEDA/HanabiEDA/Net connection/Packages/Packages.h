@@ -1,0 +1,21 @@
+#ifndef PACKAGES_H_
+#define PACKAGES_H_
+#include "Package_hanabi.h"
+#include "Package_ack.h"
+#include "Package_name.h"
+#include "Package_name_is.h"
+#include "Package_start_info.h"
+#include "Package_you_start.h"
+#include "Package_i_start.h"
+#include "Package_discard.h"
+#include "Package_play.h"
+#include "Package_you_have.h"
+#include "Package_draw.h"
+#include "Package_we_won.h"
+#include "Package_we_lost.h"
+#include "Package_match_is_over.h"
+#include "Package_play_again.h"
+#include "Package_game_over.h"
+#include "Package_quit.h"
+#include "Package_error.h"
+#endif
