@@ -142,6 +142,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="gui\gui.cpp" />
+    <ClCompile Include="gui\gui_active_element.cpp" />
+    <ClCompile Include="gui\gui_button.cpp" />
+    <ClCompile Include="gui\gui_element.cpp" />
+    <ClCompile Include="gui\gui_image.cpp" />
+    <ClCompile Include="gui\gui_menu.cpp" />
+    <ClCompile Include="gui\gui_text.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="example.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gui\gui.h" />
+    <ClInclude Include="gui\gui_active_element.h" />
+    <ClInclude Include="gui\gui_button.h" />
+    <ClInclude Include="gui\gui_element.h" />
+    <ClInclude Include="gui\gui_image.h" />
+    <ClInclude Include="gui\gui_menu.h" />
+    <ClInclude Include="gui\gui_text.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

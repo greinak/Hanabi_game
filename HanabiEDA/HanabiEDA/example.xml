@@ -1,0 +1,90 @@
+<GUI_menu>
+  <size width="1920" height = "1080"/>
+  <scale sx="1" sy="1"/>
+  <backg_color>0xFFFFFFFF</backg_color>
+  <icon_bitmap>test.png</icon_bitmap>
+  <title>TEST</title>
+  <elements>
+    <GUI_submenu>
+      <position x="500" y="200" r="0.1"></position>
+      <size width="400" height ="400"/>
+      <backg_color>0x000000FF</backg_color>
+      <elements>
+        <GUI_text id="HOLA">
+          <position x="100" y="100" r="2"></position>
+          <text>TEST1</text>
+          <textbox enabled="true" color="0x00000015" radius="5" up="5" down="5" left="5" right="5"></textbox>
+          <text_color>0xFF00FFFF</text_color>
+          <text_align>CENTER</text_align>
+          <font type="font.ttf" size="101"/>
+        </GUI_text>
+        <GUI_submenu>
+          <position x="500" y="200" r="0.1"></position>
+          <size width="400" height ="400"/>
+          <backg_color>0x000000FF</backg_color>
+          <elements>
+            <GUI_text>
+              <position x="100" y="100" r="2"></position>
+              <text>TEST2</text>
+              <textbox enabled="true" color="0x00000015" radius="5" up="5" down="5" left="5" right="5"></textbox>
+              <text_color>0x00FFFFFF</text_color>
+              <text_align>CENTER</text_align>
+              <font type="font.ttf" size="101"/>
+            </GUI_text>
+            <GUI_submenu>
+              <position x="500" y="200" r="0.1"></position>
+              <size width="400" height ="400"/>
+              <backg_color>0x000000FF</backg_color>
+              <elements>
+                <GUI_text>
+                  <position x="100" y="100" r="2"></position>
+                  <text>TEST3</text>
+                  <textbox enabled="true" color="0x00000015" radius="5" up="5" down="5" left="5" right="5"></textbox>
+                  <text_color>0xFF00FFFF</text_color>
+                  <text_align>CENTER</text_align>
+                  <font type="font.ttf" size="101"/>
+                </GUI_text>
+                <GUI_submenu>
+                  <position x="500" y="200" r="0.1"></position>
+                  <size width="400" height ="400"/>
+                  <backg_color>0x000000FF</backg_color>
+                  <elements>
+                    <GUI_text>
+                      <position x="100" y="100" r="2"></position>
+                      <text>HOLA MILTON</text>
+                      <textbox enabled="true" color="0x00000015" radius="5" up="5" down="5" left="5" right="5"></textbox>
+                      <text_color>0xFF00FFFF</text_color>
+                      <text_align>CENTER</text_align>
+                      <font type="font.ttf" size="101"/>
+                    </GUI_text>
+                    <GUI_submenu>
+                      <position x="500" y="200" r="0.1"></position>
+                      <size width="400" height ="400"/>
+                      <backg_color>0x000000FF</backg_color>
+                      <elements>
+                        <GUI_text>
+                          <position x="100" y="100" r="2"></position>
+                          <text>HOLA MILTON</text>
+                          <textbox enabled="true" color="0x00000015" radius="5" up="5" down="5" left="5" right="5"></textbox>
+                          <text_color>0xFF00FFFF</text_color>
+                          <text_align>CENTER</text_align>
+                          <font type="font.ttf" size="101"/>
+                        </GUI_text>
+                      </elements>
+                    </GUI_submenu>
+                  </elements>
+                </GUI_submenu>
+              </elements>
+            </GUI_submenu>
+          </elements>
+        </GUI_submenu>
+      </elements>
+    </GUI_submenu>
+    <GUI_button id="button_1">
+      <button_base_bitmap>test.png</button_base_bitmap>
+      <button_hover_bitmap>test2.png</button_hover_bitmap>
+    </GUI_button>
+  </elements>
+</GUI_menu>
+
+
