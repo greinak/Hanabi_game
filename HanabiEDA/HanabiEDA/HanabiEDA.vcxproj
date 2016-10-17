@@ -132,13 +132,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\work\apr-util-1.5.4\include;C:\work\apr-iconv-1.2.1\include;C:\work\apr-1.5.2\include;C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libexpat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\work\apr-util-1.5.4\LibD;C:\work\apr-1.5.2\LibD;C:\work\apr-iconv-1.2.1\LibD;C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libexpat.lib;Shell32.lib;apr-1.lib;aprutil-1.lib;Ws2_32.lib;RpcRT4.lib;mswsock.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -148,13 +148,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\work\apr-util-1.5.4\include;C:\work\apr-iconv-1.2.1\include;C:\work\apr-1.5.2\include;C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libexpat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\work\apr-util-1.5.4\LibD;C:\work\apr-1.5.2\LibD;C:\work\apr-iconv-1.2.1\LibD;C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libexpat.lib;Shell32.lib;apr-1.lib;aprutil-1.lib;Ws2_32.lib;RpcRT4.lib;mswsock.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -166,15 +166,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\work\apr-util-1.5.4\include;C:\work\apr-iconv-1.2.1\include;C:\work\apr-1.5.2\include;C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libexpat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\work\apr-util-1.5.4\LibD;C:\work\apr-1.5.2\LibD;C:\work\apr-iconv-1.2.1\LibD;C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libexpat.lib;Shell32.lib;apr-1.lib;aprutil-1.lib;Ws2_32.lib;RpcRT4.lib;mswsock.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -186,15 +186,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\work\apr-util-1.5.4\include;C:\work\apr-iconv-1.2.1\include;C:\work\apr-1.5.2\include;C:\Program Files %28x86%29\Expat 2.2.0\Source\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libexpat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\work\apr-util-1.5.4\LibD;C:\work\apr-1.5.2\LibD;C:\work\apr-iconv-1.2.1\LibD;C:\Program Files %28x86%29\Expat 2.2.0\Bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libexpat.lib;Shell32.lib;apr-1.lib;aprutil-1.lib;Ws2_32.lib;RpcRT4.lib;mswsock.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -206,6 +206,27 @@
     <ClCompile Include="gui\gui_menu.cpp" />
     <ClCompile Include="gui\gui_text.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Net connection\Client.cpp" />
+    <ClCompile Include="Net connection\Net_connection.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_ack.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_discard.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_draw.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_error.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_game_over.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_hanabi.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_i_start.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_match_is_over.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_name.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_name_is.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_play.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_play_again.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_quit.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_start_info.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_we_lost.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_we_won.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_you_have.cpp" />
+    <ClCompile Include="Net connection\Packages\Package_you_start.cpp" />
+    <ClCompile Include="Net connection\Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="example.xml" />
@@ -218,6 +239,29 @@
     <ClInclude Include="gui\gui_image.h" />
     <ClInclude Include="gui\gui_menu.h" />
     <ClInclude Include="gui\gui_text.h" />
+    <ClInclude Include="Net connection\Client.h" />
+    <ClInclude Include="Net connection\Net_connection.h" />
+    <ClInclude Include="Net connection\Packages\card_hanabi.h" />
+    <ClInclude Include="Net connection\Packages\Packages.h" />
+    <ClInclude Include="Net connection\Packages\Package_ack.h" />
+    <ClInclude Include="Net connection\Packages\Package_discard.h" />
+    <ClInclude Include="Net connection\Packages\Package_draw.h" />
+    <ClInclude Include="Net connection\Packages\Package_error.h" />
+    <ClInclude Include="Net connection\Packages\Package_game_over.h" />
+    <ClInclude Include="Net connection\Packages\Package_hanabi.h" />
+    <ClInclude Include="Net connection\Packages\Package_i_start.h" />
+    <ClInclude Include="Net connection\Packages\Package_match_is_over.h" />
+    <ClInclude Include="Net connection\Packages\Package_name.h" />
+    <ClInclude Include="Net connection\Packages\Package_name_is.h" />
+    <ClInclude Include="Net connection\Packages\Package_play.h" />
+    <ClInclude Include="Net connection\Packages\Package_play_again.h" />
+    <ClInclude Include="Net connection\Packages\Package_quit.h" />
+    <ClInclude Include="Net connection\Packages\Package_start_info.h" />
+    <ClInclude Include="Net connection\Packages\Package_we_lost.h" />
+    <ClInclude Include="Net connection\Packages\Package_we_won.h" />
+    <ClInclude Include="Net connection\Packages\Package_you_have.h" />
+    <ClInclude Include="Net connection\Packages\Package_you_start.h" />
+    <ClInclude Include="Net connection\Server.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

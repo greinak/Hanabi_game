@@ -13,8 +13,23 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\gui">
+    <Filter Include="Source Files\Net connection">
+      <UniqueIdentifier>{7b3c778f-8ba5-49d4-b4e8-ba75568287b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gui">
       <UniqueIdentifier>{d6dcdce6-d46b-4bec-ab1f-d5cc5b9d57d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Gui">
+      <UniqueIdentifier>{b8a78df5-00ae-49f8-9075-cfe26abf9da4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Net connection">
+      <UniqueIdentifier>{3e85e989-e114-44fb-afc6-885a6db458ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Net connection\Packages">
+      <UniqueIdentifier>{a3f3dab7-32f7-412c-b875-941b12146814}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Net connection\Packages">
+      <UniqueIdentifier>{e06d91ce-012b-481c-86dc-6fc114b91d3d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -22,25 +37,88 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_active_element.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_button.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_element.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_image.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_menu.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\gui_text.cpp">
-      <Filter>Source Files\gui</Filter>
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Client.cpp">
+      <Filter>Source Files\Net connection</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Net_connection.cpp">
+      <Filter>Source Files\Net connection</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Server.cpp">
+      <Filter>Source Files\Net connection</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_ack.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_discard.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_draw.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_error.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_game_over.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_hanabi.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_i_start.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_match_is_over.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_name.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_name_is.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_play.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_play_again.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_quit.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_start_info.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_we_lost.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_we_won.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_you_have.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_you_start.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -50,25 +128,94 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gui\gui.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\gui_active_element.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\gui_button.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\gui_element.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\gui_image.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\gui_menu.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\gui_text.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Client.h">
+      <Filter>Header Files\Net connection</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Net_connection.h">
+      <Filter>Header Files\Net connection</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Server.h">
+      <Filter>Header Files\Net connection</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\card_hanabi.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_ack.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_discard.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_draw.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_error.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_game_over.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_hanabi.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_i_start.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_match_is_over.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_name.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_name_is.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_play.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_play_again.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_quit.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_start_info.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_we_lost.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_we_won.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_you_have.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Package_you_start.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Net connection\Packages\Packages.h">
+      <Filter>Header Files\Net connection\Packages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
