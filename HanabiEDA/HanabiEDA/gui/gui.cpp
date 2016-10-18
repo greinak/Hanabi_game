@@ -21,6 +21,8 @@ typedef struct my_XML_element
 	list<my_XML_element> children;	//Labels inside label
 }my_XML_element;
 
+//This class is defined here since this class is defined just por parsing
+//And extra files for this are not needed
 class XML_parser_object
 {
 public:
@@ -160,7 +162,11 @@ Gui::Gui(istream &xml)
 				this->initialized = true;		//Success!!
 				return;
 			}
+			else
+				cerr << "Error creating allegro display for GUI\n" << endl;
 		}
+		else
+			cerr << "Error creating GUI from XML file. Please check your XML file.\n" << endl;
 		menu_element_list.clear();
 		submenus.clear();
 		images.clear();
@@ -176,6 +182,8 @@ Gui::Gui(istream &xml)
 			al_destroy_font(it->second);
 		font_dictionary.clear();
 	}
+	else
+		cerr << "Error parsing XML data\n" << endl;
 }
 
 bool Gui::initialized_successfully()
@@ -205,17 +213,15 @@ Gui::~Gui()
 bool Gui::handle_gui_menu_data(const my_XML_element & element)
 {
 	//Menu containing all elements
-	submenus.push_front(GUI_menu());
 	bool ret_val = true;
+	const char* name = nullptr;
 	for (list<my_XML_element>::const_iterator it = element.children.begin(); it != element.children.end() && ret_val; ++it)
 	{
 		//Look for labels
 		const attr_t &attr = (*it).attributes;
-		const char* name = it->name.c_str();
+		name = it->name.c_str();
 		if (!strcmp(name, "elements") && it->attributes.size() == 0)
-		{
 			ret_val = handle_elements(*it, &menu_element_list);
-		}
 		else if (it->children.size() == 0)
 		{
 			if (it->attributes.size() != 0)
@@ -286,6 +292,8 @@ bool Gui::handle_gui_menu_data(const my_XML_element & element)
 		else
 			ret_val = false;
 	}
+	if (!ret_val)
+		cerr << "Error in GUI_menu XML data, at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -297,9 +305,10 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GUI_element** 
 	(*created) = &submenu;
 	bool ret_val = true;
 	list<GUI_element*> el_list;
+	const char* name = nullptr;
 	for (list<my_XML_element>::const_iterator it = element.children.begin(); it != element.children.end() && ret_val; ++it)
 	{
-		const char* name = it->name.c_str();
+		name = it->name.c_str();
 		if (!strcmp(name, "elements") && it->attributes.size() == 0)
 		{
 			ret_val = handle_elements(*it, &el_list);
@@ -409,6 +418,8 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GUI_element** 
 	}
 	if(ret_val)
 		submenu.set_menu_GUI_element_pointer_list(el_list);
+	else
+		cerr << "Error in GUI_submenu XML data, at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -419,9 +430,10 @@ bool Gui::handle_gui_image_data(const my_XML_element & element, GUI_element** cr
 	GUI_image &image = images.front();
 	(*created) = &image;
 	bool ret_val = true;
+	const char* name = nullptr;
 	for (list<my_XML_element>::const_iterator it = element.children.begin(); it != element.children.end() && ret_val; ++it)
 	{
-		const char* name = it->name.c_str();
+		name = it->name.c_str();
 		if (it->children.size() != 0)
 		{
 			ret_val = false;
@@ -497,6 +509,8 @@ bool Gui::handle_gui_image_data(const my_XML_element & element, GUI_element** cr
 				ret_val = false;
 		}
 	}
+	if (!ret_val)
+		cerr << "Error in GUI_image XML data, at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -507,9 +521,10 @@ bool Gui::handle_gui_text_data(const my_XML_element & element, GUI_element** cre
 	GUI_text &text = texts.front();
 	(*created) = &text;
 	bool ret_val = true;
-	for (list<my_XML_element>::const_iterator it = element.children.begin(); it != element.children.end() && ret_val; ++it)
+	const char* name = nullptr;
+	for (list<my_XML_element>::const_iterator it = element.children.begin(); ret_val && it != element.children.end(); ++it)
 	{
-		const char* name = it->name.c_str();
+		name = it->name.c_str();
 		if (it->children.size() != 0)
 		{
 			ret_val = false;
@@ -551,22 +566,15 @@ bool Gui::handle_gui_text_data(const my_XML_element & element, GUI_element** cre
 					bool ok = true;
 					//NOTE: TAB MISSING! read carefully
 					//Note that if is "if key was not given or it was given and it's value could be loaded"
-					if (value[0] == nullptr || get_bool_from_string(*value[0], &enabled))
-						//and
-					if (value[0] == nullptr || get_bool_from_string(*value[0],&enabled))
-						//and
-					if(value[1] == nullptr || (sscanf(value[1]->c_str(), "%u", &up)))
-						//and
-					if (value[2] == nullptr || (sscanf(value[2]->c_str(), "%u", &down)))
-						//and
-					if (value[3] == nullptr || (sscanf(value[3]->c_str(), "%u", &left)))
-						//and
-					if (value[4] == nullptr || (sscanf(value[4]->c_str(), "%u", &right)))
-						//and
-					if(value[5] == nullptr || (sscanf(value[5]->c_str(), "%f", &radius)))
-						//and
-					if (value[6] == nullptr || get_color_from_string(*value[6], &color))
-						//then...
+					if (
+						(value[0] == nullptr || get_bool_from_string(*value[0], &enabled)) &&
+						(value[1] == nullptr || (sscanf(value[1]->c_str(), "%u", &up))) &&
+						(value[2] == nullptr || (sscanf(value[2]->c_str(), "%u", &down))) &&
+						(value[3] == nullptr || (sscanf(value[3]->c_str(), "%u", &left))) &&
+						(value[4] == nullptr || (sscanf(value[4]->c_str(), "%u", &right))) &&
+						(value[5] == nullptr || (sscanf(value[5]->c_str(), "%f", &radius))) &&
+						(value[6] == nullptr || get_color_from_string(*value[6], &color))
+						)
 					{
 						text.set_textbox(left, right, up, down, radius, color);
 						text.set_use_textbox(enabled);
@@ -633,6 +641,8 @@ bool Gui::handle_gui_text_data(const my_XML_element & element, GUI_element** cre
 				ret_val = false;
 		}
 	}
+	if (!ret_val)
+		cerr << "Error in GUI_text XML data, at label \"" << name << "\"" << endl;
 	return ret_val;
 
 }
@@ -644,9 +654,10 @@ bool Gui::handle_gui_button_data(const my_XML_element & element, GUI_element** c
 	GUI_button &button = buttons.front();
 	(*created) = &button;
 	bool ret_val = true;
+	const char* name = nullptr;
 	for (list<my_XML_element>::const_iterator it = element.children.begin(); it != element.children.end() && ret_val; ++it)
 	{
-		const char* name = it->name.c_str();
+		name = it->name.c_str();
 		if (it->children.size() != 0)
 		{
 			ret_val = false;
@@ -753,6 +764,8 @@ bool Gui::handle_gui_button_data(const my_XML_element & element, GUI_element** c
 				ret_val = false;
 		}
 	}
+	if (!ret_val)
+		cerr << "Error in GUI_button XML data, at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -766,6 +779,8 @@ bool Gui::get_bitmap_from_string(const string& filename, ALLEGRO_BITMAP** bitmap
 		bitmap_dictionary[filename] = (*bitmap);
 	else
 		ret_val = false;
+	if (!ret_val)
+		cerr << "Error loading bitmap \"" << filename << "\"" << endl;
 	return ret_val;
 }
 
@@ -779,6 +794,8 @@ bool Gui::get_font_from_string(const string& filename, unsigned int size, ALLEGR
 		font_dictionary[font_data_t(filename,size)] = (*font);
 	else
 		ret_val = false;
+	if (!ret_val)
+		cerr << "Error loading font \"" << filename << "\" with size " << size << "!" << endl;
 	return ret_val;
 }
 
@@ -828,6 +845,8 @@ bool Gui::get_bool_from_string(const string & file, bool * result)
 		*result = false;
 	else
 		ret_val = false;
+	if (!ret_val)
+		cerr << "Error on bool value. Values must be either \"true\" or \"false\"." << endl;
 	return ret_val;
 }
 
@@ -837,11 +856,19 @@ bool Gui::get_color_from_string(const string & color_string, ALLEGRO_COLOR* colo
 	unsigned int result;
 	char* byte_pointer = (char*)&result;
 	//Little endian code
-	if (color_string.size() == 10 && sscanf(color_string.c_str(), "%010X", &result) == 1)
+	//The following bool value was taken from
+	//http://stackoverflow.com/questions/8899069/how-to-find-if-a-given-string-conforms-to-hex-notation-eg-0x34ff-without-regex
+	bool is_hex_notation = color_string.compare(0, 2, "0x") == 0
+		&& color_string.size() > 2
+		&& color_string.find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos;
+	//Must be 10 characters(4 bytes: Red,Green,Blue,Alpha + "0x")
+	if (is_hex_notation  && color_string.size() == 10 && sscanf(color_string.c_str(), "%x", &result) == 1)
 	{
 		*color = al_map_rgba(byte_pointer[3], byte_pointer[2], byte_pointer[1], byte_pointer[0]);
 		ret_val = true;
 	}
+	if (!ret_val)
+		cerr << "Error parsing color!" << endl;
 	return ret_val;
 }
 
@@ -866,6 +893,8 @@ bool Gui::get_attributes_from_strings(const attr_t &attr, const char ** key, con
 			break;
 		}
 	}
+	if (!ret_val)
+		cerr << "Invalid attribute key given!" << endl;
 	return ret_val;
 }
 
@@ -960,6 +989,71 @@ GUI_element * Gui::get_element_from_id(const char* element_id)
 	if (it != id_dictionary.end())
 		return_pointer = it->second;
 	return return_pointer;
+}
+
+void Gui::force_release_mouse()
+{
+	bool dummy;
+	GUI_active_element* active_gui_element;
+	for (list<GUI_element*>::iterator it = menu_element_list.begin(); it != menu_element_list.end(); ++it)	//For all elements
+		if ((active_gui_element = dynamic_cast<GUI_active_element *>(*it)) != nullptr)
+			active_gui_element->tell_not_in_use(&dummy);	//Tell them they are not in use
+}
+
+bool Gui::get_element_absolute_position(GUI_element* element, float * x, float * y, float * r)
+{
+	GUI_menu* menu;
+	bool el_found = true;
+	for (list<GUI_element*>::iterator it = menu_element_list.begin(); it != menu_element_list.end(); ++it)
+		//If element is inside gui
+		if ((*it) == element)
+		{
+			//Just return it's position
+			(*it)->get_position(x, y, r);
+			el_found = true;
+			break;
+		}
+	//Also look in menus within gui
+		else if ((menu = dynamic_cast<GUI_menu*>(*it)) != nullptr)
+			//If element is found in menu within menu
+			if (menu->get_element_position(element, x, y, r))
+			{
+				float dummy, menu_r;
+				menu->get_position(&dummy, &dummy, &menu_r);
+				el_found = true;
+				break;
+			}
+	//If no element was found
+	if (!el_found)
+		//Set values to zero
+		(*x) = (*y) = (*r) = 0;
+	//Return element found?
+	return el_found;
+}
+
+bool Gui::set_element_absolute_position(GUI_element * element, float x, float y, float r)
+{
+	GUI_menu* menu;
+	bool el_found = true;
+	for (list<GUI_element*>::iterator it = menu_element_list.begin(); it != menu_element_list.end(); ++it)
+		//If element is inside gui
+		if ((*it) == element)
+		{
+			//Just set it's position
+			(*it)->set_position(x, y, r);
+			el_found = true;
+			break;
+		}
+	//Also look in menus within gui
+		else if ((menu = dynamic_cast<GUI_menu*>(*it)) != nullptr)
+			//If element is found in menu within menu
+			if (menu->set_element_position(element, x, y, r))
+			{
+				el_found = true;
+				break;
+			}
+	//Return element found?
+	return el_found;
 }
 
 ALLEGRO_DISPLAY * Gui::get_display()

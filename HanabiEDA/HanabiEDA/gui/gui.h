@@ -3,6 +3,7 @@
 #include <iostream>
 #include <allegro5\allegro5.h>
 #include <map>
+#include <deque>
 #include "gui_element.h"
 #include "gui_menu.h"
 #include "gui_text.h"
@@ -32,7 +33,14 @@ public:
 	void redraw();
 	//Feed mouse event
 	bool feed_mouse_event(ALLEGRO_MOUSE_STATE & state);
+	//Returns element pointer from element id. nullptr if id not found
 	GUI_element* get_element_from_id(const char* element_id);
+	//Force all elements to release any mouse state. Redraw may be needed after this
+	void force_release_mouse();
+	//Looks for an element inside gui, and returns it's absolute position. True if element found
+	bool get_element_absolute_position(GUI_element * element, float * x, float * y, float * r);
+	//Looks for an element inside gui, and sets it's absolute position. True if element found
+	bool set_element_absolute_position(GUI_element * element, float x, float y, float r);
 	ALLEGRO_DISPLAY* get_display();
 	~Gui();
 private:
@@ -68,10 +76,18 @@ private:
 	//Element list
 	list<GUI_element*> menu_element_list;
 	//Variables used to hold data
-	list<GUI_menu> submenus;
-	list<GUI_image> images;
-	list<GUI_text> texts;
-	list<GUI_button> buttons;
+	//I cannot make up my mind whether to use list here or dequeue
+
+	deque<GUI_menu> submenus;
+	deque<GUI_image> images;
+	deque<GUI_text> texts;
+	deque<GUI_button> buttons;
+
+	//list<GUI_menu> submenus;
+	//list<GUI_image> images;
+	//list<GUI_text> texts;
+	//list<GUI_button> buttons;
+
 	bitmap_dic_t bitmap_dictionary; //In order to load images just one time
 	font_dic_t font_dictionary;	//In order to load fonts just one time
 	id_dic_t id_dictionary;	//In order to access elements declared in XML from C++
@@ -83,5 +99,4 @@ private:
 	ALLEGRO_COLOR gui_backg_color;
 	ALLEGRO_DISPLAY* display;
 };
-
 #endif

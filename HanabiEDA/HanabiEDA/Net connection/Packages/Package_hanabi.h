@@ -4,7 +4,7 @@
 #define MAX_PACKAGE_SIZE 512	//Bytes
 #define HEADER_SIZE 1	//Byte
 
-typedef enum : unsigned char
+typedef enum ID : unsigned char
 {
 	ACK_ID = 0x01,NAME_ID = 0x10,NAME_IS_ID = 0x11,
 	START_INFO_ID = 0x12,YOU_START_ID = 0x20,I_START_ID = 0x21,
@@ -14,7 +14,7 @@ typedef enum : unsigned char
 	QUIT_ID = 0xFE,ERROR_ID = 0xFF
 }ID;
 
-typedef enum : unsigned char
+typedef enum package_type : unsigned char
 {
 	ACK_P,NAME_P,NAME_IS_P,START_INFO_P,YOU_START_P,I_START_P,
 	DISCARD_P,PLAY_P,YOU_HAVE_P,DRAW_P,WE_WON_P,WE_LOST_P,MATCH_IS_OVER_P,

@@ -6,7 +6,7 @@
 
 #pragma pack(push,1)
 //Package
-typedef struct
+typedef struct package_data
 {
 	unsigned char header;
 	unsigned char name_length;

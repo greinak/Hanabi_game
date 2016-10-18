@@ -1,6 +1,6 @@
 <GUI_menu>
   <size width="1920" height = "1080"/>
-  <scale sx="1" sy="1"/>
+  <scale sx="1" sy="1"></scale>
   <backg_color>0xFFFFFFFF</backg_color>
   <icon_bitmap>test.png</icon_bitmap>
   <title>TEST</title>
@@ -11,7 +11,7 @@
       <backg_color>0x000000FF</backg_color>
       <elements>
         <GUI_text id="HOLA">
-          <position x="100" y="100" r="2"></position>
+          <position x="100" y="100" r="0"></position>
           <text>TEST1</text>
           <textbox enabled="true" color="0x00000015" radius="5" up="5" down="5" left="5" right="5"></textbox>
           <text_color>0xFF00FFFF</text_color>

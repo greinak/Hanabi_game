@@ -52,6 +52,7 @@ private:
 	bool is_volatile;
 	float width, height, radius;
 	ALLEGRO_COLOR color;
+	//Should this be a deque?
 	list<GUI_element*> menu_element_list;
 	bool	was_button_pressed_last_time;
 };

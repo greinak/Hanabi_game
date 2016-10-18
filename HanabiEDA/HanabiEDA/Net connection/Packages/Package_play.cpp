@@ -3,7 +3,7 @@
 #define CARD_ID_SIZE 1
 #pragma pack(push,1)
 //Package
-typedef struct
+typedef struct package_data
 {
 	unsigned char header;
 	unsigned char card_id;

@@ -2,7 +2,7 @@
 
 #pragma pack(push,1)
 //Package
-typedef struct
+typedef struct package_data
 {
 	unsigned char header;
 	card_hanabi	client_hand[HAND_CARDS];

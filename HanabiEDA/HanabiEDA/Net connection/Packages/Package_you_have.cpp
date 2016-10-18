@@ -2,7 +2,7 @@
 
 //Package
 #pragma pack(push,1)
-typedef struct
+typedef struct package_data
 {
 	unsigned char header;
 	union
