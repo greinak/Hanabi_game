@@ -356,7 +356,7 @@ void GUI_button::draw()
 				if (hover_bitmap != nullptr)
 					al_draw_bitmap(hover_bitmap, -ref_x, -ref_y, 0);
 			}
-			if (aux_bitmap != nullptr)
+			if (aux_bitmap != nullptr && use_aux_bitmap)
 				al_draw_bitmap(aux_bitmap, -ref_x, -ref_y, 0);
 			al_use_transform(&backup);								//Restore transformation!!
 		}

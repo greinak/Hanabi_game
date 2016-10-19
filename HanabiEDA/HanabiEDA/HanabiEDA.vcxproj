@@ -229,7 +229,10 @@
     <ClCompile Include="Net connection\Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="example.xml" />
+    <Xml Include="menu_data\connect_menu.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="menu_data\hanabi_game_ui.xml" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gui\gui.h" />

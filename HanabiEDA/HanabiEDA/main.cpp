@@ -34,7 +34,7 @@ int main(void)
 	success &= al_install_mouse();
 
 	ifstream file;
-	file.open("example.xml", std::ifstream::in);
+	file.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);
 	if (!file.is_open())
 		return 1;
 	Gui gui = Gui(file);

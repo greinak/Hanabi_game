@@ -4,7 +4,7 @@
 #include <allegro5\allegro5.h>
 #include "gui_active_element.h"
 
-#define ALPHA_THRESHOLD	0.10	//Minimum alpha value to consider mouse is over element
+#define ALPHA_THRESHOLD	0.05	//Minimum alpha value to consider mouse is over element
 class GUI_button;
 
 //Author: Gonzalo Julian Reina Kiperman

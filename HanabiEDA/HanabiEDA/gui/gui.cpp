@@ -324,12 +324,15 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GUI_element** 
 					ret_val = false; //true condition is easier to do
 					if (get_attributes_from_strings(it->attributes, key, (const string**) value))
 					{
-						unsigned int x, y;
+						int x, y;
 						float r = 0;
-						if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &x) == 1 && sscanf(value[1]->c_str(), "%u", &y) == 1))
+						bool radian;
+						if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &x) == 1 && sscanf(value[1]->c_str(), "%d", &y) == 1))
 						{
-							if (value[2] == nullptr || sscanf(value[2]->c_str(), "%f", &r) == 1)
+							if ((value[2] == nullptr) || (radian = (sscanf(value[2]->c_str(), "%f", &r) == 1)) || sscanf(value[2]->c_str(), "d%f", &r) == 1)
 							{
+								if (!radian)
+									r *= ALLEGRO_PI / 180;
 								submenu.set_position(x, y, r);
 								ret_val = true;
 							}
@@ -343,8 +346,8 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GUI_element** 
 					ret_val = false; //true condition is easier to do
 					if (get_attributes_from_strings(it->attributes, key, (const string**) value))
 					{
-						unsigned int ref_x, ref_y;
-						if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &ref_x) == 1 && sscanf(value[1]->c_str(), "%u", &ref_y) == 1))
+						int ref_x, ref_y;
+						if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &ref_x) == 1 && sscanf(value[1]->c_str(), "%d", &ref_y) == 1))
 						{
 							submenu.set_reference_point(ref_x, ref_y);
 							ret_val = true;
@@ -409,6 +412,14 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GUI_element** 
 					else
 						ret_val = false;
 				}
+				else if (!strcmp(name, "blocker"))
+				{
+					bool flag;
+					if (get_bool_from_string(it->text, &flag))
+						submenu.set_is_blocker(flag);
+					else
+						ret_val = false;
+				}
 				else
 					ret_val = false;
 			}
@@ -448,12 +459,15 @@ bool Gui::handle_gui_image_data(const my_XML_element & element, GUI_element** cr
 				ret_val = false; //true condition is easier to do
 				if (get_attributes_from_strings(it->attributes, key, (const string**)value))
 				{
-					unsigned int x, y;
+					int x, y;
 					float r = 0;
-					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &x) == 1 && sscanf(value[1]->c_str(), "%u", &y) == 1))
+					bool radian;
+					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &x) == 1 && sscanf(value[1]->c_str(), "%d", &y) == 1))
 					{
-						if (value[2] == nullptr || sscanf(value[2]->c_str(), "%f", &r) == 1)
+						if ((value[2] == nullptr) || (radian = (sscanf(value[2]->c_str(), "%f", &r) == 1)) || sscanf(value[2]->c_str(), "d%f", &r) == 1)
 						{
+							if (!radian)
+								r *= ALLEGRO_PI / 180;
 							image.set_position(x, y, r);
 							ret_val = true;
 						}
@@ -467,8 +481,8 @@ bool Gui::handle_gui_image_data(const my_XML_element & element, GUI_element** cr
 				ret_val = false; //true condition is easier to do
 				if (get_attributes_from_strings(it->attributes, key, (const string**) value))
 				{
-					unsigned int ref_x, ref_y;
-					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &ref_x) == 1 && sscanf(value[1]->c_str(), "%u", &ref_y) == 1))
+					int ref_x, ref_y;
+					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &ref_x) == 1 && sscanf(value[1]->c_str(), "%d", &ref_y) == 1))
 					{
 						image.set_reference_point(ref_x, ref_y);
 						ret_val = true;
@@ -539,12 +553,15 @@ bool Gui::handle_gui_text_data(const my_XML_element & element, GUI_element** cre
 				ret_val = false; //true condition is easier to do
 				if (get_attributes_from_strings(it->attributes, key, (const string**) value))
 				{
-					unsigned int x, y;
+					int x, y;
 					float r = 0;
-					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &x) == 1 && sscanf(value[1]->c_str(), "%u", &y) == 1))
+					bool radian;
+					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &x) == 1 && sscanf(value[1]->c_str(), "%d", &y) == 1))
 					{
-						if (value[2] == nullptr || sscanf(value[2]->c_str(), "%f", &r) == 1)
+						if ((value[2] == nullptr) || (radian = (sscanf(value[2]->c_str(), "%f", &r) == 1)) || sscanf(value[2]->c_str(), "d%f", &r) == 1)
 						{
+							if (!radian)
+								r *= ALLEGRO_PI / 180;
 							text.set_position(x, y, r);
 							ret_val = true;
 						}
@@ -672,12 +689,15 @@ bool Gui::handle_gui_button_data(const my_XML_element & element, GUI_element** c
 				ret_val = false; //true condition is easier to do
 				if (get_attributes_from_strings(it->attributes, key, (const string**)value))
 				{
-					unsigned int x, y;
+					int x, y;
 					float r = 0;
-					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &x) == 1 && sscanf(value[1]->c_str(), "%u", &y) == 1))
+					bool radian;
+					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &x) == 1 && sscanf(value[1]->c_str(), "%d", &y) == 1))
 					{
-						if (value[2] == nullptr || sscanf(value[2]->c_str(), "%f", &r) == 1)
+						if ((value[2] == nullptr) || (radian = (sscanf(value[2]->c_str(), "%f", &r) == 1)) || sscanf(value[2]->c_str(), "d%f", &r) == 1)
 						{
+							if (!radian)
+								r *= ALLEGRO_PI / 180;
 							button.set_position(x, y, r);
 							ret_val = true;
 						}
@@ -691,8 +711,8 @@ bool Gui::handle_gui_button_data(const my_XML_element & element, GUI_element** c
 				ret_val = false; //true condition is easier to do
 				if (get_attributes_from_strings(it->attributes, key, (const string**) value))
 				{
-					unsigned int ref_x, ref_y;
-					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u", &ref_x) == 1 && sscanf(value[1]->c_str(), "%u", &ref_y) == 1))
+					int ref_x, ref_y;
+					if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%d", &ref_x) == 1 && sscanf(value[1]->c_str(), "%d", &ref_y) == 1))
 					{
 						button.set_reference_point(ref_x, ref_y);
 						ret_val = true;

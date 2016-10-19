@@ -1,0 +1,82 @@
+<GUI_menu>
+  <size width="800" height = "750"/>
+  <scale sx="1" sy="1"></scale>
+  <backg_color>0xFFFFFFFF</backg_color>
+  <backg_bitmap>Hanabi_textures/background.png</backg_bitmap>
+  <icon_bitmap>Hanabi_textures/Fireworks/Blue.png</icon_bitmap>
+  <title>Hanabi Game - Connect menu</title>
+  <elements>
+    <GUI_image>
+      <position x="400" y="130"/>
+      <ref_point ref_x ="379" ref_y="116"/>
+      <image_bitmap>Hanabi_textures/logo.png</image_bitmap>
+    </GUI_image>
+    <GUI_submenu>
+      <ref_point ref_x="-400" ref_y="0"/>
+      <position x="0" y="250"/>
+      <elements>
+        <GUI_text>
+          <position x="-320" y="0"/>
+          <text>Name</text>
+          <font size="50" type="font.ttf"/>
+          <text_color>0xFFFFFFFF</text_color>
+        </GUI_text>
+        <GUI_text id="name_textbox">
+          <position x="0" y="80"/>
+          <text_align>CENTER</text_align>
+          <text>Gonzalo Julian Reina Kiperman</text>
+          <font size="30" type="font.ttf"/>
+          <text_color>0x000000FF</text_color>
+        </GUI_text>
+        <GUI_button id="name_button">
+          <button_base_bitmap>Hanabi_textures/Others/simple_textbox.png</button_base_bitmap>
+          <position x="0" y="100"/>
+          <ref_point ref_x="281" ref_y="30"/>
+        </GUI_button>
+      </elements>
+    </GUI_submenu>
+    <GUI_submenu>
+      <ref_point ref_x="-400" ref_y="0"/>
+      <position x="0" y="400"/>
+      <elements>
+        <GUI_text>
+          <position x="-320" y="0"/>
+          <text>IP</text>
+          <font size="50" type="font.ttf"/>
+          <text_color>0xFFFFFFFF</text_color>
+        </GUI_text>
+        <GUI_text id="ip_textbox">
+          <position x="0" y="80"/>
+          <text_align>CENTER</text_align>
+          <text>127.0.0.1</text>
+          <font size="30" type="font.ttf"/>
+          <text_color>0x000000FF</text_color>
+        </GUI_text>
+        <GUI_button id="ip_button">
+          <button_base_bitmap>Hanabi_textures/Others/simple_textbox.png</button_base_bitmap>
+          <position x="0" y="100"/>
+          <ref_point ref_x="281" ref_y="30"/>
+        </GUI_button>
+      </elements>
+    </GUI_submenu>
+    <GUI_button id="connect_button">
+      <button_base_bitmap>Hanabi_textures/Others/connect.png</button_base_bitmap>
+      <button_hover_bitmap>Hanabi_textures/Others/connect_hover.png</button_hover_bitmap>
+      <button_click_bitmap>Hanabi_textures/Others/connect_click.png</button_click_bitmap>
+      <position x="400" y="630"/>
+      <ref_point ref_x="150" ref_y="50"/>
+      <check_alpha>true</check_alpha>
+    </GUI_button>
+    <GUI_text id="message_text">
+          <position x="400" y="700"/>
+          <text_align>CENTER</text_align>
+          <textbox enabled="true" color="0x000000F0" up="10" down="0" left="10" right="10" radius="10"/>
+          <font size="20" type="font.ttf"/>
+          <text_color>0xFFFFFFFF</text_color>
+          <visible>true</visible>
+          <text>Connecting...</text>
+        </GUI_text>
+  </elements>
+</GUI_menu>
+
+

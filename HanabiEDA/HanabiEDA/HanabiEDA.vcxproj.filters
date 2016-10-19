@@ -31,6 +31,9 @@
     <Filter Include="Source Files\Net connection\Packages">
       <UniqueIdentifier>{e06d91ce-012b-481c-86dc-6fc114b91d3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\menu_data">
+      <UniqueIdentifier>{41e95f83-9fae-49b4-b129-ab7bac862ecf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -122,8 +125,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="example.xml">
-      <Filter>Resource Files</Filter>
+    <Xml Include="menu_data\connect_menu.xml">
+      <Filter>Resource Files\menu_data</Filter>
+    </Xml>
+    <Xml Include="menu_data\hanabi_game_ui.xml">
+      <Filter>Resource Files\menu_data</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>
