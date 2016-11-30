@@ -122,7 +122,7 @@ bool GUI_button::feed_mouse_state(ALLEGRO_MOUSE_STATE& state, bool* should_close
 					else
 					{
 						//No. Then, mouse button was down when it entered element. Ignore this!
-						//This may have problems with thouchscreens, so touchscreens must be disabled
+						//This may have problems with touchscreens, so touchscreens must be disabled
 					}
 				}
 			}
