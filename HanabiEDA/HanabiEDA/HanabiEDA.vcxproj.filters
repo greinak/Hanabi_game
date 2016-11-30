@@ -16,12 +16,6 @@
     <Filter Include="Source Files\Net connection">
       <UniqueIdentifier>{7b3c778f-8ba5-49d4-b4e8-ba75568287b1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Gui">
-      <UniqueIdentifier>{d6dcdce6-d46b-4bec-ab1f-d5cc5b9d57d9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Gui">
-      <UniqueIdentifier>{b8a78df5-00ae-49f8-9075-cfe26abf9da4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Net connection">
       <UniqueIdentifier>{3e85e989-e114-44fb-afc6-885a6db458ab}</UniqueIdentifier>
     </Filter>
@@ -34,31 +28,16 @@
     <Filter Include="Resource Files\menu_data">
       <UniqueIdentifier>{41e95f83-9fae-49b4-b129-ab7bac862ecf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Gui">
+      <UniqueIdentifier>{759d2b57-6b72-45ce-bdb7-e3aafe42ba80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gui">
+      <UniqueIdentifier>{85bc1891-5cf5-46e1-bf19-4050ba7316d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui.cpp">
-      <Filter>Source Files\Gui</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui_active_element.cpp">
-      <Filter>Source Files\Gui</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui_button.cpp">
-      <Filter>Source Files\Gui</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui_element.cpp">
-      <Filter>Source Files\Gui</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui_image.cpp">
-      <Filter>Source Files\Gui</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui_menu.cpp">
-      <Filter>Source Files\Gui</Filter>
-    </ClCompile>
-    <ClCompile Include="gui\gui_text.cpp">
-      <Filter>Source Files\Gui</Filter>
     </ClCompile>
     <ClCompile Include="Net connection\Client.cpp">
       <Filter>Source Files\Net connection</Filter>
@@ -123,6 +102,27 @@
     <ClCompile Include="Net connection\Packages\Package_you_start.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
+    <ClCompile Include="Gui\GuiActiveElement.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\GuiButton.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\GuiElement.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\GuiImage.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\GuiSubmenu.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\GuiText.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\Gui.cpp">
+      <Filter>Source Files\Gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="menu_data\connect_menu.xml">
@@ -131,29 +131,11 @@
     <Xml Include="menu_data\hanabi_game_ui.xml">
       <Filter>Resource Files\menu_data</Filter>
     </Xml>
+    <Xml Include="menu_data\hanabi_game_ui - Copy.xml">
+      <Filter>Resource Files\menu_data</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gui\gui.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\gui_active_element.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\gui_button.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\gui_element.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\gui_image.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\gui_menu.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\gui_text.h">
-      <Filter>Header Files\Gui</Filter>
-    </ClInclude>
     <ClInclude Include="Net connection\Client.h">
       <Filter>Header Files\Net connection</Filter>
     </ClInclude>
@@ -222,6 +204,27 @@
     </ClInclude>
     <ClInclude Include="Net connection\Packages\Packages.h">
       <Filter>Header Files\Net connection\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiActiveElement.h">
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiButton.h">
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiElement.h">
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiImage.h">
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiSubmenu.h">
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiText.h">
+      <Filter>Header Files\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\Gui.h">
+      <Filter>Header Files\Gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

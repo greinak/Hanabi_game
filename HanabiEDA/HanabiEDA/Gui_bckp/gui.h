@@ -1,16 +1,14 @@
 #ifndef GUI_H_
 #define GUI_H_
-
 #include <iostream>
+#include <allegro5\allegro5.h>
 #include <map>
 #include <deque>
-#include <allegro5\allegro5.h>
-
-#include "GuiElement.h"
-#include "GuiSubmenu.h"
-#include "GuiText.h"
-#include "GuiImage.h"
-#include "GuiButton.h"
+#include "gui_element.h"
+#include "gui_menu.h"
+#include "gui_text.h"
+#include "gui_image.h"
+#include "gui_button.h"
 
 //Author: Gonzalo Julian Reina Kiperman
 
@@ -19,7 +17,7 @@ using namespace std;
 typedef map<string, ALLEGRO_BITMAP*> bitmap_dic_t;
 typedef pair<string, unsigned int> font_data_t;
 typedef map<font_data_t, ALLEGRO_FONT*> font_dic_t;
-typedef map<string, GuiElement*> id_dic_t;
+typedef map<string, GUI_element*> id_dic_t;
 typedef map<string, string> attr_t;
 
 typedef struct my_XML_element my_XML_element;
@@ -33,13 +31,16 @@ public:
 	bool initialized_successfully();
 	//Redraws gui
 	void redraw();
-	bool handle_position(string *x, string *y, string *r, float * fx, float * fy, float * fr);
 	//Feed mouse event
 	bool feed_mouse_event(ALLEGRO_MOUSE_STATE & state);
 	//Returns element pointer from element id. nullptr if id not found
-	GuiElement* get_element_from_id(const char* element_id);
+	GUI_element* get_element_from_id(const char* element_id);
 	//Force all elements to release any mouse state. Redraw may be needed after this
 	void force_release_mouse();
+	//Looks for an element inside gui, and returns it's absolute position. True if element found
+	bool get_element_absolute_position(GUI_element * element, float * x, float * y, float * r);
+	//Looks for an element inside gui, and sets it's absolute position. True if element found
+	bool set_element_absolute_position(GUI_element * element, float x, float y, float r);
 	ALLEGRO_DISPLAY* get_display();
 	~Gui();
 private:
@@ -48,19 +49,19 @@ private:
 	//Returns true if success. Adds elements to GUI list
 	bool handle_gui_menu_data(const my_XML_element& element);
 	//Returns true if success. Creates submenu from element and returns it on created
-	bool handle_gui_submenu_data(const my_XML_element& element, GuiElement** created);
+	bool handle_gui_submenu_data(const my_XML_element& element, GUI_element** created);
 	//Returns true if success. Creates image from element and returns it on created
-	bool handle_gui_image_data(const my_XML_element& element, GuiElement** created);
+	bool handle_gui_image_data(const my_XML_element& element, GUI_element** created);
 	//Returns true if success. Creates text from element and returns it on created
-	bool handle_gui_text_data(const my_XML_element& element, GuiElement** created);
+	bool handle_gui_text_data(const my_XML_element& element, GUI_element** created);
 	//Returns true if success. Creates button from element and returns it on created
-	bool handle_gui_button_data(const my_XML_element& element, GuiElement** created);
+	bool handle_gui_button_data(const my_XML_element& element, GUI_element** created);
 	//Returns true if success. Creates allegro bitmap from string, aviods duplicates.
 	bool get_bitmap_from_string(const string& filename, ALLEGRO_BITMAP ** bitmap);
 	//Returns true if success. Creates allegro font from strings, avoids duplicates.
 	bool get_font_from_string(const string & filename, unsigned int size, ALLEGRO_FONT ** font);
 	//Returns true if success. Creates elements from given element and adds them on *list_p
-	bool handle_elements(const my_XML_element& element, list<GuiElement*>* list_p);
+	bool handle_elements(const my_XML_element& element, list<GUI_element*>* list_p);
 	//Get bool true or false from string. true on success
 	bool get_bool_from_string(const string &file, bool* result);	//Returns true if success in parsing string
 	//Get color from string. True on success. Format 0xRRGGBBAA
@@ -73,14 +74,14 @@ private:
 	//NOTE: (sizeof(values)/sizeof(values[0])-1) >= (sizeof(key)/sizeof(key[0]))  !!!!!
 	bool get_attributes_from_strings(const attr_t& attr,const char** key, const string **values);	//Last one is pointer to pointer to const string ;)
 	//Element list
-	list<GuiElement*> menu_element_list;
+	list<GUI_element*> menu_element_list;
 	//Variables used to hold data
 	//I cannot make up my mind whether to use list here or dequeue
 
-	deque<GuiSubmenu> submenus;
-	deque<GuiImage> images;
-	deque<GuiText> texts;
-	deque<GuiButton> buttons;
+	deque<GUI_menu> submenus;
+	deque<GUI_image> images;
+	deque<GUI_text> texts;
+	deque<GUI_button> buttons;
 
 	//list<GUI_menu> submenus;
 	//list<GUI_image> images;

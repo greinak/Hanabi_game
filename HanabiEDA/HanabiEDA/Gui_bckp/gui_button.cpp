@@ -33,7 +33,7 @@ bool GUI_button::feed_mouse_state(ALLEGRO_MOUSE_STATE& state, bool* should_close
 	exclusive_attention = false;
 	(*should_close) = false;				//Should container be closed?
 	*redraw = false;
-	if (is_active && base_bitmap != NULL)	//Is element active? Has it got base bitmap?
+	if (is_active && base_bitmap != nullptr)	//Is element active? Has it got base bitmap?
 	{
 		event_data data;
 		ALLEGRO_TRANSFORM backup, transform;

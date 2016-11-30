@@ -1,4 +1,4 @@
-#include "gui_element.h"
+#include "GUI_element.h"
 
 
 //Author: Gonzalo Julian Reina Kiperman

@@ -1,4 +1,4 @@
-#include "gui/gui.h"
+#include "Gui/Gui.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,17 +9,6 @@
 
 //Author: Gonzalo Julian Reina Kiperman
 
-bool c_back(GUI_button* source, event_data data, void* user_data, bool* redraw)
-{
-	float x, y, r;
-	source->get_position(&x, &y, &r);
-	x += 0.1;
-	y += 0.1;
-	r += 0.001;
-	source->set_position(x, y, r);
-	*redraw = true;
-	return false;
-}
 
 using namespace std;
 int main(void)
@@ -38,7 +27,7 @@ int main(void)
 	if (!file.is_open())
 		return 1;
 	Gui gui = Gui(file);
-	//GUI_button* button = (GUI_button*) gui.get_element_from_id("button_1");
+	//GuiButton* button = (GuiButton*) gui.get_element_from_id("button_1");
 	//button->set_on_hover_movement_callback(c_back);
 	ALLEGRO_EVENT_QUEUE* ev_q = al_create_event_queue();
 	ALLEGRO_DISPLAY* disp = gui.get_display();
@@ -60,7 +49,7 @@ int main(void)
 			{
 				ALLEGRO_MOUSE_STATE st;
 				al_get_mouse_state(&st);
-				if (gui.feed_mouse_event(st))
+				if (gui.feed_mouse_event(st) || true)
 					redraw = true;
 			}
 		}

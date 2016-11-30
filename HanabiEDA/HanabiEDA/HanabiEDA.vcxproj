@@ -198,13 +198,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="gui\gui.cpp" />
-    <ClCompile Include="gui\gui_active_element.cpp" />
-    <ClCompile Include="gui\gui_button.cpp" />
-    <ClCompile Include="gui\gui_element.cpp" />
-    <ClCompile Include="gui\gui_image.cpp" />
-    <ClCompile Include="gui\gui_menu.cpp" />
-    <ClCompile Include="gui\gui_text.cpp" />
+    <ClCompile Include="Gui\Gui.cpp" />
+    <ClCompile Include="Gui\GuiActiveElement.cpp" />
+    <ClCompile Include="Gui\GuiButton.cpp" />
+    <ClCompile Include="Gui\GuiElement.cpp" />
+    <ClCompile Include="Gui\GuiImage.cpp" />
+    <ClCompile Include="Gui\GuiSubmenu.cpp" />
+    <ClCompile Include="Gui\GuiText.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Net connection\Client.cpp" />
     <ClCompile Include="Net connection\Net_connection.cpp" />
@@ -232,16 +232,19 @@
     <Xml Include="menu_data\connect_menu.xml">
       <SubType>Designer</SubType>
     </Xml>
-    <Xml Include="menu_data\hanabi_game_ui.xml" />
+    <Xml Include="menu_data\hanabi_game_ui - Copy.xml" />
+    <Xml Include="menu_data\hanabi_game_ui.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gui\gui.h" />
-    <ClInclude Include="gui\gui_active_element.h" />
-    <ClInclude Include="gui\gui_button.h" />
-    <ClInclude Include="gui\gui_element.h" />
-    <ClInclude Include="gui\gui_image.h" />
-    <ClInclude Include="gui\gui_menu.h" />
-    <ClInclude Include="gui\gui_text.h" />
+    <ClInclude Include="Gui\Gui.h" />
+    <ClInclude Include="Gui\GuiActiveElement.h" />
+    <ClInclude Include="Gui\GuiButton.h" />
+    <ClInclude Include="Gui\GuiElement.h" />
+    <ClInclude Include="Gui\GuiImage.h" />
+    <ClInclude Include="Gui\GuiSubmenu.h" />
+    <ClInclude Include="Gui\GuiText.h" />
     <ClInclude Include="Net connection\Client.h" />
     <ClInclude Include="Net connection\Net_connection.h" />
     <ClInclude Include="Net connection\Packages\card_hanabi.h" />

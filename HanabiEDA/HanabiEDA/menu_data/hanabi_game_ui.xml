@@ -1,1090 +1,1108 @@
-<GUI_menu>
+<GuiMenu>
   <!--GUI configuraton-->
   <size width="3200" height = "1800"/>
   <scale sx="0.6" sy="0.6"></scale>
-  <backg_color>0xFFFFFFFF</backg_color>
-  <backg_bitmap>Hanabi_textures/background.png</backg_bitmap>
-  <icon_bitmap>Hanabi_textures/Fireworks/Blue.png</icon_bitmap>
-  <title>Hanabi Game - Connect menu</title>
+  <backgBitmap>Hanabi_textures/background.png</backgBitmap>
+  <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
+  <title>Hanabi Game</title>
   <elements>
     <!--Exit menu-->
-    <GUI_submenu>
+    <GuiSubmenu id="exit_menu">
       <position x="-450" y="-150"/>
-      <ref_point ref_x="-1600" ref_y="-900"/>
-      <size width="900" height="300" b_radius="20"/>
-      <backg_color>0x6464C8FF</backg_color>
+      <offset x="-1600" y="-900"/>
+      <background width="900" height="300" radius="20" color="0x6464C8FF"/>
       <visible>false</visible>
       <active>false</active>
       <blocker>true</blocker>
       <elements>
-        <GUI_text>
+        <GuiText>
           <text>Do you want to quit game?</text>
           <position x="450" y="70"/>
-          <text_align>CENTER</text_align>
+          <textAlign>CENTER</textAlign>
           <font size="50" type="font.ttf"/>
-        </GUI_text>
-        <GUI_button id="quit_ok">
-          <ref_point ref_x="160" ref_y="40"/>
+        </GuiText>
+        <GuiButton id="quit_ok">
+          <offset x="160" y="40"/>
           <position x="250" y="200"/>
-          <button_base_bitmap>Hanabi_textures/game_buttons/ok.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/game_buttons/ok_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/game_buttons/ok_clicked.png</button_click_bitmap>
-        </GUI_button>
-        <GUI_button id="quit_cancel">
-          <ref_point ref_x="160" ref_y="40"/>
+          <baseBitmap>Hanabi_textures/game_buttons/ok.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/ok_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/ok_clicked.png</clickBitmap>
+        </GuiButton>
+        <GuiButton id="quit_cancel">
+          <offset x="160" y="40"/>
           <position x="650" y="200"/>
-          <button_base_bitmap>Hanabi_textures/game_buttons/cancel.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/game_buttons/cancel_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/game_buttons/cancel_clicked.png</button_click_bitmap>
-        </GUI_button>
+          <baseBitmap>Hanabi_textures/game_buttons/cancel.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/cancel_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/cancel_clicked.png</clickBitmap>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Remote player left-->
-    <GUI_submenu>
-    <position x="-450" y="-150"/>
-    <ref_point ref_x="-1600" ref_y="-900"/>
-    <size width="900" height="300" b_radius="20"/>
-    <visible>false</visible>
-    <active>false</active>
-    <blocker>true</blocker>
-    <backg_color>0x6464C8FF</backg_color>
-    <elements>
-      <GUI_text>
-        <text>Remote player left the game</text>
-        <position x="450" y="70"/>
-        <text_align>CENTER</text_align>
-        <font size="50" type="font.ttf"/>
-      </GUI_text>
-      <GUI_button id="remote_player_left_ok">
-        <ref_point ref_x="160" ref_y="40"/>
-        <position x="450" y="200"/>
-        <button_base_bitmap>Hanabi_textures/game_buttons/ok.png</button_base_bitmap>
-        <button_hover_bitmap>Hanabi_textures/game_buttons/ok_hovered.png</button_hover_bitmap>
-        <button_click_bitmap>Hanabi_textures/game_buttons/ok_clicked.png</button_click_bitmap>
-        <check_alpha>true</check_alpha>
-      </GUI_button>
-    </elements>
-    </GUI_submenu>
-    <!--Connection lost menu-->
-    <GUI_submenu>
+    <GuiSubmenu id="remote_player_left_menu">
       <position x="-450" y="-150"/>
-      <ref_point ref_x="-1600" ref_y="-900"/>
-      <size width="900" height="300" b_radius="20"/>
+      <offset x="-1600" y="-900"/>
+      <background width="900" height="300" radius="20" color="0x6464C8FF"/>
       <visible>false</visible>
       <active>false</active>
       <blocker>true</blocker>
-      <backg_color>0x6464C8FF</backg_color>
       <elements>
-        <GUI_text>
+        <GuiText>
+          <text>Remote player left the game</text>
+          <position x="450" y="70"/>
+          <textAlign>CENTER</textAlign>
+          <font size="50" type="font.ttf"/>
+        </GuiText>
+        <GuiButton id="remote_player_left_menu_ok">
+          <offset x="160" y="40"/>
+          <position x="450" y="200"/>
+          <baseBitmap>Hanabi_textures/game_buttons/ok.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/ok_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/ok_clicked.png</clickBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+      </elements>
+    </GuiSubmenu>
+    <!--Connection lost menu-->
+    <GuiSubmenu id="connection_error_menu">
+      <position x="-450" y="-150"/>
+      <offset x="-1600" y="-900"/>
+      <background width="900" height="300" radius="20" color="0x6464C8FF"/>
+      <visible>false</visible>
+      <active>false</active>
+      <blocker>true</blocker>
+      <elements>
+        <GuiText>
           <text>Connection error</text>
           <position x="450" y="70"/>
-          <text_align>CENTER</text_align>
+          <textAlign>CENTER</textAlign>
           <font size="50" type="font.ttf"/>
-        </GUI_text>
-        <GUI_button id="connection_error_ok">
-          <ref_point ref_x="160" ref_y="40"/>
+        </GuiText>
+        <GuiButton id="connection_error_menu_ok">
+          <offset x="160" y="40"/>
           <position x="450" y="200"/>
-          <button_base_bitmap>Hanabi_textures/game_buttons/ok.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/game_buttons/ok_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/game_buttons/ok_clicked.png</button_click_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
+          <baseBitmap>Hanabi_textures/game_buttons/ok.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/ok_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/ok_clicked.png</clickBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Game finished menu-->
-    <GUI_submenu>
+    <GuiSubmenu id="game_finished_menu">
       <position x="-700" y="-250"/>
-      <ref_point ref_x="-1600" ref_y="-900"/>
-      <size width="1400" height="500" b_radius="20"/>
+      <offset x="-1600" y="-900"/>
+      <background width="1400" height="500" radius="20" color="0x6464C8FF"/>
       <visible>false</visible>
       <active>false</active>
       <blocker>true</blocker>
-      <backg_color>0x6464C8FF</backg_color>
       <elements>
-        <GUI_text>
+        <GuiText>
           <text>Game finished! Score:</text>
           <position x="700" y="70"/>
-          <text_align>CENTER</text_align>
+          <textAlign>CENTER</textAlign>
           <font size="50" type="font.ttf"/>
-        </GUI_text>
-        <GUI_text id="score_number">
-        <text>50</text>
-        <position x="700" y="130"/>
-        <text_align>CENTER</text_align>
-        <font size="50" type="font.ttf"/>
-        </GUI_text>
-        <GUI_text id="score_message">
+        </GuiText>
+        <GuiText id="game_finished_menu_score">
+          <text>50</text>
+          <position x="700" y="130"/>
+          <textAlign>CENTER</textAlign>
+          <font size="50" type="font.ttf"/>
+        </GuiText>
+        <GuiText id="game_finished_menu_message">
           <text>Legendary! The audience will never forget this show!</text>
           <position x="700" y="230"/>
-          <text_align>CENTER</text_align>
+          <textAlign>CENTER</textAlign>
           <font size="50" type="font.ttf"/>
-        </GUI_text>
-        <GUI_button id="game_finished_play_again_button">
-          <ref_point ref_x="160" ref_y="40"/>
+        </GuiText>
+        <GuiButton id="game_finished_menu_play_again">
+          <offset x="160" y="40"/>
           <position x="450" y="400"/>
-          <button_base_bitmap>Hanabi_textures/game_buttons/play_again.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/game_buttons/play_again_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/game_buttons/play_again_clicked.png</button_click_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="game_finished_quit_button">
-          <ref_point ref_x="160" ref_y="40"/>
+          <baseBitmap>Hanabi_textures/game_buttons/play_again.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/play_again_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/play_again_clicked.png</clickBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="game_finished_menu_quit">
+          <offset x="160" y="40"/>
           <position x="950" y="400"/>
-          <button_base_bitmap>Hanabi_textures/game_buttons/quit.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/game_buttons/quit_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/game_buttons/quit_clicked.png</button_click_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
+          <baseBitmap>Hanabi_textures/game_buttons/quit.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/quit_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/quit_clicked.png</clickBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Discarded cards menu-->
-    <GUI_submenu>
-      <ref_point ref_x="-1600" ref_y="-900"/>
+    <GuiSubmenu id="discarded_cards_menu">
+      <offset x="-1600" y="-900"/>
       <position x="-1075" y="-825"/>
-      <backg_color>0x32323296</backg_color>
-      <size width="2150" height="1650" b_radius="20"/>
-      <blocker>true</blocker>
-      <volatile>true</volatile>
+      <background width="2150" height="1650" radius="20" color="0x32323296"/>
+      <blocker>false</blocker>
+      <volatile>false</volatile>
       <visible>false</visible>
       <active>false</active>
       <elements>
         <!--First row-->
-        <GUI_image id="disc_card_1">
+        <GuiImage id="disc_card_1">
           <position x="130" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_2">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_2">
           <position x="340" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_3">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_3">
           <position x="550" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_4">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_4">
           <position x="760" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_5">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_5">
           <position x="970" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_6">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_6">
           <position x="1180" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image  id="disc_card_7">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage  id="disc_card_7">
           <position x="1390" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_8">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_8">
           <position x="1600" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_9">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_9">
           <position x="1810" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_10">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_10">
           <position x="2020" y="185"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
         <!--Second row-->
-        <GUI_image id="disc_card_11">
+        <GuiImage id="disc_card_11">
           <position x="130" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_12">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_12">
           <position x="340" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_13">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_13">
           <position x="550" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_14">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_14">
           <position x="760" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_15">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_15">
           <position x="970" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_16">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_16">
           <position x="1180" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_17">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_17">
           <position x="1390" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_18">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_18">
           <position x="1600" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_19">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_19">
           <position x="1810" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_20">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_20">
           <position x="2020" y="505"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
         <!--Third row-->
-        <GUI_image id="disc_card_21">
+        <GuiImage id="disc_card_21">
           <position x="130" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_22">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_22">
           <position x="340" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_23">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_23">
           <position x="550" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_24">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_24">
           <position x="760" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image  id="disc_card_25">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage  id="disc_card_25">
           <position x="970" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_26">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_26">
           <position x="1180" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_27">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_27">
           <position x="1390" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_28">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_28">
           <position x="1600" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_29">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_29">
           <position x="1810" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_30">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_30">
           <position x="2020" y="825"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
         <!--Fourth row-->
-        <GUI_image id="disc_card_31">
+        <GuiImage id="disc_card_31">
           <position x="130" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_32">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_32">
           <position x="340" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_33">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_33">
           <position x="550" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_34">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_34">
           <position x="760" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_35">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_35">
           <position x="970" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_36">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_36">
           <position x="1180" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_37">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_37">
           <position x="1390" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_38">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_38">
           <position x="1600" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_39">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_39">
           <position x="1810" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_40">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_40">
           <position x="2020" y="1145"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
         <!--Fifth row-->
-        <GUI_image id="disc_card_41">
+        <GuiImage id="disc_card_41">
           <position x="130" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_42">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_42">
           <position x="340" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_43">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_43">
           <position x="550" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_44">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_44">
           <position x="760" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_45">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_45">
           <position x="970" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_46">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_46">
           <position x="1180" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_47">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_47">
           <position x="1390" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_48">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_48">
           <position x="1600" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_49">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_49">
           <position x="1810" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="disc_card_50">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="disc_card_50">
           <position x="2020" y="1465"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Placeholders/border.png</image_bitmap>
-        </GUI_image>
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Placeholders/border.png</imageBitmap>
+        </GuiImage>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Remote player name-->
-    <GUI_text id="remote_player_name">
+    <GuiText id="remote_player_name">
       <text>Jane Doe</text>
       <position x="1600" y="10"/>
-      <text_align>CENTER</text_align>
-      <text_color>0xFFFFFFFF</text_color>
-      <textbox enabled="true" color="0x00000090" radius="10" up="20" down="0" left="20" right="20"/>
+      <textAlign>CENTER</textAlign>
+      <textColor>0xFFFFFFFF</textColor>
+      <textbox color="0x00000090" radius="10" up="20" down="0" left="20" right="20"/>
       <font size="50" type="font.ttf"/>
-    </GUI_text>
+    </GuiText>
     <!--Local player name-->
-    <GUI_text id="local_player_name">
+    <GuiText id="local_player_name">
       <text>John Doe</text>
       <position x="1600" y="1720"/>
-      <text_align>CENTER</text_align>
-      <text_color>0xFFFFFFFF</text_color>
-      <textbox enabled="true" color="0x00000090" radius="10" up="20" down="0" left="20" right="20"/>
+      <textAlign>CENTER</textAlign>
+      <textColor>0xFFFFFFFF</textColor>
+      <textbox color="0x00000090" radius="10" up="20" down="0" left="20" right="20"/>
       <font size="50" type="font.ttf"/>
-    </GUI_text>
+    </GuiText>
     <!--Message box-->
-    <GUI_text id="message">
+    <GuiText id="message">
       <text>It's your turn</text>
       <position x="1600" y="1250"/>
-      <text_align>CENTER</text_align>
-      <text_color>0xFFFFFFFF</text_color>
+      <textAlign>CENTER</textAlign>
+      <textColor>0xFFFFFFFF</textColor>
       <font size="50" type="font.ttf"/>
-    </GUI_text>
+    </GuiText>
     <!--Discarded cards menu button-->
-    <GUI_button id="open_disc_card_menu_button">
+    <GuiButton id="open_disc_card_menu_button">
       <position x="2800" y="1000"/>
-      <ref_point ref_x="100" ref_y="155"/>
-      <button_base_bitmap>Hanabi_textures/Placeholders/Border.png</button_base_bitmap>
-      <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-      <check_alpha>true</check_alpha>
-    </GUI_button>
+      <offset x="100" y="155"/>
+      <baseBitmap>Hanabi_textures/Placeholders/Border.png</baseBitmap>
+      <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+      <checkAlpha>true</checkAlpha>
+    </GuiButton>
     <!--Local player beans-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="0" y="1600"/>
-      <ref_point ref_x="-1600" ref_y="0"/>
+      <offset x="-1600" y="0"/>
       <elements>
-        <GUI_button id="bean_1">
+        <GuiButton id="bean_1">
           <position x="-525" y="-220"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Indicators/Bean/hover.png</button_hover_bitmap>
+          <offset x="64" y="64"/>
+          <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="bean_2">
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="bean_2">
           <position x="-315" y="-220"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Indicators/Bean/hover.png</button_hover_bitmap>
+          <offset x="64" y="64"/>
+          <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="bean_3">
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="bean_3">
           <position x="-105" y="-220"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Indicators/Bean/hover.png</button_hover_bitmap>
+          <offset x="64" y="64"/>
+          <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="bean_4">
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="bean_4">
           <position x="105" y="-220"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Indicators/Bean/hover.png</button_hover_bitmap>
+          <offset x="64" y="64"/>
+          <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="bean_5">
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="bean_5">
           <position x="315" y="-220"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Indicators/Bean/hover.png</button_hover_bitmap>
+          <offset x="64" y="64"/>
+          <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="bean_6">
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="bean_6">
           <position x="525" y="-220"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Indicators/Bean/hover.png</button_hover_bitmap>
+          <offset x="64" y="64"/>
+          <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Discard card button-->
-    <GUI_button id="disc_card_button">
+    <GuiButton id="disc_card_button">
       <position x="2500" y="1000"/>
-      <ref_point ref_x="150" ref_y="150"/>
-      <button_base_bitmap>Hanabi_textures/game_buttons/trash_disabled.png</button_base_bitmap>
-      <button_hover_bitmap>Hanabi_textures/game_buttons/trash_hover.png</button_hover_bitmap>
+      <offset x="150" y="150"/>
+      <baseBitmap>Hanabi_textures/game_buttons/trash_disabled.png</baseBitmap>
+      <hoverBitmap>Hanabi_textures/game_buttons/trash_hover.png</hoverBitmap>
       <button_aux_bitmap>Hanabi_textures/game_buttons/trash_enabled.png</button_aux_bitmap>
-      <check_alpha>true</check_alpha>
-    </GUI_button>
+      <checkAlpha>true</checkAlpha>
+    </GuiButton>
     <!--Clue cards indicators-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="0" y="1600"/>
-      <ref_point ref_x="-1600" ref_y="0"/>
+      <offset x="-1600" y="0"/>
       <visible>false</visible>
       <elements>
-        <GUI_button id="clue_ok">
-          <ref_point ref_x="160" ref_y="40"/>
+        <GuiButton id="clue_ok">
+          <offset x="160" y="40"/>
           <position x="0" y="50"/>
-          <button_base_bitmap>Hanabi_textures/game_buttons/ok.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/game_buttons/ok_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/game_buttons/ok_clicked.png</button_click_bitmap> 
-        </GUI_button>
-        <GUI_image id="card_ind_1">
+          <baseBitmap>Hanabi_textures/game_buttons/ok.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/game_buttons/ok_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/game_buttons/ok_clicked.png</clickBitmap>
+        </GuiButton>
+        <GuiImage id="card_ind_1">
           <position x="-525" y="-80"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <image_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</image_bitmap>
+          <offset x="64" y="64"/>
+          <imageBitmap>Hanabi_textures/Indicators/Bean/enabled.png</imageBitmap>
           <visible>true</visible>
-        </GUI_image>
-        <GUI_image id="card_ind_2">
+        </GuiImage>
+        <GuiImage id="card_ind_2">
           <position x="-315" y="-80"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <image_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</image_bitmap>
+          <offset x="64" y="64"/>
+          <imageBitmap>Hanabi_textures/Indicators/Bean/enabled.png</imageBitmap>
           <visible>true</visible>
-        </GUI_image>
-        <GUI_image id="card_ind_3">
+        </GuiImage>
+        <GuiImage id="card_ind_3">
           <position x="-105" y="-80"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <image_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</image_bitmap>
+          <offset x="64" y="64"/>
+          <imageBitmap>Hanabi_textures/Indicators/Bean/enabled.png</imageBitmap>
           <visible>true</visible>
-        </GUI_image>
-        <GUI_image id="card_ind_4">
+        </GuiImage>
+        <GuiImage id="card_ind_4">
           <position x="105" y="-80"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <image_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</image_bitmap>
+          <offset x="64" y="64"/>
+          <imageBitmap>Hanabi_textures/Indicators/Bean/enabled.png</imageBitmap>
           <visible>true</visible>
-        </GUI_image>
-        <GUI_image id="card_ind_5">
+        </GuiImage>
+        <GuiImage id="card_ind_5">
           <position x="315" y="-80"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <image_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</image_bitmap>
+          <offset x="64" y="64"/>
+          <imageBitmap>Hanabi_textures/Indicators/Bean/enabled.png</imageBitmap>
           <visible>true</visible>
-        </GUI_image>
-        <GUI_image id="card_ind_6">
+        </GuiImage>
+        <GuiImage id="card_ind_6">
           <position x="525" y="-80"/>
-          <ref_point ref_x="64" ref_y="64"/>
-          <image_bitmap>Hanabi_textures/Indicators/Bean/enabled.png</image_bitmap>
+          <offset x="64" y="64"/>
+          <imageBitmap>Hanabi_textures/Indicators/Bean/enabled.png</imageBitmap>
           <visible>true</visible>
-        </GUI_image>
+        </GuiImage>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Local player cards-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="0" y="1600"/>
-      <ref_point ref_x="-1600" ref_y="0"/>
+      <offset x="-1600" y="0"/>
       <elements>
-        <GUI_button id="local_card_1">
+        <GuiButton id="local_card_1">
           <position x="-525" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <button_base_bitmap>Hanabi_textures/Cards/Blackside.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="local_card_2">
+          <offset x="100" y="155"/>
+          <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="local_card_2">
           <position x="-315" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <button_base_bitmap>Hanabi_textures/Cards/Blackside.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="local_card_3">
+          <offset x="100" y="155"/>
+          <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="local_card_3">
           <position x="-105" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <button_base_bitmap>Hanabi_textures/Cards/Blackside.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="local_card_4">
+          <offset x="100" y="155"/>
+          <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="local_card_4">
           <position x="105" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <button_base_bitmap>Hanabi_textures/Cards/Blackside.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="local_card_5">
+          <offset x="100" y="155"/>
+          <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="local_card_5">
           <position x="315" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <button_base_bitmap>Hanabi_textures/Cards/Blackside.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
-        <GUI_button id="local_card_6">
+          <offset x="100" y="155"/>
+          <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
+        <GuiButton id="local_card_6">
           <position x="525" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <button_base_bitmap>Hanabi_textures/Cards/Blackside.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Cards/hover.png</button_hover_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
+          <offset x="100" y="155"/>
+          <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Remote player cards-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="0" y="200"/>
-      <ref_point ref_x="-1600" ref_y="0"/>
+      <offset x="-1600" y="0"/>
       <elements>
-        <GUI_image id="remote_card_1">
+        <GuiImage id="remote_card_1">
           <position x="-525" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Cards/Blackside.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="remote_card_2">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Cards/Blackside.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="remote_card_2">
           <position x="-315" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Cards/Blackside.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="remote_card_3">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Cards/Blackside.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="remote_card_3">
           <position x="-105" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Cards/Blackside.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="remote_card_4">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Cards/Blackside.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="remote_card_4">
           <position x="105" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Cards/Blackside.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="remote_card_5">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Cards/Blackside.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="remote_card_5">
           <position x="315" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Cards/Blackside.png</image_bitmap>
-        </GUI_image>
-        <GUI_image id="remote_card_6">
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Cards/Blackside.png</imageBitmap>
+        </GuiImage>
+        <GuiImage id="remote_card_6">
           <position x="525" y="0"/>
-          <ref_point ref_x="100" ref_y="155"/>
-          <image_bitmap>Hanabi_textures/Cards/Blackside.png</image_bitmap>
-        </GUI_image>
+          <offset x="100" y="155"/>
+          <imageBitmap>Hanabi_textures/Cards/Blackside.png</imageBitmap>
+        </GuiImage>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Give clue menu-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="50" y="850"/>
-      <backg_color>0x64646464</backg_color>
-      <size width="840" height="640" b_radius="20"/>
+      <background width="840" height="640" radius="20" color="0x64646464"/>
       <elements>
         <!--Color buttons-->
-        <GUI_submenu id="clue_button_blue">
+        <GuiSubmenu id="clue_button_blue">
           <position x="20" y="20"/>
           <elements>
-            <GUI_button>
+            <GuiButton>
               <position x="0" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Colors/Blue.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Blue.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            </GUI_button>
-            <GUI_button id="clue_button_green">
+              <checkAlpha>true</checkAlpha>
+            </GuiButton>
+            <GuiButton id="clue_button_green">
               <position x="160" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Colors/Green.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Green.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            </GUI_button>
-            <GUI_button id="clue_button_red">
+              <checkAlpha>true</checkAlpha>
+            </GuiButton>
+            <GuiButton id="clue_button_red">
               <position x="320" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Colors/Red.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Red.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
+              <checkAlpha>true</checkAlpha>
 
-            </GUI_button>
-            <GUI_button id="clue_button_white">
+            </GuiButton>
+            <GuiButton id="clue_button_white">
               <position x="480" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Colors/White.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Colors/White.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            </GUI_button>
-            <GUI_button id="clue_button_yellow">
+              <checkAlpha>true</checkAlpha>
+            </GuiButton>
+            <GuiButton id="clue_button_yellow">
               <position x="640" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Colors/Yellow.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Yellow.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            
-          </GUI_button>
+              <checkAlpha>true</checkAlpha>
+
+            </GuiButton>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
         <!--number buttons-->
-        <GUI_submenu id="clue_button_one">
+        <GuiSubmenu id="clue_button_one">
           <position x="20" y="180"/>
           <elements>
-            <GUI_button>
+            <GuiButton>
               <position x="0" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Numbers/card_1.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_1.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            </GUI_button>
-            <GUI_button id="clue_button_two">
+              <checkAlpha>true</checkAlpha>
+            </GuiButton>
+            <GuiButton id="clue_button_two">
               <position x="160" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Numbers/card_2.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_2.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            
-          </GUI_button>
-            <GUI_button id="clue_button_three">
+              <checkAlpha>true</checkAlpha>
+
+            </GuiButton>
+            <GuiButton id="clue_button_three">
               <position x="320" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Numbers/card_3.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_3.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            
-          </GUI_button>
-            <GUI_button id="clue_button_four">
+              <checkAlpha>true</checkAlpha>
+
+            </GuiButton>
+            <GuiButton id="clue_button_four">
               <position x="480" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Numbers/card_4.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_4.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            </GUI_button>
-            <GUI_button id="clue_button_five">
+              <checkAlpha>true</checkAlpha>
+            </GuiButton>
+            <GuiButton id="clue_button_five">
               <position x="640" y="0"/>
-              <button_base_bitmap>Hanabi_textures/Clue_buttons/Numbers/card_5.png</button_base_bitmap>
-              <button_hover_bitmap>Hanabi_textures/Clue_buttons/hover.png</button_hover_bitmap>
+              <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_5.png</baseBitmap>
+              <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
-              <check_alpha>true</check_alpha>
-            </GUI_button>
+              <checkAlpha>true</checkAlpha>
+            </GuiButton>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
         <!--Give clue button-->
-        <GUI_button id="give_clue_button">
+        <GuiButton id="give_clue_button">
           <position x="420" y="580"/>
-          <ref_point ref_x="400" ref_y="40"/>
-          <button_base_bitmap>Hanabi_textures/Clue_buttons/give_clue.png</button_base_bitmap>
-          <button_hover_bitmap>Hanabi_textures/Clue_buttons/give_clue_hovered.png</button_hover_bitmap>
-          <button_click_bitmap>Hanabi_textures/Clue_buttons/give_clue_clicked.png</button_click_bitmap>
-          <check_alpha>true</check_alpha>
-        </GUI_button>
+          <offset x="400" y="40"/>
+          <baseBitmap>Hanabi_textures/Clue_buttons/give_clue.png</baseBitmap>
+          <hoverBitmap>Hanabi_textures/Clue_buttons/give_clue_hovered.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Clue_buttons/give_clue_clicked.png</clickBitmap>
+          <checkAlpha>true</checkAlpha>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Clue indicators-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="100" y="400"/>
       <elements>
-        <GUI_button id="clue_ind_1">
+        <GuiButton id="clue_ind_1">
           <position x="0" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
+          <checkAlpha>true</checkAlpha>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_2">
+        </GuiButton>
+        <GuiButton id="clue_ind_2">
           <position x="175" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
-          <check_alpha>true</check_alpha>
+          <checkAlpha>true</checkAlpha>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_3">
+        </GuiButton>
+        <GuiButton id="clue_ind_3">
           <position x="350" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_4">
+        </GuiButton>
+        <GuiButton id="clue_ind_4">
           <position x="525" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_5">
+        </GuiButton>
+        <GuiButton id="clue_ind_5">
           <position x="0" y="175"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_6">
+        </GuiButton>
+        <GuiButton id="clue_ind_6">
           <position x="175" y="175"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_7">
+        </GuiButton>
+        <GuiButton id="clue_ind_7">
           <position x="350" y="175"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="clue_ind_8">
+        </GuiButton>
+        <GuiButton id="clue_ind_8">
           <position x="525" y="175"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Clue/enabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Clue/enabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Clue/disabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Lightning indicators-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="2500" y="400"/>
       <elements>
-        <GUI_button id="light_ind_1">
+        <GuiButton id="light_ind_1">
           <position x="0" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Lightning/disabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Lightning/disabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Lightning/enabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="light_ind_2">
+        </GuiButton>
+        <GuiButton id="light_ind_2">
           <position x="175" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Lightning/disabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Lightning/disabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Lightning/enabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
-        <GUI_button id="light_ind_3">
+        </GuiButton>
+        <GuiButton id="light_ind_3">
           <position x="350" y="0"/>
-          <button_base_bitmap>Hanabi_textures/Indicators/Lightning/disabled.png</button_base_bitmap>
+          <baseBitmap>Hanabi_textures/Indicators/Lightning/disabled.png</baseBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Lightning/enabled.png</button_aux_bitmap>
           <active>false</active>
-        </GUI_button>
+        </GuiButton>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Center cards-->
-    <GUI_submenu>
-      <ref_point ref_x="-1600" ref_y="-800"/>
+    <GuiSubmenu>
+      <offset x="-1600" y="-800"/>
       <elements>
         <!--Fisrt card stack-->
-        <GUI_submenu>
+        <GuiSubmenu>
           <position x="-460" y="20"/>
           <elements>
             <!--Top-->
-            <GUI_image>
-              <position x="-120" y="-240" r="d-20"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="-78" y="-120" r="d-16"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="-44" y="0" r="d-12"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="-18" y="120" r="d-8"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="0" y="240" r="d-4"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
+            <GuiImage>
+              <position x="-120" y="-240" r="-20"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="-78" y="-120" r="-16"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="-44" y="0" r="-12"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="-18" y="120" r="-8"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="0" y="240" r="-4"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
             <!--Bottom-->
             <!--Placeholder-->
-            <GUI_image>
-              <image_bitmap>Hanabi_textures/Placeholders/second.png</image_bitmap>
-              <ref_point ref_x="270" ref_y="405"/>
-              <draw_flag>FLIP_HORIZONTAL</draw_flag>
-            </GUI_image>
+            <GuiImage>
+              <imageBitmap>Hanabi_textures/Placeholders/second.png</imageBitmap>
+              <offset x="270" y="405"/>
+              <drawFlag>FLIP_HORIZONTAL</drawFlag>
+            </GuiImage>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
         <!--Second card stack-->
-        <GUI_submenu>
+        <GuiSubmenu>
           <position x="-230" y="10"/>
           <elements>
             <!--Top-->
-            <GUI_image>
-              <position x="-59" y="-240" r="d-10"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="-38" y="-120" r="d-8"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="-21" y="0" r="d-6"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="-9" y="120" r="d-4"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="0" y="240" r="d-2"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
+            <GuiImage>
+              <position x="-59" y="-240" r="-10"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="-38" y="-120" r="-8"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="-21" y="0" r="-6"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="-9" y="120" r="-4"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="0" y="240" r="-2"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
             <!--Bottom-->
             <!--Placeholder-->
-            <GUI_image>
-              <image_bitmap>Hanabi_textures/Placeholders/first.png</image_bitmap>
-              <ref_point ref_x="270" ref_y="405"/>
-              <draw_flag>FLIP_HORIZONTAL</draw_flag>
-            </GUI_image>
+            <GuiImage>
+              <imageBitmap>Hanabi_textures/Placeholders/first.png</imageBitmap>
+              <offset x="270" y="405"/>
+              <drawFlag>FLIP_HORIZONTAL</drawFlag>
+            </GuiImage>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
         <!--Third card stack-->
-        <GUI_submenu>
+        <GuiSubmenu>
           <position x="0" y="0"/>
           <elements>
             <!--Top-->
-            <GUI_image>
+            <GuiImage>
               <position x="0" y="-240" r="0"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
               <position x="0" y="-120" r="0"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
               <position x="0" y="0" r="0"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
               <position x="0" y="120" r="0"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
               <position x="0" y="240" r="0"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
             <!--Bottom-->
             <!--Placeholder-->
-            <GUI_image>
-              <image_bitmap>Hanabi_textures/Placeholders/center.png</image_bitmap>
-              <ref_point ref_x="270" ref_y="405"/>
-            </GUI_image>
+            <GuiImage>
+              <imageBitmap>Hanabi_textures/Placeholders/center.png</imageBitmap>
+              <offset x="270" y="405"/>
+            </GuiImage>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
         <!--Fourth card stack-->
-        <GUI_submenu>
+        <GuiSubmenu>
           <position x="230" y="10"/>
           <elements>
             <!--Top-->
-            <GUI_image>
-              <position x="59" y="-240" r="d10"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="38" y="-120" r="d8"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="21" y="0" r="d6"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="9" y="120" r="d4"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="0" y="240" r="d2"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
+            <GuiImage>
+              <position x="59" y="-240" r="10"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="38" y="-120" r="8"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="21" y="0" r="6"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="9" y="120" r="4"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="0" y="240" r="2"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
             <!--Bottom-->
             <!--Placeholder-->
-            <GUI_image>
-              <image_bitmap>Hanabi_textures/Placeholders/first.png</image_bitmap>
-              <ref_point ref_x="270" ref_y="405"/>
-            </GUI_image>
+            <GuiImage>
+              <imageBitmap>Hanabi_textures/Placeholders/first.png</imageBitmap>
+              <offset x="270" y="405"/>
+            </GuiImage>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
         <!--Fifth card stack-->
-        <GUI_submenu>
+        <GuiSubmenu>
           <position x="460" y="20"/>
           <elements>
             <!--Top-->
-            <GUI_image>
-              <position x="120" y="-240" r="d20"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="78" y="-120" r="d16"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="44" y="0" r="d12"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="18" y="120" r="d8"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
-            <GUI_image>
-              <position x="0" y="240" r="d4"/>
-              <image_bitmap>Hanabi_textures/Cards/blackside.png</image_bitmap>
-              <ref_point ref_x="100" ref_y="155"/>
-            </GUI_image>
+            <GuiImage>
+              <position x="120" y="-240" r="20"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="78" y="-120" r="16"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="44" y="0" r="12"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="18" y="120" r="8"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
+            <GuiImage>
+              <position x="0" y="240" r="4"/>
+              <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+              <offset x="100" y="155"/>
+              <visible>false</visible>
+            </GuiImage>
             <!--Bottom-->
             <!--Placeholder-->
-            <GUI_image>
-              <image_bitmap>Hanabi_textures/Placeholders/second.png</image_bitmap>
-              <ref_point ref_x="270" ref_y="405"/>
-            </GUI_image>
+            <GuiImage>
+              <imageBitmap>Hanabi_textures/Placeholders/second.png</imageBitmap>
+              <offset x="270" y="405"/>
+            </GuiImage>
           </elements>
-        </GUI_submenu>
+        </GuiSubmenu>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Deck-->
-    <GUI_image id="deck">
+    <GuiImage id="deck">
       <position x="2800" y="1500"/>
-      <ref_point ref_x="100" ref_y="155"/>
-      <image_bitmap>Hanabi_textures/Placeholders/Border.png</image_bitmap>
-    </GUI_image>
+      <offset x="100" y="155"/>
+      <imageBitmap>Hanabi_textures/Placeholders/Border.png</imageBitmap>
+    </GuiImage>
     <!--Hanabi Logo-->
-    <GUI_image>
+    <GuiImage>
       <position x="60" y="50"/>
-      <image_bitmap>Hanabi_textures/logo.png</image_bitmap>
-    </GUI_image>
+      <imageBitmap>Hanabi_textures/logo.png</imageBitmap>
+    </GuiImage>
     <!--Fireworks art-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="50" y="1525"/>
       <elements>
-        <GUI_image>
+        <GuiImage>
           <position x="0" y="0"/>
-          <image_bitmap>Hanabi_textures/Fireworks/Blue.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Fireworks/Blue.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="175" y="0"/>
-          <image_bitmap>Hanabi_textures/Fireworks/Green.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Fireworks/Green.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="350" y="0"/>
-          <image_bitmap>Hanabi_textures/Fireworks/Red.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Fireworks/Red.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="525" y="0"/>
-          <image_bitmap>Hanabi_textures/Fireworks/White.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Fireworks/White.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="700" y="0"/>
-          <image_bitmap>Hanabi_textures/Fireworks/Yellow.png</image_bitmap>
-        </GUI_image>
+          <imageBitmap>Hanabi_textures/Fireworks/Yellow.png</imageBitmap>
+        </GuiImage>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
     <!--Symbols art-->
-    <GUI_submenu>
+    <GuiSubmenu>
       <position x="2325" y="125"/>
       <elements>
-        <GUI_image>
+        <GuiImage>
           <position x="0" y="0"/>
-          <image_bitmap>Hanabi_textures/Symbols/Blue.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Symbols/Blue.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="150" y="0"/>
-          <image_bitmap>Hanabi_textures/Symbols/Green.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Symbols/Green.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="300" y="0"/>
-          <image_bitmap>Hanabi_textures/Symbols/Red.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Symbols/Red.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="450" y="0"/>
-          <image_bitmap>Hanabi_textures/Symbols/White.png</image_bitmap>
-        </GUI_image>
-        <GUI_image>
+          <imageBitmap>Hanabi_textures/Symbols/White.png</imageBitmap>
+        </GuiImage>
+        <GuiImage>
           <position x="600" y="0"/>
-          <image_bitmap>Hanabi_textures/Symbols/Yellow.png</image_bitmap>
-        </GUI_image>
+          <imageBitmap>Hanabi_textures/Symbols/Yellow.png</imageBitmap>
+        </GuiImage>
       </elements>
-    </GUI_submenu>
+    </GuiSubmenu>
   </elements>
-</GUI_menu>
+</GuiMenu>
 
 
