@@ -34,14 +34,22 @@ Server::~Server()
 		apr_socket_close(serv_sock);
 }
 
-bool Server::listen_for_connection(apr_interval_time_t timeout)
+bool Server::listen_for_connection(unsigned int timeout_ms)
 {
 	if (serv_sock != NULL && !connected && init_succ)
 	{
 		clock_t server_timer = clock();
+		bool go_on = true;
 		do
+		{
+			//Check if address is equal to expected address
 			apr_socket_accept(&sock, serv_sock, mp);
-		while (sock == NULL && ((clock() - server_timer) / CLOCKS_PER_SEC) < timeout);
+			if (sock != NULL)
+			{
+				//Don't know how to do this, let's accept all connections.
+			}
+		}
+		while (sock == NULL && (go_on = (float)((clock() - server_timer) / (float)CLOCKS_PER_SEC)*1000 < timeout_ms));
 		if (sock != NULL)
 		{
 			apr_socket_opt_set(sock, APR_SO_NONBLOCK, 1);

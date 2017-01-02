@@ -3,14 +3,12 @@
 
 #include "Net_connection.h"
 
-#define DEFAULT_PORT	13796
-
 class Server : public Net_connection
 {
 public:
-	Server(unsigned int port = DEFAULT_PORT);
+	Server(unsigned int port);
 	~Server();
-	bool listen_for_connection(apr_interval_time_t timeout);
+	bool listen_for_connection(unsigned int timeout_ms);
 private:
 	apr_socket_t* serv_sock;
 };

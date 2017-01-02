@@ -123,7 +123,7 @@ Gui::Gui(istream &xml)
 	this->gui_sx = this->gui_sy = 1;
 	this->gui_backg_color = al_map_rgb(0, 0, 0);
 	this->gui_height = this->gui_width = 0;
-
+	this->initialized = false;
 	XML_Parser parser = XML_ParserCreate(nullptr);
 	XML_parser_object data(&parser);
 	XML_SetUserData(parser, &data);
@@ -150,7 +150,7 @@ Gui::Gui(istream &xml)
 	}
 	XML_ParserFree(parser);	//Parsing finished
 	my_XML_element parsed_data = data.get_parsed_data();	//Get data
-	if (data.finished() && !parsed_data.name.compare("GuiMenu"))	//is main elemeng GUI_menu? 
+	if (data.finished() && !parsed_data.name.compare("GuiMenu"))	//is main elemeng GuiMenu? 
 																	//has parsed finished? or was is stopped?
 	{
 		if (handle_gui_menu_data(parsed_data))	//This will convert data to GUI data

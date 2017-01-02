@@ -1,74 +1,125 @@
-#include "Gui/Gui.h"
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <allegro5\allegro5.h>
+#include <allegro5\allegro.h>
 #include <allegro5\allegro_image.h>
 #include <allegro5\allegro_primitives.h>
+#include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
-
-//Author: Gonzalo Julian Reina Kiperman
-
+#include "Gui\Gui.h"
+#include "Net connection\Net_connection.h"
+#include "handle_menu.h"
 
 using namespace std;
-int main(void)
-{
-	//This main is just for testing purposes...
-	bool success = true;
-	success &= al_init();
-	success &= al_init_image_addon();
-	success &= al_init_primitives_addon();
-	success &= al_init_ttf_addon();
-	success &= al_init_font_addon();
-	success &= al_install_mouse();
 
-	ifstream file;
-	file.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);
-	if (!file.is_open())
-		return 1;
-	Gui gui = Gui(file);
-	//GuiButton* button = (GuiButton*) gui.get_element_from_id("button_1");
-	//button->set_on_hover_movement_callback(c_back);
-	ALLEGRO_EVENT_QUEUE* ev_q = al_create_event_queue();
-	ALLEGRO_DISPLAY* disp = gui.get_display();
-	al_register_event_source(ev_q, al_get_mouse_event_source());
-	al_register_event_source(ev_q, al_get_display_event_source(disp));
-	bool redraw = false;
-	while (1)
+bool initialize();
+void destroy();
+
+int main(int argc, char* argv[])
+{
+	if (initialize())
 	{
-		ALLEGRO_EVENT ev;
-		al_wait_for_event(ev_q, &ev);
-		if (ev.any.source == al_get_mouse_event_source() && ev.mouse.display == disp)
+		bool exit = false;
+		while (!exit)
 		{
-			if (ev.mouse.type == ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY)
+			ifstream menu_gui_data;
+			menu_gui_data.open("menu_data/connect_menu.xml", std::ifstream::in);
+			if (menu_gui_data.is_open())
 			{
-				gui.force_release_mouse();
-				redraw = true;
+				Gui* menu;
+				if ((menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())
+				{
+					menu_gui_data.close();
+					string name;
+					bool is_server;
+					Net_connection* net;
+					if (handle_menu(menu, &name, &net, &is_server))
+					{
+						while (1);
+					}
+					else
+						exit = true;
+					delete menu;
+				}
+				else
+				{
+					cerr << "Error: Could not create menu GUI." << endl;
+					break;
+				}
 			}
 			else
 			{
-				ALLEGRO_MOUSE_STATE st;
-				al_get_mouse_state(&st);
-				if (gui.feed_mouse_event(st) || true)
-					redraw = true;
+				cerr << "Error: Could not open menu game ui data." << endl;
+				break;
 			}
+
 		}
-		else if (ev.any.source == al_get_display_event_source(disp))
-		{
-			if (ev.display.type = ALLEGRO_EVENT_DISPLAY_SWITCH_OUT)
-			{
-				gui.force_release_mouse();
-				redraw = true;
-			}
-			else if (ev.display.type = ALLEGRO_EVENT_DISPLAY_SWITCH_IN)
-				redraw = true;
-		}
-		if (redraw && al_is_event_queue_empty(ev_q))
-		{
-			gui.redraw();
-			redraw = false;
-		}
+		
+		
+		destroy();
 	}
-	while (1);
+	cout << "EXITING! remember to remove getchar!" << endl;
+	getchar();
+	return 0;
 }
 
+
+
+
+void destroy()
+{
+	al_uninstall_mouse();
+	al_shutdown_ttf_addon();
+	al_shutdown_font_addon();
+	al_shutdown_primitives_addon();
+	al_shutdown_image_addon();
+	al_uninstall_system();
+}
+
+bool initialize()
+{
+	srand(time(NULL));
+	if (al_init())
+	{
+		if (al_init_image_addon())
+		{
+			if (al_init_primitives_addon())
+			{
+				if (al_init_font_addon())
+				{
+					if (al_init_ttf_addon())
+					{
+						if (al_install_mouse())
+						{
+							if (al_install_keyboard())
+							{
+								cout << "Allegro system initialized successfully" << endl;
+								return true;
+							}
+							else
+								cerr << "ERROR: Could not initialize allegro keyboard." << endl;
+							al_uninstall_mouse();
+						}
+						else
+							cerr << "ERROR: Could not initialize allegro mouse." << endl;
+						al_shutdown_ttf_addon();
+					}
+					else
+						cerr << "ERROR: Could not initialize allegro ttf addon." << endl;
+					al_shutdown_font_addon();
+				}
+				else
+					cerr << "ERROR: Could not initialize allegro font addon." << endl;
+				al_shutdown_primitives_addon();
+			}
+			else
+				cerr << "ERROR: Could not initialize allegro primitives addon." << endl;
+			al_shutdown_image_addon();
+		}
+		else
+			cerr << "ERROR: Could not initialize allegro image addon." << endl;
+		al_uninstall_system();
+	}
+	else
+		cerr << "ERROR: Could not initialize allegro." << endl;
+	return false;
+}

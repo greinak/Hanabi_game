@@ -14,6 +14,7 @@ class GuiText : public GuiElement
 public:
 	GuiText();
 	void SetText(const string& text);	//Set text
+	string getText();
 	void SetUseTextbox(bool use_textbox);	//Use textbox?
 	void SetTextbox(float tb_l_clearance, float tb_r_clearance, float tb_u_clearance, float tb_d_clearance, float tb_radius, ALLEGRO_COLOR tb_color);	//Customize textbox
 	void SetFont(ALLEGRO_FONT* font);	//Font to use

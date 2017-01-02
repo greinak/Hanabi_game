@@ -6,7 +6,6 @@
 #include <apr_pools.h>
 #include <apr_general.h>
 #include <apr_network_io.h>
-
 class Net_connection
 {
 public:
@@ -22,4 +21,6 @@ protected:
 	~Net_connection();
 };
 
+#include "Client.h"
+#include "Server.h"
 #endif //NET_CONNECTION_H_

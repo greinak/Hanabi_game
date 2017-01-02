@@ -198,6 +198,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fsm.cpp" />
     <ClCompile Include="Gui\Gui.cpp" />
     <ClCompile Include="Gui\GuiActiveElement.cpp" />
     <ClCompile Include="Gui\GuiButton.cpp" />
@@ -205,7 +206,9 @@
     <ClCompile Include="Gui\GuiImage.cpp" />
     <ClCompile Include="Gui\GuiSubmenu.cpp" />
     <ClCompile Include="Gui\GuiText.cpp" />
+    <ClCompile Include="handle_menu.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main2.cpp" />
     <ClCompile Include="Net connection\Client.cpp" />
     <ClCompile Include="Net connection\Net_connection.cpp" />
     <ClCompile Include="Net connection\Packages\Package_ack.cpp" />
@@ -245,6 +248,7 @@
     <ClInclude Include="Gui\GuiImage.h" />
     <ClInclude Include="Gui\GuiSubmenu.h" />
     <ClInclude Include="Gui\GuiText.h" />
+    <ClInclude Include="handle_menu.h" />
     <ClInclude Include="Net connection\Client.h" />
     <ClInclude Include="Net connection\Net_connection.h" />
     <ClInclude Include="Net connection\Packages\card_hanabi.h" />

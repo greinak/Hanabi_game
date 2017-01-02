@@ -18,6 +18,11 @@ void GuiText::SetText(const string & text)
 	this->text = text;
 }
 
+string GuiText::getText()
+{
+	return this->text;
+}
+
 void GuiText::SetUseTextbox(bool use_textbox)
 {
 	this->use_textbox = use_textbox;
