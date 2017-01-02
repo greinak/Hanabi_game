@@ -1,6 +1,9 @@
 <GuiMenu>
   <size width="800" height = "750"/>
-  <scale sx="1" sy="1"></scale>
+  <!-- NORMAL SCALE -->
+  <!--<scale sx="1" sy="1"/>-->
+  <!-- SMALL WINDOW, for debugging -->
+  <scale sx="0.5" sy="0.5"/>
   <backgBitmap>Hanabi_textures/background.png</backgBitmap>
   <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
   <title>Hanabi Game - Connect menu</title>

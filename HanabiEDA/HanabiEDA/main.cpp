@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 					Net_connection* net;
 					if (handle_menu(menu, &name, &net, &is_server))
 					{
-						while (1);
+
 					}
 					else
 						exit = true;
@@ -57,8 +57,7 @@ int main(int argc, char* argv[])
 		
 		destroy();
 	}
-	cout << "EXITING! remember to remove getchar!" << endl;
-	getchar();
+	cout << "EXITING!!" << endl;
 	return 0;
 }
 

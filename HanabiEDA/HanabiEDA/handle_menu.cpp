@@ -120,7 +120,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 					menu->redraw();
 					redraw = false;
 				}
-				if (!redraw && data.connected)
+				if (data.connected)
 				{
 					(*is_server) = data.is_server;
 					(*net) = data.net;
@@ -188,31 +188,37 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 			cerr << "Error creating client connection" << endl;
 		}
 		//As server
-		if (data->exit == false && data->connected == false && (sv = new Server(CONNECTION_PORT)) != nullptr)
+		if (data->exit == false && data->connected == false)
 		{
-			if (sv->listen_for_connection(wait_as_server))
+			if ((sv = new Server(CONNECTION_PORT)) != nullptr)
 			{
-				data->connected = true;
-				data->net = sv;
-				data->is_server = true;
+				if (sv->listen_for_connection(wait_as_server))
+				{
+					data->connected = true;
+					data->net = sv;
+					data->is_server = true;
+				}
+				else
+					delete sv;
 			}
 			else
-				delete sv;
+			{
+				data->exit = true;
+				cerr << "Error creating server connection" << endl;
+			}
 		}
-		else
+		if (!data->exit)
 		{
-			data->exit = true;
-			cerr << "Error creating server connection" << endl;
-		}
-		if (data->connected)
-		{
-			cout << "Connected! opening game..." << endl;
-			data->message->SetText("Connected! opening game...");
-		}
-		else
-		{
-			cout << "Could not connect." << endl;
-			data->message->SetText("Could not connect.");
+			if (data->connected)
+			{
+				cout << "Connected! Opening game..." << endl;
+				data->message->SetText("Connected! Opening game...");
+			}
+			else
+			{
+				cout << "Could not connect." << endl;
+				data->message->SetText("Could not connect.");
+			}
 		}
 		al_flush_event_queue(data->ev_q);
 		al_pause_event_queue(data->ev_q, false);
