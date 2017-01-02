@@ -8,6 +8,7 @@
 #include "Gui\Gui.h"
 #include "Net connection\Net_connection.h"
 #include "handle_menu.h"
+#include "handle_game.h"
 
 using namespace std;
 
@@ -22,46 +23,44 @@ int main(int argc, char* argv[])
 		while (!exit)
 		{
 			ifstream menu_gui_data;
+			Gui* menu = nullptr;
 			menu_gui_data.open("menu_data/connect_menu.xml", std::ifstream::in);
-			if (menu_gui_data.is_open())
+			if (menu_gui_data.is_open() && (menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())
 			{
-				Gui* menu;
-				if ((menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())
+				menu_gui_data.close();
+				string name;
+				bool is_server;
+				Net_connection* net = nullptr;
+				if (handle_menu(menu, &name, &net, &is_server))
 				{
-					menu_gui_data.close();
-					string name;
-					bool is_server;
-					Net_connection* net;
-					if (handle_menu(menu, &name, &net, &is_server))
+					delete menu;
+					menu = nullptr;
+					Gui* game_ui = nullptr;
+					ifstream game_ui_data;
+					game_ui_data.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);
+					if (game_ui_data.is_open() && (game_ui = new Gui(game_ui_data)) != nullptr && game_ui->initialized_successfully())
 					{
-
+						game_ui_data.close();
+						handle_game(game_ui, name, net, is_server);
 					}
 					else
-						exit = true;
-					delete menu;
+						cout << "Error creating game UI" << endl;
+					game_ui_data.close();
+					delete game_ui;
 				}
 				else
-				{
-					cerr << "Error: Could not create menu GUI." << endl;
-					break;
-				}
+					exit = true;
 			}
 			else
-			{
-				cerr << "Error: Could not open menu game ui data." << endl;
-				break;
-			}
-
+				cout << "Error creating menu UI" << endl;
+			menu_gui_data.close();
+			delete menu;
 		}
-		
-		
 		destroy();
 	}
 	cout << "EXITING!!" << endl;
 	return 0;
 }
-
-
 
 
 void destroy()
