@@ -25,7 +25,7 @@ class Package_hanabi
 {
 public:
 	Package_hanabi();
-	//Load raw data to package. True if success
+	//Load raw data to package. True if success. Loading data also verifies if data makes sense
 	bool load_raw_data(const char* data, size_t data_length);
 	//Get raw data to package. True if success
 	bool get_raw_data(char* dest, size_t out_buffer_size, size_t* raw_data_size);

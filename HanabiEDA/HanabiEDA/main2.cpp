@@ -54,12 +54,12 @@ int main2(void)
 		}
 		else if (ev.any.source == al_get_display_event_source(disp))
 		{
-			if (ev.display.type = ALLEGRO_EVENT_DISPLAY_SWITCH_OUT)
+			if (ev.display.type == ALLEGRO_EVENT_DISPLAY_SWITCH_OUT)
 			{
 				gui.force_release_mouse();
 				redraw = true;
 			}
-			else if (ev.display.type = ALLEGRO_EVENT_DISPLAY_SWITCH_IN)
+			else if (ev.display.type == ALLEGRO_EVENT_DISPLAY_SWITCH_IN)
 				redraw = true;
 		}
 		if (redraw && al_is_event_queue_empty(ev_q))
@@ -70,4 +70,3 @@ int main2(void)
 	}
 	while (1);
 }
-

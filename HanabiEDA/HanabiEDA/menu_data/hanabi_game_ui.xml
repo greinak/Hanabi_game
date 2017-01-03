@@ -1,8 +1,8 @@
 <GuiMenu>
   <!--GUI configuraton-->
   <size width="3200" height = "1800"/>
-  <!--<scale sx="0.6" sy="0.6"/>-->
-  <scale sx="0.3" sy="0.3"/>
+  <scale sx="0.6" sy="0.6"/>
+  <!--<scale sx="0.3" sy="0.3"/>-->
   <backgBitmap>Hanabi_textures/background.png</backgBitmap>
   <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
   <title>Hanabi Game</title>
@@ -432,6 +432,7 @@
       <offset x="100" y="155"/>
       <baseBitmap>Hanabi_textures/Placeholders/Border.png</baseBitmap>
       <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+      <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
       <checkAlpha>true</checkAlpha>
     </GuiButton>
     <!--Local player beans-->
@@ -444,6 +445,7 @@
           <offset x="64" y="64"/>
           <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Indicators/Bean/click.png</clickBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
@@ -452,6 +454,7 @@
           <offset x="64" y="64"/>
           <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Indicators/Bean/click.png</clickBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
@@ -460,6 +463,7 @@
           <offset x="64" y="64"/>
           <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Indicators/Bean/click.png</clickBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
@@ -468,6 +472,7 @@
           <offset x="64" y="64"/>
           <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Indicators/Bean/click.png</clickBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
@@ -476,6 +481,7 @@
           <offset x="64" y="64"/>
           <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Indicators/Bean/click.png</clickBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
@@ -484,6 +490,7 @@
           <offset x="64" y="64"/>
           <baseBitmap>Hanabi_textures/Indicators/Bean/enabled.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Indicators/Bean/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Indicators/Bean/click.png</clickBitmap>
           <button_aux_bitmap>Hanabi_textures/Indicators/Bean/disabled.png</button_aux_bitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
@@ -495,6 +502,7 @@
       <offset x="150" y="150"/>
       <baseBitmap>Hanabi_textures/game_buttons/trash_disabled.png</baseBitmap>
       <hoverBitmap>Hanabi_textures/game_buttons/trash_hover.png</hoverBitmap>
+      <clickBitmap>Hanabi_textures/game_buttons/trash_click.png</clickBitmap>
       <button_aux_bitmap>Hanabi_textures/game_buttons/trash_enabled.png</button_aux_bitmap>
       <checkAlpha>true</checkAlpha>
     </GuiButton>
@@ -559,6 +567,7 @@
           <offset x="100" y="155"/>
           <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
         <GuiButton id="local_card_2">
@@ -566,6 +575,7 @@
           <offset x="100" y="155"/>
           <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
         <GuiButton id="local_card_3">
@@ -573,6 +583,7 @@
           <offset x="100" y="155"/>
           <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
         <GuiButton id="local_card_4">
@@ -580,6 +591,7 @@
           <offset x="100" y="155"/>
           <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
         <GuiButton id="local_card_5">
@@ -587,6 +599,7 @@
           <offset x="100" y="155"/>
           <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
         <GuiButton id="local_card_6">
@@ -594,6 +607,7 @@
           <offset x="100" y="155"/>
           <baseBitmap>Hanabi_textures/Cards/Blackside.png</baseBitmap>
           <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
+          <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
           <checkAlpha>true</checkAlpha>
         </GuiButton>
       </elements>
@@ -648,6 +662,7 @@
               <position x="0" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Blue.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
             </GuiButton>
@@ -655,6 +670,7 @@
               <position x="160" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Green.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
             </GuiButton>
@@ -662,6 +678,7 @@
               <position x="320" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Red.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
 
@@ -670,6 +687,7 @@
               <position x="480" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Colors/White.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
             </GuiButton>
@@ -677,6 +695,7 @@
               <position x="640" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Colors/Yellow.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
 
@@ -691,6 +710,7 @@
               <position x="0" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_1.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
             </GuiButton>
@@ -698,6 +718,7 @@
               <position x="160" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_2.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
 
@@ -706,6 +727,7 @@
               <position x="320" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_3.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
 
@@ -714,6 +736,7 @@
               <position x="480" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_4.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
             </GuiButton>
@@ -721,6 +744,7 @@
               <position x="640" y="0"/>
               <baseBitmap>Hanabi_textures/Clue_buttons/Numbers/card_5.png</baseBitmap>
               <hoverBitmap>Hanabi_textures/Clue_buttons/hover.png</hoverBitmap>
+              <clickBitmap>Hanabi_textures/Clue_buttons/click.png</clickBitmap>
               <button_aux_bitmap>Hanabi_textures/Clue_buttons/selected.png</button_aux_bitmap>
               <checkAlpha>true</checkAlpha>
             </GuiButton>

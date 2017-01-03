@@ -90,7 +90,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 				{
 					if (ev.keyboard.type == ALLEGRO_EVENT_KEY_CHAR)	//Is it a key?
 					{
-						char c = ev.keyboard.unichar;		//Get it.
+						unsigned char c = ev.keyboard.unichar;		//Get it.
 						if (c != '\r')
 						{
 							GuiText* target = data.on_name ? data.name_text : data.on_remote_host ? data.remote_host_text : nullptr;	//Prepare target
@@ -146,6 +146,8 @@ static bool name_button_callback(GuiButton* source, bool forced, bool mouse_over
 	//Name textbox clicked!!
 	((menu_data*)user_data)->on_remote_host = false;
 	((menu_data*)user_data)->on_name = true;
+	((menu_data*)user_data)->message->SetIsVisible(false);
+	(*redraw) = true;
 	return false;
 }
 static bool remote_host_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw)
@@ -153,6 +155,8 @@ static bool remote_host_button_callback(GuiButton* source, bool forced, bool mou
 	//Remote host textbox clicked!!
 	((menu_data*)user_data)->on_remote_host = true;
 	((menu_data*)user_data)->on_name = false;
+	((menu_data*)user_data)->message->SetIsVisible(false);
+	(*redraw) = true;
 	return false;
 }
 static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw)
@@ -161,18 +165,20 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 	menu_data* data = (menu_data*)user_data;
 	if (mouse_over_element && !forced)
 	{
-		Client *cl;
-		Server *sv;
-		data->message->SetText("Connecting...");
-		data->message->SetIsVisible(true);
-		al_pause_event_queue(data->ev_q,true);
-		data->gui->redraw();
-		//Attempt connection.
-		unsigned int wait_as_client = ((float)rand() / (float)RAND_MAX)*(WAIT_AS_CLIENT_TIME_MAX - WAIT_AS_CLIENT_TIME_MIN) + WAIT_AS_CLIENT_TIME_MIN;
-		unsigned int wait_as_server = CONNECTION_TIMEOUT - wait_as_client;
-		//As client...
-		if ((cl = new Client) != nullptr)
+		if (data->name_text->getText().size() != 0 && data->remote_host_text->getText().size() != 0)
 		{
+			Client *cl;
+			Server *sv;
+			data->message->SetText("Connecting...");
+			data->message->SetIsVisible(true);
+			al_pause_event_queue(data->ev_q, true);
+			data->gui->redraw();
+			//Attempt connection.
+			unsigned int wait_as_client = ((float)rand() / (float)RAND_MAX)*(WAIT_AS_CLIENT_TIME_MAX - WAIT_AS_CLIENT_TIME_MIN) + WAIT_AS_CLIENT_TIME_MIN;
+			unsigned int wait_as_server = CONNECTION_TIMEOUT - wait_as_client;
+			//As client...
+			if ((cl = new Client) != nullptr)
+			{
 				if (cl->connect_to_server(data->remote_host_text->getText(), CONNECTION_PORT, wait_as_client))
 				{
 					data->connected = true;
@@ -181,48 +187,55 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 				}
 				if (!data->connected)
 					delete cl;
-		}
-		else
-		{
-			data->exit = true;
-			cerr << "Error creating client connection" << endl;
-		}
-		//As server
-		if (data->exit == false && data->connected == false)
-		{
-			if ((sv = new Server(CONNECTION_PORT)) != nullptr)
-			{
-				if (sv->listen_for_connection(wait_as_server))
-				{
-					data->connected = true;
-					data->net = sv;
-					data->is_server = true;
-				}
-				else
-					delete sv;
 			}
 			else
 			{
 				data->exit = true;
-				cerr << "Error creating server connection" << endl;
+				cerr << "Error creating client connection" << endl;
 			}
+			//As server
+			if (data->exit == false && data->connected == false)
+			{
+				if ((sv = new Server(CONNECTION_PORT)) != nullptr)
+				{
+					if (sv->listen_for_connection(wait_as_server))
+					{
+						data->connected = true;
+						data->net = sv;
+						data->is_server = true;
+					}
+					else
+						delete sv;
+				}
+				else
+				{
+					data->exit = true;
+					cerr << "Error creating server connection" << endl;
+				}
+			}
+			if (!data->exit)
+			{
+				if (data->connected)
+				{
+					cout << "Connected! Opening game..." << endl;
+					data->message->SetText("Connected! Opening game...");
+				}
+				else
+				{
+					cout << "Could not connect." << endl;
+					data->message->SetText("Could not connect.");
+				}
+			}
+			al_flush_event_queue(data->ev_q);
+			al_pause_event_queue(data->ev_q, false);
+			data->release_mouse = true;
 		}
-		if (!data->exit)
+		else
 		{
-			if (data->connected)
-			{
-				cout << "Connected! Opening game..." << endl;
-				data->message->SetText("Connected! Opening game...");
-			}
-			else
-			{
-				cout << "Could not connect." << endl;
-				data->message->SetText("Could not connect.");
-			}
+			data->message->SetText("Please, complete all fields.");
+			data->message->SetIsVisible(true);
+			(*redraw) = true;
 		}
-		al_flush_event_queue(data->ev_q);
-		al_pause_event_queue(data->ev_q, false);
-		data->release_mouse = true;
 	}
 	return false;
 }

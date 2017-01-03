@@ -40,6 +40,9 @@
     <Filter Include="Header Files\Hanabi">
       <UniqueIdentifier>{430bec78-bedf-4c04-88b2-e2102c1d4e08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Net connection\Packages\REVISAR">
+      <UniqueIdentifier>{43189455-9f08-4c45-8f2b-6a2558555a82}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Net connection\Client.cpp">
@@ -54,12 +57,6 @@
     <ClCompile Include="Net connection\Packages\Package_ack.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_discard.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_draw.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_error.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
@@ -69,19 +66,10 @@
     <ClCompile Include="Net connection\Packages\Package_hanabi.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_i_start.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_match_is_over.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_name.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_name_is.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_play.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_play_again.cpp">
@@ -90,16 +78,10 @@
     <ClCompile Include="Net connection\Packages\Package_quit.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_start_info.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_we_lost.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_we_won.cpp">
-      <Filter>Source Files\Net connection\Packages</Filter>
-    </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_you_have.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_you_start.cpp">
@@ -126,9 +108,6 @@
     <ClCompile Include="Gui\Gui.cpp">
       <Filter>Source Files\Gui</Filter>
     </ClCompile>
-    <ClCompile Include="fsm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,15 +126,33 @@
     <ClCompile Include="handle_game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_draw.cpp">
+      <Filter>Source Files\Net connection\Packages\REVISAR</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_i_start.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_name_is.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_start_info.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_you_have.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_play.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_discard.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="menu_data\connect_menu.xml">
       <Filter>Resource Files\menu_data</Filter>
     </Xml>
     <Xml Include="menu_data\hanabi_game_ui.xml">
-      <Filter>Resource Files\menu_data</Filter>
-    </Xml>
-    <Xml Include="menu_data\hanabi_game_ui - Copy.xml">
       <Filter>Resource Files\menu_data</Filter>
     </Xml>
   </ItemGroup>
@@ -260,7 +257,7 @@
       <Filter>Header Files\Hanabi</Filter>
     </ClInclude>
     <ClInclude Include="handle_game.h">
-      <Filter>Header Files\Hanabi</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

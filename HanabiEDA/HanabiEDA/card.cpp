@@ -6,12 +6,12 @@ card::card(card_color_t color, card_number_t number)
 	this->number = number;
 }
 
-card_color_t card::get_color()
+card_color_t card::get_color() const
 {
 	return color;
 }
 
-card_number_t card::get_number()
+card_number_t card::get_number() const
 {
 	return number;
 }

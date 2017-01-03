@@ -157,6 +157,7 @@ Gui::Gui(istream &xml)
 		{
 			parsed_data.children.clear();	//No need to keep this info, we can free memory by clearing it...
 			//Now, create display in order to show menu
+			al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_REQUIRE);
 			if ((display = al_create_display(gui_width*gui_sx, gui_height*gui_sy)) != nullptr)
 			{
 				if (gui_title.size() != 0)
@@ -923,17 +924,21 @@ void Gui::redraw()
 bool Gui::handle_position(string* x, string *y, string *r, float* fx, float* fy, float* fr)
 {
 	char c;
-	bool success = true;
+	bool success;
 	bool parse_r;
-	success &= (x != nullptr && y != nullptr);
-	success &= sscanf(x->c_str(), "%f%c", fx, &c) == 1 && sscanf(y->c_str(), "%f%c", fy, &c) == 1;
-	parse_r = (r != nullptr && fr != nullptr);
-	if (fr != nullptr)
-		*fr = 0;
-	if (success && parse_r)
+	if (success = (x != nullptr && y != nullptr))
 	{
-		success &= sscanf(r->c_str(), "%f%c", fr, &c) == 1;
-		*fr *= ALLEGRO_PI / 180;
+		if ((success &= sscanf(x->c_str(), "%f%c", fx, &c) == 1 && sscanf(y->c_str(), "%f%c", fy, &c) == 1))
+		{
+			parse_r = (r != nullptr && fr != nullptr);
+			if (fr != nullptr)
+				*fr = 0;
+			if (success && parse_r)
+			{
+				success &= sscanf(r->c_str(), "%f%c", fr, &c) == 1;
+				*fr *= ALLEGRO_PI / 180;
+			}
+		}
 	}
 	return success;
 }

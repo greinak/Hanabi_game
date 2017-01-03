@@ -1,7 +1,14 @@
+/*
+	Handle Game code
+
+*/
+
 #include "handle_game.h"
 #include "card.h"
 #include "deck.h"
 #include <iostream>
+#include <allegro5\allegro5.h>
+#include "Net connection\Packages\Package_hanabi.h"
 
 #define HANABI_TOTAL_LIGHTNING_INDICATORS	3
 #define HANABI_TOTAL_CLUE_INDICATORS		8
@@ -11,6 +18,10 @@
 const char* color_string[] = { "blue","green","red","white","yellow","no color" };	//For loading.
 
 using namespace std;
+
+//############
+//# Typedefs #
+//############
 
 typedef struct
 {
@@ -96,8 +107,174 @@ typedef struct
 
 }hanabi_gui_elements_t;
 
+typedef struct
+{
+	hanabi_gui_elements_t elements;
+	Net_connection* connection;
+	Gui* game_ui;
+	ALLEGRO_EVENT_QUEUE* ev_q;
+	bool break_event_loop;
+	bool redraw;
+}game_data;
+
+//FSM events
+typedef enum	//Any event may arrive at any state!!
+{
+	//<--States expected while in initialization-->
+	NAME,			//Received name request
+	NAMEIS,			//Received name
+	START_INFO,		//Received start info
+	SW_WHO_I,		//Software decides local starts
+	SW_WHO_YOU,		//Software decides remote starts
+	I_START,		//Remote says it starts
+	YOU_START,		//Remote says local starts
+	//<--States expected while in end of game -->
+	LOCAL_PA,		//Local player decides to play again
+	LOCAL_GO,		//Local player does not want to play again
+	REMOTE_PA,		//Remote player decides to play again
+	REMOTE_GO,		//Remote player does not want to play again
+	//<--States expected while in game-->
+	LOCAL_GIVE_CLUE,		//Local player gives clue
+	LOCAL_PLAY,				//Local player plays a card
+	LOCAL_DISCARD,			//Local player discards a card
+	SW_DRAW_NEXT,			//Draw next card (software tells us this card is not the last one)
+	SW_DRAW_LAST,			//Draw next card, (software tells us this card is the last one)
+	REMOTE_WE_WON,			//Remote player informs we won
+	REMOTE_WE_LOST,			//Remote player informs we lost
+	REMOTE_MATCH_IS_OVER,	//Remote player informs match is over
+	REMOTE_GIVE_CLUE,		//Local player gives clue
+	REMOTE_PLAY,			//Local player plays a card
+	REMOTE_DISCARD,			//Local player discards a card
+	REMOTE_PLAY_WON,		//Local player plays a card, and we won
+	REMOTE_PLAY_LOST,		//Local player plays a card, and we lost
+	DRAW_NEXT,				//Received draw next card
+	DRAW_LAST,				//Received draw next card, this is the last one
+	DRAW_FAKE,				//Received empty draw
+	//<--Other events-->
+	BAD,			//Inform communication error to remote machine
+	ERROR_EV,		//Remote machine informed a communication error		
+	QUIT,			//Remote left the game
+	LOCAL_QUIT,		//Local left the game
+	//<--Control events-->
+	ACK,			//ACK
+	//<--FSM behaviour related events-->
+	GND,					//Identifier of end of common event state blocks list. Not a real event.
+}fsm_event_T;
+
+typedef enum {MOUSE,DISPLAY_CLOSE,FSM} event_id;
+
+typedef struct
+{
+	event_id	ev_id;
+	fsm_event_T	fsm_event;
+	Package_hanabi* package;
+}game_event_t;
+
+//#############################
+//# Some functions prototypes #
+//#############################
+
+//########################
+//# Callbacks prototypes #
+//########################
+
+static bool attach_menu_elements(hanabi_gui_elements_t *elements, Gui* game_ui);
+static void wait_for_event(game_event_t* ret_event, game_data& g_data);
+
+//#################
+//# Main function #
+//#################
+void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_server)
+{
+	game_data data;
+	data.connection = net;
+	data.game_ui = game_ui;
+	data.ev_q = al_create_event_queue();
+	data.break_event_loop = false;
+	if (data.ev_q != nullptr)
+	{
+		al_register_event_source(data.ev_q, al_get_mouse_event_source());
+		al_register_event_source(data.ev_q, al_get_display_event_source(data.game_ui->get_display()));
+		if (attach_menu_elements(&data.elements, game_ui))
+		{
+			data.elements.player.local.name->SetText(user_name);
+			game_ui->redraw();
+			game_event_t ev;
+			data.redraw = false;
+			while (!data.break_event_loop)
+			{
+				wait_for_event(&ev, data);
+				if (ev.ev_id == MOUSE)
+				{
+					ALLEGRO_MOUSE_STATE st;
+					al_get_mouse_state(&st);
+					data.redraw |= data.game_ui->feed_mouse_event(st);
+				}
+				else if (ev.ev_id == DISPLAY_CLOSE)
+				{
+					data.elements.exit_menu.menu->SetIsVisible(true);
+					data.elements.exit_menu.menu->SetIsActive(true);
+					data.redraw = true;
+				}
+				if (data.redraw && al_is_event_queue_empty(data.ev_q))
+				{
+					data.redraw = false;
+					data.game_ui->redraw();
+				}
+			}
+		}
+		else
+			cout << "ERROR: Could not load game UI properly" << endl;
+		al_destroy_event_queue(data.ev_q);
+	}
+	else
+		cout << "Error: Could not create event allegro event queue for game." << endl;
+}
+
+//###################
+//# Other functions #
+//###################
+//Wait for an event
+static void wait_for_event(game_event_t* ret_event,game_data& g_data)
+{
+	bool got_event = false;
+	char raw_data[MAX_PACKAGE_SIZE];
+	size_t data_size = 0;
+	while (!got_event)
+	{
+		if (!al_is_event_queue_empty(g_data.ev_q))
+		{
+			ALLEGRO_EVENT ev;
+			al_wait_for_event(g_data.ev_q, &ev);
+			if (ev.any.source == al_get_mouse_event_source())
+			{
+				if (ev.mouse.display == g_data.game_ui->get_display())
+				{
+					ret_event->ev_id = MOUSE;
+					got_event = true;
+				}
+			}
+			else if (ev.any.source == al_get_display_event_source(g_data.game_ui->get_display()))
+			{
+				if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+				{
+					ret_event->ev_id = DISPLAY_CLOSE;
+					got_event = true;
+				}
+			}
+		}
+		else if (false || g_data.connection->receive_data(raw_data, MAX_PACKAGE_SIZE,&data_size))
+		{
+			got_event = true;
+			ret_event->ev_id = FSM;
+		}
+		if (!got_event)
+			al_rest(1.0/60.0);	//Just decrease %CPU
+	}
+}
+
 //Attach all UI elements to objects in code
-bool attach_menu_elements(hanabi_gui_elements_t *elements, Gui* game_ui)
+static bool attach_menu_elements(hanabi_gui_elements_t *elements, Gui* game_ui)
 {
 	//Note: The idea of defining elements in an xml and then refering to them by id was inspired by Android UI
 	bool success = true;
@@ -237,7 +414,6 @@ bool attach_menu_elements(hanabi_gui_elements_t *elements, Gui* game_ui)
 	//Remote player left ok button
 	if (success)
 		success &= (elements->remote_player_left_menu.ok_button = dynamic_cast<GuiButton*>(game_ui->get_element_from_id("remote_player_left_menu_ok"))) != nullptr;
-	return success;
 	//Exit menu
 	if (success)
 		success &= (elements->exit_menu.menu = dynamic_cast<GuiSubmenu*>(game_ui->get_element_from_id("exit_menu"))) != nullptr;
@@ -250,18 +426,618 @@ bool attach_menu_elements(hanabi_gui_elements_t *elements, Gui* game_ui)
 	return success;
 }
 
-void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_server)
+//#############
+//# Callbacks #
+//#############
+
+//#################################
+//## HANABI FINITE STATE MACHINE ##
+//#################################
+
+//NOTE: Separated in two parts:
+//First: States and actions while NOT IN GAME
+//Second: States and actions while IN GAME
+//Each part is separated in groups, in each group we have actions first ($) and then states(%)
+//This organization of states and events DOES NOT AFFECT the behaviour of the FSM, since this is just an abstract organization. 
+
+typedef void(*action)(game_data& data);
+
+typedef struct state_block
 {
-	hanabi_gui_elements_t elements;
-	if (attach_menu_elements(&elements, game_ui))
+	fsm_event_T	block_ev;
+	action action;
+	const struct state_block* next_state;
+}state_block;
+
+typedef struct state_block STATE;
+
+//First, let's define a do nothing function
+static void do_nothing(game_data& data) { return; }
+//And, common fake event
+extern const STATE common[];
+
+//This is the golden function
+const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, game_data& data)
+{
+	const STATE* st = current_state;
+	while (st->block_ev != ev && st->block_ev != GND)
+		st++;
+	if (st->block_ev != GND)
 	{
-		elements.player.local.name->SetText(user_name);
-		elements.player.remote.name->SetText("The other player");
-		elements.message->SetIsVisible(true);
-		elements.message->SetText("Hello World!");
-		game_ui->redraw();
-		while (1);
+		st->action(data);
+		return st->next_state;
 	}
-	else
-		cout << "ERROR: Could not load game UI properly" << endl;
+	st = common;
+	while (st->block_ev != ev && st->block_ev != GND)
+		st++;
+	if (st->block_ev != GND)
+	{
+		st->action(data);
+		return st->next_state;
+	}
+	return current_state;
 }
+
+
+
+//######################
+//# Actions prototypes #
+//######################
+//Notation: state__event
+static void s_wait_nameis__nameis(game_data& data);
+static void s_wait_name__name(game_data& data);
+static void s_wait_nameis_ack__ack(game_data& data);
+static void c_wait_name__name(game_data& data);
+static void c_wait_nameis_ack__ack(game_data& data);
+static void c_wait_nameis__nameis(game_data& data);
+static void c_wait_start_info__start_info(game_data& data);
+static void wait_start_info_ack__ack(game_data& data);
+static void wait_software_who__sw_who_i(game_data& data);
+static void wait_software_who__sw_who_you(game_data& data);
+static void wait_i_start_ack__ack(game_data& data);
+static void wait_who__i_start(game_data& data);
+static void wait_who__you_start(game_data& data);
+static void a_wait_remote_play_again_answer__remote_pa(game_data& data);
+static void a_wait_remote_play_again_answer__remote_go(game_data& data);
+static void a_wait_local_play_again_answer__local_pa(game_data& data);
+static void a_wait_local_play_again_answer__local_go(game_data& data);
+static void b_wait_local_play_again_answer__local_pa(game_data& data);
+static void b_wait_local_play_again_answer__local_go(game_data& data);
+static void b_wait_remote_play_again_answer__start_info(game_data& data);
+static void b_wait_remote_play_again_answer__remote_go(game_data& data);
+static void local_player_turn__local_give_clue(game_data& data);
+static void local_player_turn__local_play(game_data& data);
+static void local_player_turn__local_discard(game_data& data);
+static void wait_remote_player_response__ack(game_data& data);
+static void wait_remote_player_response__remote_we_won(game_data& data);
+static void wait_remote_player_response__remote_we_lost(game_data& data);
+static void wait_sw_draw__sw_draw_next(game_data& data);
+static void wait_sw_draw__sw_draw_last(game_data& data);
+static void remote_player_turn__remote_give_clue(game_data& data);
+static void remote_player_turn__remote_play(game_data& data);
+static void remote_player_turn__remote_discard(game_data& data);
+static void remote_player_turn__remote_play_won(game_data& data);
+static void remote_player_turn__remote_play_lost(game_data& data);
+static void wait_draw__draw_next(game_data& data);
+static void wait_draw__draw_last();
+static void sc_1_remote_player_turn__remote_give_clue(game_data& data);
+static void sc_1_remote_player_turn__remote_play(game_data& data);
+static void sc_1_remote_player_turn__remote_discard(game_data& data);
+static void sc_1_remote_player_turn__remote_play_won(game_data& data);
+static void sc_1_remote_player_turn__remote_play_lost(game_data& data);
+static void sc_1_wait_draw__draw_fake(game_data& data);
+static void sc_1_local_player_turn__local_give_clue(game_data& data);
+static void sc_1_local_player_turn__local_play(game_data& data);
+static void sc_1_local_player_turn__local_discard(game_data& data);
+static void sc_1_wait_remote_player_response__remote_we_won(game_data& data);
+static void sc_1_wait_remote_player_response__remote_we_lost(game_data& data);
+static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& data);
+static void sc_2_local_player_turn__local_give_clue(game_data& data);
+static void sc_2_local_player_turn__local_play(game_data& data);
+static void sc_2_local_player_turn__local_discard(game_data& data);
+static void sc_2_wait_remote_player_response__ack(game_data& data);
+static void sc_2_wait_remote_player_response__remote_we_won(game_data& data);
+static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data);
+static void sc_2_remote_player_turn__remote_give_clue(game_data& data);
+static void sc_2_remote_player_turn__remote_discard(game_data& data);
+static void sc_2_remote_player_turn__remote_play(game_data& data);
+static void sc_2_remote_player_turn__remote_play(game_data& data);
+static void sc_2_remote_player_turn__remote_play_won(game_data& data);
+static void sc_2_remote_player_turn__remote_play_lost(game_data& data);
+
+//#####################
+//# States prototypes #
+//#####################
+//Notation: state__event
+
+extern const STATE s_wait_nameis[];
+extern const STATE s_wait_name[];
+extern const STATE s_wait_nameis_ack[];
+extern const STATE c_wait_name[];
+extern const STATE c_wait_nameis_ack[];
+extern const STATE c_wait_nameis[];
+extern const STATE c_wait_start_info[];
+extern const STATE wait_start_info_ack[];
+extern const STATE wait_software_who[];
+extern const STATE wait_i_start_ack[];
+extern const STATE wait_who[];
+extern const STATE a_wait_remote_play_again_answer[];
+extern const STATE a_wait_local_play_again_answer[];
+extern const STATE b_wait_local_play_again_answer[];
+extern const STATE b_wait_remote_play_again_answer[];
+extern const STATE local_player_turn[];
+extern const STATE wait_remote_player_response[];
+extern const STATE wait_sw_draw[];
+extern const STATE remote_player_turn[];
+extern const STATE wait_draw[];
+extern const STATE sc_1_remote_player_turn[];
+extern const STATE sc_1_wait_draw[];
+extern const STATE sc_1_local_player_turn[];
+extern const STATE sc_1_wait_remote_player_response[];
+extern const STATE sc_2_local_player_turn[];
+extern const STATE sc_2_wait_remote_player_response[];
+extern const STATE sc_2_remote_player_turn[];
+
+
+//<-- While NOT in game!!! -->       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: HANDSHAKE, branch: Server $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void s_wait_nameis__nameis(game_data& data)
+{
+	//Send ack
+}
+static void s_wait_name__name(game_data& data)
+{
+	//Send nameis
+}
+static void s_wait_nameis_ack__ack(game_data& data)
+{
+	//Send start info
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: HANDSHAKE, branch: Server %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+static const STATE s_wait_nameis[] =
+{
+	{ NAMEIS,s_wait_nameis__nameis,s_wait_name },
+	{ GND,NULL,NULL}
+};
+
+static const STATE s_wait_name[] =
+{
+	{ NAME,s_wait_name__name,s_wait_nameis_ack },
+	{ GND,do_nothing,NULL}
+};
+
+static const STATE s_wait_nameis_ack[] =
+{
+	{ ACK,s_wait_nameis_ack__ack,wait_start_info_ack },  // --> GO TO INITIALIZATION
+	{ GND,nullptr,nullptr }
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: HANDSHAKE, branch: Client $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void c_wait_name__name(game_data& data)
+{
+	//Send nameis
+}
+static void c_wait_nameis_ack__ack(game_data& data)
+{
+	//Send name
+}
+static void c_wait_nameis__nameis(game_data& data)
+{
+	//Send ack
+}
+static void c_wait_start_info__start_info(game_data& data)
+{
+	//Send ack
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: HANDSHAKE, branch: Client %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE c_wait_name[] =
+{
+	{ NAME,c_wait_name__name,c_wait_nameis_ack },
+	{ GND,nullptr,nullptr }
+};
+static const STATE c_wait_nameis_ack[] =
+{
+	{ ACK,c_wait_nameis_ack__ack,c_wait_nameis },
+	{ GND,nullptr,nullptr }
+};
+static const STATE c_wait_nameis[] =
+{
+	{ NAMEIS,c_wait_nameis__nameis,c_wait_start_info },
+	{ GND,nullptr,nullptr }
+};
+static const STATE c_wait_start_info[] =
+{
+	{ START_INFO,c_wait_start_info__start_info,wait_who },	// --> GO TO INITIALIZATION
+	{ GND,nullptr,nullptr }
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: INITIALIZATION, branch: MACHINE_A $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void wait_start_info_ack__ack(game_data& data)
+{
+	//Send 
+}
+static void wait_software_who__sw_who_i(game_data& data)
+{
+	//Send 
+}
+static void wait_software_who__sw_who_you(game_data& data)
+{
+	//Send 
+}
+static void wait_i_start_ack__ack(game_data& data)
+{
+	//Send 
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: INITIALIZATION, branch: MACHINE_A %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE wait_start_info_ack[] =
+{
+	{ ACK,wait_start_info_ack__ack,wait_software_who },
+	{ GND,nullptr,nullptr }
+};
+static const STATE wait_software_who[] =
+{
+	{ SW_WHO_I,wait_software_who__sw_who_i,wait_i_start_ack },
+	{ SW_WHO_YOU,wait_software_who__sw_who_you,remote_player_turn },	//  --> GO TO GAME
+	{ GND,nullptr,nullptr }
+};
+static const STATE wait_i_start_ack[] =
+{
+	{ ACK,wait_i_start_ack__ack,local_player_turn },	// --> GO TO GAME
+	{ GND,nullptr,nullptr }
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: INITIALIZATION, branch: MACHINE_B $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void wait_who__i_start(game_data& data)
+{
+	//Send 
+}
+static void wait_who__you_start(game_data& data)
+{
+	//Send 
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: INITIALIZATION, branch: MACHINE_B %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE wait_who[] =
+{
+	{ I_START,wait_who__i_start,remote_player_turn },
+	{ YOU_START,wait_who__you_start,local_player_turn },	// --> GO TO GAME
+	{ GND,nullptr,nullptr }
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: END OF GAME, branch: A:INFORMER (The one who informed game result) $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void a_wait_remote_play_again_answer__remote_pa(game_data& data)
+{
+}
+static void a_wait_remote_play_again_answer__remote_go(game_data& data)
+{
+}
+static void a_wait_local_play_again_answer__local_pa(game_data& data)
+{
+}
+static void a_wait_local_play_again_answer__local_go(game_data& data)
+{
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: END OF GAME, branch: A:INFORMER (The one who informed game result) %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE a_wait_remote_play_again_answer[] =
+{
+	{ REMOTE_PA,a_wait_remote_play_again_answer__remote_pa,a_wait_local_play_again_answer },
+	{ REMOTE_GO,a_wait_remote_play_again_answer__remote_go,NULL },	//break
+	{ GND,nullptr,nullptr }
+};
+static const STATE a_wait_local_play_again_answer[] =
+{
+	{ LOCAL_PA,a_wait_local_play_again_answer__local_pa,wait_start_info_ack },		//  -->> GO TO INITIALIZATION
+	{ LOCAL_GO,a_wait_local_play_again_answer__local_go,NULL },		//break
+	{ GND,nullptr,nullptr }
+};
+
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: END OF GAME, branch: B:INFORMED (The one who received information about game result) $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void b_wait_local_play_again_answer__local_pa(game_data& data)
+{
+}
+static void b_wait_local_play_again_answer__local_go(game_data& data)
+{
+}
+static void b_wait_remote_play_again_answer__start_info(game_data& data)
+{
+}
+static void b_wait_remote_play_again_answer__remote_go(game_data& data)
+{
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: END OF GAME, branch: B:INFORMED (The one who received information about game result) %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE b_wait_local_play_again_answer[] =
+{
+	{ LOCAL_PA,b_wait_local_play_again_answer__local_pa,b_wait_remote_play_again_answer },
+	{ LOCAL_GO,b_wait_local_play_again_answer__local_go,NULL }, //break
+	{ GND,nullptr,nullptr }
+};
+static const STATE b_wait_remote_play_again_answer[] =
+{
+	{ START_INFO,b_wait_remote_play_again_answer__start_info,wait_who },		//  --> GO TO INITIALIZATION
+	{ REMOTE_GO,b_wait_remote_play_again_answer__remote_go,NULL }, //break
+	{ GND,nullptr,nullptr }
+};
+
+//<-- While in game -->       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: IN GAME, branch: LOCAL_PLAYER $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void local_player_turn__local_give_clue(game_data& data)
+{
+}
+static void local_player_turn__local_play(game_data& data)
+{
+}
+static void local_player_turn__local_discard(game_data& data)
+{
+}
+static void wait_remote_player_response__ack(game_data& data)
+{
+}
+static void wait_remote_player_response__remote_we_won(game_data& data)
+{
+}
+static void wait_remote_player_response__remote_we_lost(game_data& data)
+{
+}
+static void wait_sw_draw__sw_draw_next(game_data& data)
+{
+}
+static void wait_sw_draw__sw_draw_last(game_data& data)
+{
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: IN GAME, branch: LOCAL_PLAYER %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE local_player_turn[] =
+{
+	{ LOCAL_GIVE_CLUE,local_player_turn__local_give_clue,remote_player_turn },
+	{ LOCAL_PLAY,local_player_turn__local_play,wait_remote_player_response },
+	{ LOCAL_DISCARD,local_player_turn__local_discard,wait_remote_player_response },
+	{ GND,nullptr,nullptr },
+};
+static const STATE wait_remote_player_response[] =
+{
+	{ ACK,wait_remote_player_response__ack,wait_sw_draw },
+	{ REMOTE_WE_WON,wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_WE_LOST,wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ GND,nullptr,nullptr }
+};
+static const STATE wait_sw_draw[] =
+{
+	{ SW_DRAW_NEXT,wait_sw_draw__sw_draw_next,remote_player_turn },
+	{ SW_DRAW_LAST,wait_sw_draw__sw_draw_last,sc_1_remote_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 1
+	{ GND,nullptr,nullptr }
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: IN GAME, branch: REMOTE_PLAYER $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void remote_player_turn__remote_give_clue(game_data& data)
+{
+}
+static void remote_player_turn__remote_play(game_data& data)
+{
+}
+static void remote_player_turn__remote_discard(game_data& data)
+{
+}
+static void remote_player_turn__remote_play_won(game_data& data)
+{
+}
+static void remote_player_turn__remote_play_lost(game_data& data)
+{
+}
+static void wait_draw__draw_next(game_data& data)
+{
+}
+static void wait_draw__draw_last(game_data& data)
+{
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: IN GAME, branch: REMOTE_PLAYER %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE remote_player_turn[] =
+{
+	{ REMOTE_GIVE_CLUE,remote_player_turn__remote_give_clue,local_player_turn },
+	{ REMOTE_PLAY,remote_player_turn__remote_play,wait_draw },
+	{ REMOTE_DISCARD,remote_player_turn__remote_discard,wait_draw },
+	{ REMOTE_PLAY_WON,remote_player_turn__remote_play_won,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_PLAY_LOST,remote_player_turn__remote_play_lost,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ GND,nullptr,nullptr }
+};
+static const STATE wait_draw[] =
+{
+	{ DRAW_NEXT,wait_draw__draw_next,local_player_turn },
+	{ DRAW_LAST,wait_draw__draw_last,sc_2_local_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 2
+	{ GND,nullptr,nullptr }
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FIRST), branch: REMOTE_PLAYER $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void sc_1_remote_player_turn__remote_give_clue(game_data& data)
+{
+}
+static void sc_1_remote_player_turn__remote_play(game_data& data)
+{
+}
+static void sc_1_remote_player_turn__remote_discard(game_data& data)
+{
+}
+static void sc_1_remote_player_turn__remote_play_won(game_data& data)
+{
+}
+static void sc_1_remote_player_turn__remote_play_lost(game_data& data)
+{
+}
+static void sc_1_wait_draw__draw_fake(game_data& data)
+{
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FIRST), branch: REMOTE_PLAYER %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE sc_1_remote_player_turn[] =
+{
+	{ REMOTE_GIVE_CLUE,sc_1_remote_player_turn__remote_give_clue,sc_1_local_player_turn },
+	{ REMOTE_PLAY,sc_1_remote_player_turn__remote_play,sc_1_wait_draw },
+	{ REMOTE_DISCARD,sc_1_remote_player_turn__remote_discard,sc_1_wait_draw },
+	{ REMOTE_PLAY_WON,sc_1_remote_player_turn__remote_play_won,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_PLAY_LOST,sc_1_remote_player_turn__remote_play_lost,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+};
+static const STATE sc_1_wait_draw[] =
+{
+	{ DRAW_FAKE,sc_1_wait_draw__draw_fake,sc_1_local_player_turn },
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: FINISHING SCENARIO 1, (LAST 2 TURNS, REMOTE FIRST) branch: LOCAL_PLAYER $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void sc_1_local_player_turn__local_give_clue(game_data& data)
+{
+}
+static void sc_1_local_player_turn__local_play(game_data& data)
+{
+}
+static void sc_1_local_player_turn__local_discard(game_data& data)
+{
+}
+static void sc_1_wait_remote_player_response__remote_we_won(game_data& data)
+{
+}
+static void sc_1_wait_remote_player_response__remote_we_lost(game_data& data)
+{
+}
+static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& data)
+{
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FISRT), branch: LOCAL_PLAYER %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE sc_1_local_player_turn[] =
+{
+	{ LOCAL_GIVE_CLUE,sc_1_local_player_turn__local_give_clue,sc_1_wait_remote_player_response },
+	{ LOCAL_PLAY,sc_1_local_player_turn__local_play,sc_1_wait_remote_player_response },
+	{ LOCAL_DISCARD,sc_1_local_player_turn__local_discard,sc_1_wait_remote_player_response },
+};
+static const STATE sc_1_wait_remote_player_response[] =
+{
+	{ REMOTE_WE_WON,sc_1_wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
+	{ REMOTE_WE_LOST,sc_1_wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
+	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_player_response__remote_match_is_over,b_wait_local_play_again_answer },	//  --> GO TO END OF GAME
+};
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void sc_2_local_player_turn__local_give_clue(game_data& data)
+{
+}
+static void sc_2_local_player_turn__local_play(game_data& data)
+{
+}
+static void sc_2_local_player_turn__local_discard(game_data& data)
+{
+}
+static void sc_2_wait_remote_player_response__ack(game_data& data)
+{
+}
+static void sc_2_wait_remote_player_response__remote_we_won(game_data& data)
+{
+}
+static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data)
+{
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE sc_2_local_player_turn[] =
+{
+	{ LOCAL_GIVE_CLUE,sc_2_local_player_turn__local_give_clue,sc_2_remote_player_turn },
+	{ LOCAL_PLAY,sc_2_local_player_turn__local_play,sc_2_wait_remote_player_response },
+	{ LOCAL_DISCARD,sc_2_local_player_turn__local_discard,sc_2_wait_remote_player_response },
+};
+static const STATE sc_2_wait_remote_player_response[] =
+{
+	{ ACK,sc_2_wait_remote_player_response__ack,sc_2_remote_player_turn },
+	{ REMOTE_WE_WON,sc_2_wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+};
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER $
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+static void sc_2_remote_player_turn__remote_give_clue(game_data& data)
+{
+}
+static void sc_2_remote_player_turn__remote_discard(game_data& data)
+{
+}
+static void sc_2_remote_player_turn__remote_play(game_data& data)
+{
+}
+static void sc_2_remote_player_turn__remote_play_won(game_data& data)
+{
+}
+static void sc_2_remote_player_turn__remote_play_lost(game_data& data)
+{
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER %
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static const STATE sc_2_remote_player_turn[] =
+{
+	{ REMOTE_GIVE_CLUE,sc_2_remote_player_turn__remote_give_clue,a_wait_remote_play_again_answer },		//	--> GO TO END OF GAME
+	{ REMOTE_DISCARD,sc_2_remote_player_turn__remote_discard,a_wait_remote_play_again_answer },			//	--> GO TO END OF GAME	
+	{ REMOTE_PLAY,sc_2_remote_player_turn__remote_play,a_wait_remote_play_again_answer },				//	--> GO TO END OF GAME
+	{ REMOTE_PLAY_WON,sc_2_remote_player_turn__remote_play_won,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_PLAY_LOST,sc_2_remote_player_turn__remote_play_lost,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+};
+
+//#################################
+//# Actions common to all states! #
+//#################################
+static void dummy(game_data& data)
+{
+};
+
+//This state is actually part of all states.
+static const STATE common[] =
+{
+	{ ERROR_EV,dummy,nullptr },
+	{ GND,nullptr,nullptr }
+};
