@@ -1,12 +1,12 @@
 #include "handle_menu.h"
 #include <sys/utime.h>
 
-#define MAX_TEXT_SIZE 21
+#define MAX_TEXT_SIZE 40
 #define WAIT_AS_CLIENT_TIME_MIN	200
 #define WAIT_AS_CLIENT_TIME_MAX	10000
 #define CONNECTION_TIMEOUT		15000
 #define CONNECTION_PORT			13796 
-#define CONNECTED_HOLD_TIME		3
+#define CONNECTED_HOLD_TIME		1
 
 typedef struct
 {
@@ -26,9 +26,9 @@ typedef struct
 	Net_connection* net;	//connection
 }menu_data;
 
-static bool name_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw);
-static bool remote_host_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw);
-static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw);
+static bool name_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
+static bool remote_host_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
+static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
 
 bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 {
@@ -69,9 +69,11 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 			data.connect_button->SetUserData(&data);
 			data.remote_host_button->SetUserData(&data);
 			bool redraw = false;
+
 			while (!data.exit)	//RUN MENU
 			{
 				ALLEGRO_EVENT ev;
+
 				al_wait_for_event(data.ev_q, &ev);
 
 				if (ev.any.source == al_get_display_event_source(menu->get_display()))
@@ -106,7 +108,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 							}
 						}
 						else
-							connect_button_callback(data.connect_button, false, true, &data, &redraw);	//Enter equals button click!!
+							connect_button_callback(data.connect_button, false, true, &data, 0, &redraw);	//Enter equals button click!!
 					}
 				}
 				if (data.release_mouse)	//Callbacks says gui should release mouse?
@@ -141,7 +143,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 }
 
 
-static bool name_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw)
+static bool name_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
 {
 	//Name textbox clicked!!
 	((menu_data*)user_data)->on_remote_host = false;
@@ -150,7 +152,7 @@ static bool name_button_callback(GuiButton* source, bool forced, bool mouse_over
 	(*redraw) = true;
 	return false;
 }
-static bool remote_host_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw)
+static bool remote_host_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
 {
 	//Remote host textbox clicked!!
 	((menu_data*)user_data)->on_remote_host = true;
@@ -159,7 +161,7 @@ static bool remote_host_button_callback(GuiButton* source, bool forced, bool mou
 	(*redraw) = true;
 	return false;
 }
-static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw)
+static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
 {
 	//Connect button clicked (or enter was pressed)
 	menu_data* data = (menu_data*)user_data;

@@ -24,7 +24,12 @@ Package_play::Package_play()
 bool Package_play::get_card_id(unsigned int * id)
 {
 	const package_data* p_data = (const package_data*)this->raw_data;
-	return MIN_POSITION <= p_data->card_id && p_data->card_id <= MAX_POSITION;
+	if (MIN_POSITION <= p_data->card_id && p_data->card_id <= MAX_POSITION)
+	{
+		(*id) = p_data->card_id;
+		return true;
+	}
+	return false;
 }
 
 bool Package_play::set_card_id(unsigned int id)

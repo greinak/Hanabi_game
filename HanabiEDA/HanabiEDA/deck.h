@@ -10,7 +10,7 @@ using namespace std;
 
 class deck
 {
-	deck();
+public:
 	//Adds n card to top of deck.
 	void add_card(const card& card, unsigned int n);
 	//Count how many cards of given type are there in the deck
@@ -25,6 +25,8 @@ class deck
 	card pick_top();
 	//Returns size of deck
 	unsigned int size();
+	//Removes all cards from deck
+	void clear();
 private:
 	vector<card> card_deck;	//Using vector instead of list, since vector has random access to elements.
 };

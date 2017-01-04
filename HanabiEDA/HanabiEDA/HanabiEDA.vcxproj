@@ -315,6 +315,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="card.cpp" />
+    <ClCompile Include="card_skin.cpp" />
     <ClCompile Include="deck.cpp" />
     <ClCompile Include="Gui\Gui.cpp" />
     <ClCompile Include="Gui\GuiActiveElement.cpp" />
@@ -359,6 +360,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="card.h" />
+    <ClInclude Include="card_skin.h" />
     <ClInclude Include="deck.h" />
     <ClInclude Include="Gui\Gui.h" />
     <ClInclude Include="Gui\GuiActiveElement.h" />

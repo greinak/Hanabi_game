@@ -157,7 +157,6 @@ Gui::Gui(istream &xml)
 		{
 			parsed_data.children.clear();	//No need to keep this info, we can free memory by clearing it...
 			//Now, create display in order to show menu
-			al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_REQUIRE);
 			if ((display = al_create_display(gui_width*gui_sx, gui_height*gui_sy)) != nullptr)
 			{
 				if (gui_title.size() != 0)
@@ -498,6 +497,14 @@ bool Gui::handle_gui_image_data(const my_XML_element & element, GuiElement** cre
 				ALLEGRO_BITMAP *bitmap;
 				if (get_bitmap_from_string(it->text.c_str(), &bitmap))
 					image.SetDefaultBitmap(bitmap);
+				else
+					ret_val = false;
+			}
+			else if (!strcmp(name, "secondBitmap"))
+			{
+				ALLEGRO_BITMAP *bitmap;
+				if (get_bitmap_from_string(it->text.c_str(), &bitmap))
+					image.SetSecondBitmap(bitmap);
 				else
 					ret_val = false;
 			}

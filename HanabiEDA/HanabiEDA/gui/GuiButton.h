@@ -8,7 +8,7 @@
 
 //Callback function:
 class GuiButton;
-typedef bool(GUI_button_callback)(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, bool* redraw);
+typedef bool(GUI_button_callback)(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_Data, bool* redraw);
 //Source: pointer to button
 //Forced: caused by ReleaseMouse
 //mouse_over_element: as it says. invalid if forced
@@ -19,13 +19,14 @@ class GuiButton : public GuiActiveElement
 {
 public:
 	GuiButton();
-	void SetBitmap(ALLEGRO_BITMAP* bitmap);			//Button bitmap, if nullptr button is disabled
-	void SetHoverBitmap(ALLEGRO_BITMAP* bitmap);	//Bitmap to show when hovering element
-	void SetClickBitmap(ALLEGRO_BITMAP* bitmap);	//Bitmap to show when clicking element
-	void SetTopBitmap(ALLEGRO_BITMAP* bitmap);		//Optional bitmap to be drawn above button
-	void SetUseTopBitmap(bool use_top_bitmap);		//Use optional bitmap?
-	void SetUserData(void* user_data);				//Set user data for callbacks
-	void SetCheckBitmapAlpha(bool check_bitmap_alpha);	//if bitmap is transparent in mouse, ignore
+	void SetBitmap(ALLEGRO_BITMAP* bitmap);						//Button bitmap, if nullptr button is disabled
+	void SetHoverBitmap(ALLEGRO_BITMAP* bitmap);				//Bitmap to show when hovering element
+	void SetClickBitmap(ALLEGRO_BITMAP* bitmap);				//Bitmap to show when clicking element
+	void SetTopBitmap(ALLEGRO_BITMAP* bitmap);					//Optional bitmap to be drawn above button
+	void SetUseTopBitmap(bool use_top_bitmap);					//Use optional bitmap?
+	void SetUserData(void* user_data);	//Set user data for callbacks
+	void SetAuxData(unsigned int aux_data);						//Set aux data for callbacks
+	void SetCheckBitmapAlpha(bool check_bitmap_alpha);			//if bitmap is transparent in mouse, ignore
 
 	//nullptr in order to disable.
 
@@ -58,5 +59,6 @@ private:
 	GUI_button_callback* on_hover_movement;
 	GUI_button_callback* on_hover_exit;
 	bool is_being_hovered, is_being_clicked;
+	unsigned int aux_data;
 };
 #endif

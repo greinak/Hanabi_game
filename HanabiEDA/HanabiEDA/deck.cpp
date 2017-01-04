@@ -31,6 +31,11 @@ unsigned int deck::size()
 	return card_deck.size();
 }
 
+void deck::clear()
+{
+	card_deck.clear();
+}
+
 card deck::peek_top()
 {
 	return card_deck.back();

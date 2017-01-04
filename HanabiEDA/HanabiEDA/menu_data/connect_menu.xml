@@ -50,7 +50,7 @@
         <GuiText id="ip_textbox">
           <position x="0" y="80"/>
           <textAlign>CENTER</textAlign>
-          <text>127.0.0.1</text>
+          <text>Localhost</text>
           <font size="30" type="font.ttf"/>
           <textColor>0x000000FF</textColor>
         </GuiText>

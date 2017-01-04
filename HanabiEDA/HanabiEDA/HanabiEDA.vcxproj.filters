@@ -147,6 +147,9 @@
     <ClCompile Include="Net connection\Packages\Package_discard.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
+    <ClCompile Include="card_skin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="menu_data\connect_menu.xml">
@@ -258,6 +261,9 @@
     </ClInclude>
     <ClInclude Include="handle_game.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="card_skin.h">
+      <Filter>Header Files\Hanabi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

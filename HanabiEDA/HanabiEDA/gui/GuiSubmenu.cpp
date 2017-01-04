@@ -47,8 +47,8 @@ bool GuiSubmenu::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_cont
 	if (is_active)
 	{
 		bool redraw_flag = false;
-		bool close_menu_temp = false; //Should this menu be closed?
 		bool close_menu = false;
+		bool close_menu_flag = false;
 		//Use transformations to achieve desired position and rotation
 		ALLEGRO_TRANSFORM backup, transform, transform2;
 		list<GuiElement*>::iterator it;
@@ -73,22 +73,29 @@ bool GuiSubmenu::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_cont
 			if ((active_menu_element = dynamic_cast<GuiActiveElement *>(*it)) != nullptr)
 				if ((exclusive_attention = active_menu_element->NeedsExclusiveAttention()))
 				{
-					exclusive_interacted_with_menu |= active_menu_element->FeedMouseState(st, &close_menu_temp, &redraw_flag);
+					exclusive_interacted_with_menu |= active_menu_element->FeedMouseState(st, &close_menu_flag, &redraw_flag);
 					*redraw |= redraw_flag;
-					close_menu |= close_menu_temp;
 					exclusive_attention = active_menu_element->NeedsExclusiveAttention();
+					close_menu |= close_menu_flag;
 					break;
 				}
-
-		if (!exclusive_attention)	//If no element need exclusive attention, or one needed but no longer does
+		if (close_menu)
+		{
+			SetIsActive(false);
+			SetIsVisible(false);
+			*redraw = true;
+			close_menu = false;
+		}
+		if (!exclusive_attention && is_active)	//If no element need exclusive attention, or one needed but no longer does, and menu is still active
 		{
 			for (it = children.begin(); it != children.end(); ++it)
 				if ((active_menu_element = dynamic_cast<GuiActiveElement *>(*it)) != nullptr)
 				{
-					if ((interacted_with_menu |= (active_menu_element->FeedMouseState(st, &close_menu_temp, &redraw_flag))))
+					if ((interacted_with_menu |= (active_menu_element->FeedMouseState(st, &close_menu, &redraw_flag))))
 					{
 						interacted_element = active_menu_element;
 						*redraw |= redraw_flag;
+						close_menu |= close_menu_flag;
 						break;	//Pass mouse state to elements until an interaction occurs
 					}
 				}
@@ -105,7 +112,6 @@ bool GuiSubmenu::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_cont
 					}
 				}
 			}
-			close_menu |= close_menu_temp;
 		}
 		if (close_menu)
 		{

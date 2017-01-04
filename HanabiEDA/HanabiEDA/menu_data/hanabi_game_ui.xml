@@ -1,7 +1,7 @@
 <GuiMenu>
   <!--GUI configuraton-->
   <size width="3200" height = "1800"/>
-  <scale sx="0.6" sy="0.6"/>
+  <scale sx="0.4" sy="0.4"/>
   <!--<scale sx="0.3" sy="0.3"/>-->
   <backgBitmap>Hanabi_textures/background.png</backgBitmap>
   <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
@@ -138,8 +138,8 @@
       <offset x="-1600" y="-900"/>
       <position x="-1075" y="-825"/>
       <background width="2150" height="1650" radius="20" color="0x32323296"/>
-      <blocker>false</blocker>
-      <volatile>false</volatile>
+      <blocker>true</blocker>
+      <volatile>true</volatile>
       <visible>false</visible>
       <active>false</active>
       <elements>
@@ -402,7 +402,8 @@
     </GuiSubmenu>
     <!--Remote player name-->
     <GuiText id="remote_player_name">
-      <text>Jane Doe</text>
+      <text>Remote player</text>
+      <visible>false</visible>
       <position x="1600" y="10"/>
       <textAlign>CENTER</textAlign>
       <textColor>0xFFFFFFFF</textColor>
@@ -411,8 +412,9 @@
     </GuiText>
     <!--Local player name-->
     <GuiText id="local_player_name">
-      <text>John Doe</text>
+      <text>Local player</text>
       <position x="1600" y="1720"/>
+      <visible>false</visible>
       <textAlign>CENTER</textAlign>
       <textColor>0xFFFFFFFF</textColor>
       <textbox color="0x00000090" radius="10" up="20" down="0" left="20" right="20"/>
@@ -420,16 +422,26 @@
     </GuiText>
     <!--Message box-->
     <GuiText id="message">
-      <text>It's your turn</text>
-      <position x="1600" y="1250"/>
+      <visible>false</visible>
+      <position x="1600" y="1215"/>
       <textAlign>CENTER</textAlign>
       <textColor>0xFFFFFFFF</textColor>
       <font size="50" type="font.ttf"/>
+    </GuiText>
+    <!--Message box 2-->
+    <GuiText id="message2">
+      <visible>false</visible>
+      <position x="1600" y="1285"/>
+      <textAlign>CENTER</textAlign>
+      <textColor>0xFFFFFFFF</textColor>
+      <font size="30" type="font.ttf"/>
     </GuiText>
     <!--Discarded cards menu button-->
     <GuiButton id="open_disc_card_menu_button">
       <position x="2800" y="1000"/>
       <offset x="100" y="155"/>
+      <visible>false</visible>
+      <active>false</active>
       <baseBitmap>Hanabi_textures/Placeholders/Border.png</baseBitmap>
       <hoverBitmap>Hanabi_textures/Cards/hover.png</hoverBitmap>
       <clickBitmap>Hanabi_textures/Cards/click.png</clickBitmap>
@@ -500,6 +512,8 @@
     <GuiButton id="disc_card_button">
       <position x="2500" y="1000"/>
       <offset x="150" y="150"/>
+      <visible>false</visible>
+      <active>false</active>
       <baseBitmap>Hanabi_textures/game_buttons/trash_disabled.png</baseBitmap>
       <hoverBitmap>Hanabi_textures/game_buttons/trash_hover.png</hoverBitmap>
       <clickBitmap>Hanabi_textures/game_buttons/trash_click.png</clickBitmap>
@@ -510,7 +524,8 @@
     <GuiSubmenu>
       <position x="0" y="1600"/>
       <offset x="-1600" y="0"/>
-      <visible>true</visible>
+      <visible>false</visible>
+      <active>false</active>
       <elements>
         <GuiButton id="clue_ok">
           <offset x="160" y="40"/>
@@ -561,6 +576,8 @@
     <GuiSubmenu id="local_cards_menu">
       <position x="0" y="1600"/>
       <offset x="-1600" y="0"/>
+      <visible>false</visible>
+      <active>false</active>
       <elements>
         <GuiButton id="local_card_1">
           <position x="-525" y="0"/>
@@ -616,6 +633,7 @@
     <GuiSubmenu id="remote_cards_menu">
       <position x="0" y="200"/>
       <offset x="-1600" y="0"/>
+      <visible>false</visible>
       <elements>
         <GuiImage id="remote_card_1">
           <position x="-525" y="0"/>
@@ -653,6 +671,8 @@
     <GuiSubmenu id="give_clue_menu">
       <position x="50" y="850"/>
       <background width="840" height="640" radius="20" color="0x64646464"/>
+      <visible>false</visible>
+      <active>false</active>
       <elements>
         <!--Color buttons-->
         <GuiSubmenu>
@@ -850,13 +870,13 @@
           <position x="-460" y="20"/>
           <elements>
             <!--Top-->
-            <GuiImage id="center_card_blue_1">
+            <GuiImage id="center_card_blue_5">
               <position x="-120" y="-240" r="-20"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_blue_2">
+            <GuiImage id="center_card_blue_4">
               <position x="-78" y="-120" r="-16"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -868,13 +888,13 @@
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_blue_4">
+            <GuiImage id="center_card_blue_2">
               <position x="-18" y="120" r="-8"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_blue_5">
+            <GuiImage id="center_card_blue_1">
               <position x="0" y="240" r="-4"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -894,13 +914,13 @@
           <position x="-230" y="10"/>
           <elements>
             <!--Top-->
-            <GuiImage id="center_card_white_1">
+            <GuiImage id="center_card_white_5">
               <position x="-59" y="-240" r="-10"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_white_2">
+            <GuiImage id="center_card_white_4">
               <position x="-38" y="-120" r="-8"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -912,13 +932,13 @@
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_white_4">
+            <GuiImage id="center_card_white_2">
               <position x="-9" y="120" r="-4"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_white_5">
+            <GuiImage id="center_card_white_1">
               <position x="0" y="240" r="-2"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -938,13 +958,13 @@
           <position x="0" y="0"/>
           <elements>
             <!--Top-->
-            <GuiImage id="center_card_green_1">
+            <GuiImage id="center_card_green_5">
               <position x="0" y="-240" r="0"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_green_2">
+            <GuiImage id="center_card_green_4">
               <position x="0" y="-120" r="0"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -956,13 +976,13 @@
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_green_4">
+            <GuiImage id="center_card_green_2">
               <position x="0" y="120" r="0"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_green_5">
+            <GuiImage id="center_card_green_1">
               <position x="0" y="240" r="0"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -981,13 +1001,13 @@
           <position x="230" y="10"/>
           <elements>
             <!--Top-->
-            <GuiImage id="center_card_yellow_1">
+            <GuiImage id="center_card_yellow_5">
               <position x="59" y="-240" r="10"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_yellow_2">
+            <GuiImage id="center_card_yellow_4">
               <position x="38" y="-120" r="8"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -999,13 +1019,13 @@
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_yellow_4">
+            <GuiImage id="center_card_yellow_2">
               <position x="9" y="120" r="4"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_yellow_5">
+            <GuiImage id="center_card_yellow_1">
               <position x="0" y="240" r="2"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -1024,13 +1044,13 @@
           <position x="460" y="20"/>
           <elements>
             <!--Top-->
-            <GuiImage id="center_card_red_1">
+            <GuiImage id="center_card_red_5">
               <position x="120" y="-240" r="20"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_red_2">
+            <GuiImage id="center_card_red_4">
               <position x="78" y="-120" r="16"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -1042,13 +1062,13 @@
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_red_4">
+            <GuiImage id="center_card_red_2">
               <position x="18" y="120" r="8"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
               <visible>false</visible>
             </GuiImage>
-            <GuiImage id="center_card_red_5">
+            <GuiImage id="center_card_red_1">
               <position x="0" y="240" r="4"/>
               <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
               <offset x="100" y="155"/>
@@ -1068,7 +1088,8 @@
     <GuiImage id="deck">
       <position x="2800" y="1500"/>
       <offset x="100" y="155"/>
-      <imageBitmap>Hanabi_textures/Placeholders/Border.png</imageBitmap>
+      <imageBitmap>Hanabi_textures/Cards/blackside.png</imageBitmap>
+      <secondBitmap>Hanabi_textures/Placeholders/Border.png</secondBitmap>
     </GuiImage>
     <!--Hanabi Logo-->
     <GuiImage>

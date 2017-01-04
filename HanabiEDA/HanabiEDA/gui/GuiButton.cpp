@@ -13,6 +13,7 @@ GuiButton::GuiButton()
 	this->user_data = nullptr;
 	this->check_bitmap_alpha = false;
 	this->is_being_hovered = this->is_being_clicked = false;
+	this->aux_data = 0;
 }
 
 void GuiButton::SetBitmap(ALLEGRO_BITMAP * bitmap)
@@ -43,6 +44,11 @@ void GuiButton::SetUseTopBitmap(bool use_top_bitmap)
 void GuiButton::SetUserData(void * user_data)
 {
 	this->user_data = user_data;
+}
+
+void GuiButton::SetAuxData(unsigned int aux_data)
+{
+	this->aux_data = aux_data;
 }
 
 void GuiButton::SetCheckBitmapAlpha(bool check_bitmap_alpha)
@@ -87,7 +93,7 @@ bool GuiButton::ReleaseMouse()
 	if (is_active && is_being_clicked)
 	{
 		if (on_click_up != nullptr)	//If there is a callback for click up
-			(*on_click_up)(this, true, false, user_data,&callback_redraw);	//Execute click up callback
+			(*on_click_up)(this, true, false, user_data,aux_data,&callback_redraw);	//Execute click up callback
 		is_being_clicked = false;
 		redraw |= callback_redraw;
 		callback_redraw = false;
@@ -97,12 +103,13 @@ bool GuiButton::ReleaseMouse()
 	if (is_active && is_being_hovered)	//Still active after first callback?
 	{
 		if (on_hover_exit != nullptr)	//If there is a callback for click up
-			(*on_hover_exit)(this, true, false, user_data, &callback_redraw);	//Execute click up callback
+			(*on_hover_exit)(this, true, false, user_data, aux_data, &callback_redraw);	//Execute click up callback
 		is_being_hovered = false;
 		redraw |= callback_redraw;
 		if (hover_bitmap != nullptr)
 			redraw = true;
 	}
+	is_being_clicked = is_being_hovered = false;
 	return redraw;
 }
 
@@ -153,7 +160,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 					interacted_with_mouse = true;		//Mouse is interacting with element
 					
 					if (on_click_movement != nullptr)	//If there is a callback for click movement
-						(*close_contaner) |= (*on_click_movement)(this, false, true, user_data, redraw);	//Execute click movement callback
+						(*close_contaner) |= (*on_click_movement)(this, false, true, user_data, aux_data, redraw);	//Execute click movement callback
 				}
 				else
 				{	//No.
@@ -170,10 +177,10 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 						interacted_with_mouse = true;	//Mouse is interacting with element
 
 						if (on_hover_exit != nullptr)	//If there is a callback for hover exit
-							(*close_contaner) |= (*on_hover_exit)(this,false,true,user_data,&redraw2);	//Execute hover exit callback
+							(*close_contaner) |= (*on_hover_exit)(this,false,true,user_data, aux_data, &redraw2);	//Execute hover exit callback
 						if(is_active)	//IF still active after first callback
 							if (on_click_down != nullptr)	//If there is a callback for clicking
-								(*close_contaner) |= (*on_click_down)(this,false,true,user_data,redraw);	//Execute click down callback
+								(*close_contaner) |= (*on_click_down)(this,false,true,user_data, aux_data, redraw);	//Execute click down callback
 						*redraw |= redraw2;
 					}
 					else
@@ -196,7 +203,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 					interacted_with_mouse = true;		//Mouse is interacting with element
 
 					if (on_click_up != nullptr)				//If there is a callback for click up
-						(*close_contaner) |= (*on_click_up)(this, false, true, user_data, redraw);		//Execute click up callback
+						(*close_contaner) |= (*on_click_up)(this, false, true, user_data, aux_data, redraw);		//Execute click up callback
 					//Note: Do not enter hover on click up, wait for next event
 					//Note that an element may be below another active element when mouse is clicked up
 					//In that case, this element will be clicked up, but another element will receive hover enter
@@ -211,7 +218,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 						interacted_with_mouse = true;		//Mouse is interacting with element
 
 						if (on_hover_movement != nullptr)	//If there is a callback for hover movement
-							(*close_contaner) |= (*on_hover_movement)(this, false, true, user_data, redraw);	//Execute hover movement callback
+							(*close_contaner) |= (*on_hover_movement)(this, false, true, user_data, aux_data, redraw);	//Execute hover movement callback
 					}
 					else
 					{
@@ -222,7 +229,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 						is_being_hovered = true;			//Now being hovered
 
 						if (on_hover_enter != nullptr)	//If there is a callback for hover enter
-							(*close_contaner) |= (*on_hover_enter)(this,false,true,user_data,redraw);	//Execute hover enter callback
+							(*close_contaner) |= (*on_hover_enter)(this,false,true,user_data,aux_data,redraw);	//Execute hover enter callback
 					}
 				}
 			}
@@ -240,7 +247,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 				is_being_hovered = false;			//No longer hovering
 
 				if (on_hover_exit != nullptr)	//If there is a callback for hover_exit
-					(*close_contaner) |= (*on_hover_exit)(this,false,false,user_data,redraw);	//Execute hover exit callback
+					(*close_contaner) |= (*on_hover_exit)(this,false,false,user_data,aux_data,redraw);	//Execute hover exit callback
 			}
 			else
 			{
@@ -256,7 +263,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 						interacted_with_mouse = true;		//Mouse is interacting with element
 						exclusive_attention = true;			//Still needs exclusive attention
 						if (on_click_movement != nullptr)	//If there is a callback for click movement
-							(*close_contaner) |= (*on_click_movement)(this, false, false, user_data, redraw);	//Execute click movement callback
+							(*close_contaner) |= (*on_click_movement)(this, false, false, user_data, aux_data,redraw);	//Execute click movement callback
 					}
 					else
 					{
@@ -267,7 +274,7 @@ bool GuiButton::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_conta
 						is_being_clicked = false;			//No longer being clicked
 
 						if (on_click_up != nullptr)	//If there is a callback for click up
-							(*close_contaner) |= (*on_click_up)(this, false, false, user_data, redraw);	//Execute click up callback
+							(*close_contaner) |= (*on_click_up)(this, false, false, user_data, aux_data, redraw);	//Execute click up callback
 					}
 				}
 				else
