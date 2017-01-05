@@ -265,6 +265,9 @@
     <ClInclude Include="card_skin.h">
       <Filter>Header Files\Hanabi</Filter>
     </ClInclude>
+    <ClInclude Include="hanabi_messages.h">
+      <Filter>Header Files\Hanabi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

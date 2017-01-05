@@ -5,6 +5,7 @@
 #include "handle_game.h"
 #include "card.h"
 #include "deck.h"
+#include "hanabi_messages.h"
 #include <iostream>
 #include <allegro5\allegro5.h>
 #include "Net connection\Packages\Packages.h"
@@ -31,8 +32,8 @@ typedef struct
 
 	struct
 	{
-		GuiButton* lightning_indicators[3];	//id="light_ind_%ID%"
-		GuiButton* clue_indicators[3];		//id="clue_ind_%ID%"
+		GuiButton* lightning_indicators[HANABI_TOTAL_LIGHTNING_INDICATORS];	//id="light_ind_%ID%"
+		GuiButton* clue_indicators[HANABI_TOTAL_CLUE_INDICATORS];		//id="clue_ind_%ID%"
 	}indicators;
 
 	struct
@@ -66,6 +67,7 @@ typedef struct
 	{
 		GuiImage	*clue_marker[HANABI_HAND_SIZE];		//id="card_ind_%NUMBER%"
 		GuiButton	*clue_button;								//id="clue_ok"
+		GuiSubmenu	*menu;								//id="show_clue_menu"
 	}clue;
 
 	struct
@@ -78,7 +80,8 @@ typedef struct
 	struct
 	{
 		GuiSubmenu	*menu;						//id="game_finished_menu"
-		GuiText		*score;						//id="game_finished_menu_score"
+		GuiText		*title;						//id="game_finished_title" 
+		GuiText		*score;						//id="game_finished_menu_score" 
 		GuiText		*score_message;				//id="game_finished_menu_message"
 		GuiButton	*play_again_button;			//id="game_finished_menu_play_again"
 		GuiButton	*quit_button;				//id="game_finished_menu_quit"
@@ -112,13 +115,15 @@ typedef enum
 {
 	FB_NO_EVENT,
 	FB_WHO,
+	FB_DRAW,
 	FB_ERROR
 }fsm_feedback_event_T;
 
 typedef enum
 {
 	USER_DISCARD_CARD,
-	USER_PLAY_CARD
+	USER_PLAY_CARD,
+	USER_GIVE_CLUE
 }local_user_event_T;
 
 typedef enum	//Any event may arrive at any state!!
@@ -167,6 +172,54 @@ typedef enum	//Any event may arrive at any state!!
 	GND,					//Identifier of end of common event state blocks list. Not a real event.
 }fsm_event_T;
 
+static const char* fsm_event_name[] =
+{
+	//<--States expected while in initialization-->
+	"NAME",			//Received name request
+	"NAMEIS",			//Received name
+	"START_INFO",		//Received start info
+	"SW_WHO_I",		//Software decides local starts
+	"SW_WHO_YOU",		//Software decides remote starts
+	"I_START",		//Remote says it starts
+	"YOU_START",		//Remote says local starts
+					//<--States expected while in end of game -->
+	"LOCAL_PA",		//Local player decides to play again
+	"LOCAL_GO",		//Local player does not want to play again
+	"REMOTE_PA",		//Remote player decides to play again
+	"REMOTE_GO",		//Remote player does not want to play again
+									//<--States expected while in game-->
+	"LOCAL_GIVE_CLUE",		//Local player gives clue
+	"LOCAL_PLAY",				//Local player plays a card
+	"LOCAL_DISCARD",			//Local player discards a card
+	"SW_DRAW_NEXT",			//Draw next card (software tells us this card is not the last one)
+	"SW_DRAW_LAST",			//Draw next card, (software tells us this card is the last one)
+	"REMOTE_WE_WON",			//Remote player informs we won
+	"REMOTE_WE_LOST",			//Remote player informs we lost
+	"REMOTE_MATCH_IS_OVER",	//Remote player informs match is over
+	"REMOTE_GIVE_CLUE",		//Local player gives clue
+	"REMOTE_PLAY",			//Local player plays a card
+	"REMOTE_DISCARD",			//Local player discards a card
+	"REMOTE_PLAY_WON",		//Local player plays a card, and we won
+	"REMOTE_PLAY_LOST",		//Local player plays a card, and we lost
+	"DRAW_NEXT",				//Received draw next card
+	"DRAW_LAST",				//Received draw next card, this is the last one
+	"DRAW_FAKE",				//Received empty draw
+															//<--Other events-->
+	"BAD",			//Inform communication error to remote machine
+	"ERROR_EV",		//Remote machine informed a communication error		
+	"QUIT",			//Remote left the game
+	"LOCAL_QUIT",		//Local left the game
+																			//<--Control events-->
+	"ACK",			//ACK
+																							//<--Initial events-->
+	"SERVER",			//Start FSM as server
+	"CLIENT",			//Start FSM as client
+																											//<--FSM behaviour related events-->
+	"GND",					//Identifier of end of common event state blocks list. Not a real event.
+};//For debugging
+
+
+
 typedef struct
 {
 	hanabi_gui_elements_t elements;
@@ -186,9 +239,10 @@ typedef struct
 	unsigned int color_stack[HANABI_TOTAL_COLORS];
 	bool discard_mode_enabled;
 	unsigned int local_event_card_offset;
+
+	bool got_clue;
 	bool local_event_clue_is_color;
-	unsigned int local_event_clue_color_id;
-	unsigned int local_event_clue_number_id;
+	unsigned int local_event_clue_id;
 	queue<local_user_event_T> local_event_queue;
 	unsigned int discard_count;
 }game_data;
@@ -236,6 +290,9 @@ bool discarded_cards_button_callback(GuiButton* source, bool forced, bool mouse_
 bool generic_close_menu_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
 bool discard_card_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
 bool local_user_card_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
+bool give_clue_color_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
+bool give_clue_number_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
+bool give_clue_ok_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw);
 
 //#################
 //# Main function #
@@ -288,7 +345,10 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 						data.redraw = true;
 					}
 					else if (ev.ev_id == FSM)
+					{
 						state = fsm_handler(state, ev.fsm_event, data, ev.package);
+						cout << "Next..." << endl;
+					}
 					if (data.redraw && al_is_event_queue_empty(data.ev_q))
 					{
 						data.redraw = false;
@@ -333,8 +393,19 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 			{
 				ret_event->ev_id = FSM;
 				int rand_value = rand();
-				//cout << rand_value << endl;	//For debugging
+				cout << rand_value << endl;	//For debugging
 				ret_event->fsm_event = (rand_value%2)?SW_WHO_I:SW_WHO_YOU;	//Pseudorandomly select who starts.
+				ret_event->package = nullptr;		//If no data, always to nullptr
+				got_event = true;
+				break;
+			}
+			case FB_DRAW:
+			{
+				ret_event->ev_id = FSM;
+				if (g_data.card_deck.size() > 1)
+					ret_event->fsm_event = SW_DRAW_NEXT;
+				else
+					ret_event->fsm_event = SW_DRAW_LAST;
 				ret_event->package = nullptr;		//If no data, always to nullptr
 				got_event = true;
 				break;
@@ -352,18 +423,20 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 		{
 			if (!g_data.local_event_queue.empty())
 			{
-				local_user_event_T ev = g_data.local_event_queue.front();
-				g_data.local_event_queue.pop();
 				got_event = true;
 				ret_event->ev_id = FSM;
-				ret_event->package = nullptr;
-				switch (ev)
+				local_user_event_T ev = g_data.local_event_queue.front();
+				g_data.local_event_queue.pop();
+				switch(ev)
 				{
 				case USER_PLAY_CARD:
 					ret_event->fsm_event = LOCAL_PLAY;
 					break;
 				case USER_DISCARD_CARD:
 					ret_event->fsm_event = LOCAL_DISCARD;
+					break;
+				case USER_GIVE_CLUE:
+					ret_event->fsm_event = LOCAL_GIVE_CLUE;
 					break;
 				default:
 					ret_event->fsm_event = BAD;
@@ -476,9 +549,35 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 							}
 							case PLAY_P:
 							{
-								Package_play* package = new Package_play;
+ 								Package_play* package = new Package_play;
 								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_PLAY;
+								{
+									unsigned int i;
+									package->get_card_id(&i);
+									card c = g_data.remote_player_card[i];
+									if (g_data.color_stack[c.get_color()] != c.get_number())
+									{
+										if (g_data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)
+											ret_event->fsm_event = REMOTE_PLAY_LOST;
+										else
+											ret_event->fsm_event = REMOTE_PLAY;
+									}
+									else
+									{
+										unsigned int played_cards = 0;
+										if (c.get_number() == HANABI_TOTAL_NUMBERS - 1)
+										{
+											for (unsigned int j = 0; j < HANABI_TOTAL_COLORS; j++)
+												played_cards += g_data.color_stack[j];
+											if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS - 1)
+												ret_event->fsm_event = REMOTE_PLAY_WON;
+											else
+												ret_event->fsm_event = REMOTE_PLAY;
+										}
+										else
+											ret_event->fsm_event = REMOTE_PLAY;
+									}
+								}
 								else
 									data_ok = false;
 								break;
@@ -496,7 +595,12 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 							{
 								Package_you_have* package = new Package_you_have;
 								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_GIVE_CLUE;
+								{
+									if(g_data.clues != 0)
+										ret_event->fsm_event = REMOTE_GIVE_CLUE;
+									else
+										ret_event->fsm_event = BAD;
+								}
 								else
 									data_ok = false;
 								break;
@@ -508,10 +612,18 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 								{
 									card c;
 									package->get_card(&c);
-									if (g_data.card_deck.count_cards(c) != 0)
-										ret_event->fsm_event = REMOTE_DISCARD;
+									if (g_data.card_deck.size() == 0)
+										ret_event->fsm_event = DRAW_FAKE;
+									else if (g_data.card_deck.count_cards(c) != 0)
+									{
+										if (g_data.card_deck.size() > 1)
+											ret_event->fsm_event = DRAW_NEXT;
+										else
+											ret_event->fsm_event = DRAW_LAST;
+									}
 									else
 										data_ok = false;
+										
 								}
 								else
 									data_ok = false;
@@ -670,7 +782,7 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 	{
 		char c = '0' + n + 1;
 		string id = string("clue_button_") + c;
-		success &= (elements.give_clue_menu.color_button[n] = dynamic_cast<GuiButton*>(game_ui->get_element_from_id(id.c_str()))) != nullptr;
+		success &= (elements.give_clue_menu.number_button[n] = dynamic_cast<GuiButton*>(game_ui->get_element_from_id(id.c_str()))) != nullptr;
 	}
 	//Local player name
 	if (success)
@@ -705,6 +817,9 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 		string id = string("bean_") + c;
 		success &= (elements.player.local.bean[n] = dynamic_cast<GuiButton*>(game_ui->get_element_from_id(id.c_str()))) != nullptr;
 	}
+	//Show clue menu
+	if (success)
+		success &= (elements.clue.menu = dynamic_cast<GuiSubmenu*>(game_ui->get_element_from_id("show_clue_menu"))) != nullptr;
 	//Clue markers
 	for (unsigned int n = 0; n < HANABI_HAND_SIZE && success; n++)
 	{
@@ -732,6 +847,9 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 	//Game finished menu
 	if (success)
 		success &= (elements.game_finished_menu.menu = dynamic_cast<GuiSubmenu*>(game_ui->get_element_from_id("game_finished_menu"))) != nullptr;
+	//Game finished title
+	if (success)
+		success &= (elements.game_finished_menu.title = dynamic_cast<GuiText*>(game_ui->get_element_from_id("game_finished_title"))) != nullptr;
 	//Game finished score
 	if (success)
 		success &= (elements.game_finished_menu.score = dynamic_cast<GuiText*>(game_ui->get_element_from_id("game_finished_menu_score"))) != nullptr;
@@ -790,7 +908,26 @@ static void attach_callbacks_to_elements(hanabi_gui_elements_t &elements, game_d
 		elements.player.local.player_card[i]->SetOnClickUpCallback(local_user_card_callback);
 		elements.player.local.player_card[i]->SetAuxData(i);
 	}
+	//Give clue menu
+	//Give clue color buttons
+	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+	{
+		elements.give_clue_menu.color_button[i]->SetUserData(&data);
+		elements.give_clue_menu.color_button[i]->SetOnClickUpCallback(give_clue_color_button_callback);
+		elements.give_clue_menu.color_button[i]->SetAuxData(i);
+	}
+	//Give clue number buttons
+	for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
+	{
+		elements.give_clue_menu.number_button[i]->SetUserData(&data);
+		elements.give_clue_menu.number_button[i]->SetOnClickUpCallback(give_clue_number_button_callback);
+		elements.give_clue_menu.number_button[i]->SetAuxData(i);
+	}
+	//Give clue OK button
+	elements.give_clue_menu.give_clue_button->SetUserData(&data);
+	elements.give_clue_menu.give_clue_button->SetOnClickUpCallback(give_clue_ok_button_callback);
 }
+
 
 static void initialize_deck(deck& card_deck)
 {
@@ -856,6 +993,72 @@ bool local_user_card_callback(GuiButton* source, bool forced, bool mouse_over_el
 	return false;
 }
 
+bool give_clue_color_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw) 
+{
+	if (mouse_over_element && !forced)
+	{
+		game_data *data = (game_data*)user_data;
+		//Got clue!
+		data->got_clue = true;
+		//Deselect ALL clue color buttons
+		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+			data->elements.give_clue_menu.color_button[i]->SetUseTopBitmap(false);
+		//Deselect ALL clue number buttons
+		for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
+			data->elements.give_clue_menu.number_button[i]->SetUseTopBitmap(false);
+		//Clue is color
+		data->local_event_clue_is_color = true;
+		data->local_event_clue_id = aux_data;
+		//Select current button
+		source->SetUseTopBitmap(true);
+		//Redraw
+		(*redraw) = true;
+	}
+	return false; 
+}
+bool give_clue_number_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
+{
+	if (mouse_over_element && !forced)
+	{
+		game_data *data = (game_data*)user_data;
+		//Got clue!
+		data->got_clue = true;
+		//Deselect ALL clue color buttons
+		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+			data->elements.give_clue_menu.color_button[i]->SetUseTopBitmap(false);
+		//Deselect ALL clue number buttons
+		for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
+			data->elements.give_clue_menu.number_button[i]->SetUseTopBitmap(false);
+		//Clue is not color, it is number
+		data->local_event_clue_is_color = false;
+		data->local_event_clue_id = aux_data;
+		//Select current button
+		source->SetUseTopBitmap(true);
+		//Redraw
+		(*redraw) = true;
+	}
+	return false;
+}
+bool give_clue_ok_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
+{
+	if (mouse_over_element && !forced)
+	{
+		game_data *data = (game_data*)user_data;
+		if (data->got_clue)
+		{
+			data->local_event_queue.push(USER_GIVE_CLUE);
+		}
+		else
+		{
+			data->elements.message2->SetText("You must select a clue!");
+			data->elements.message2->SetIsVisible(true);
+			(*redraw) = true;
+		}
+
+	}
+	return false;
+}
+
 //#################################
 //## HANABI FINITE STATE MACHINE ##
 //#################################
@@ -877,6 +1080,8 @@ extern const STATE end_state[];
 const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, game_data& data, Package_hanabi* package)
 {
 	const STATE* st = current_state;
+	cout << "Received event: " << fsm_event_name[ev] << endl;
+
 	if (st != end_state)	//If end state, end state.
 	{
 		//State event table
@@ -910,67 +1115,66 @@ static void fsm_start_point__server(game_data& data, Package_hanabi* package);		
 static void fsm_start_point__client(game_data& data, Package_hanabi* package);										//Done!
 static void s_wait_nameis__nameis(game_data& data, Package_hanabi* package);										//Done!
 static void s_wait_name__name(game_data& data, Package_hanabi* package);											//Done!
-static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package);										//WIP
+static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package);										//Done!
 static void c_wait_name__name(game_data& data, Package_hanabi* package);											//Done!
 static void c_wait_nameis_ack__ack(game_data& data, Package_hanabi* package);										//Done!
 static void c_wait_nameis__nameis(game_data& data, Package_hanabi* package);										//Done!
-static void c_wait_start_info__start_info(game_data& data, Package_hanabi* package);								//WIP
+static void c_wait_start_info__start_info(game_data& data, Package_hanabi* package);								//Done!
 static void wait_start_info_ack__ack(game_data& data, Package_hanabi* package);										//Done!
 static void wait_software_who__sw_who_i(game_data& data, Package_hanabi* package);									//Done!
-static void wait_software_who__sw_who_you(game_data& data, Package_hanabi* package);								//WIP
-static void wait_i_start_ack__ack(game_data& data, Package_hanabi* package);										//WIP
-static void wait_who__i_start(game_data& data, Package_hanabi* package);											//WIP
-static void wait_who__you_start(game_data& data, Package_hanabi* package);											//WIP
-static void a_wait_remote_play_again_answer__remote_pa(game_data& data, Package_hanabi* package);
+static void wait_software_who__sw_who_you(game_data& data, Package_hanabi* package);								//Done!
+static void wait_i_start_ack__ack(game_data& data, Package_hanabi* package);										//Done!
+static void wait_who__i_start(game_data& data, Package_hanabi* package);											//Done!
+static void wait_who__you_start(game_data& data, Package_hanabi* package);											//Done!
+static void a_wait_remote_play_again_answer__remote_pa(game_data& data, Package_hanabi* package);					//---------------
 static void a_wait_remote_play_again_answer__remote_go(game_data& data, Package_hanabi* package);
 static void a_wait_local_play_again_answer__local_pa(game_data& data, Package_hanabi* package);
 static void a_wait_local_play_again_answer__local_go(game_data& data, Package_hanabi* package);
 static void b_wait_local_play_again_answer__local_pa(game_data& data, Package_hanabi* package);
 static void b_wait_local_play_again_answer__local_go(game_data& data, Package_hanabi* package);
 static void b_wait_remote_play_again_answer__start_info(game_data& data, Package_hanabi* package);
-static void b_wait_remote_play_again_answer__remote_go(game_data& data, Package_hanabi* package);
-static void local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);
-static void local_player_turn__local_play(game_data& data, Package_hanabi* package);
-static void local_player_turn__local_discard(game_data& data, Package_hanabi* package);
-static void wait_remote_player_response__ack(game_data& data, Package_hanabi* package);
-static void wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);
-static void wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);
-static void wait_sw_draw__sw_draw_next(game_data& data, Package_hanabi* package);
-static void wait_sw_draw__sw_draw_last(game_data& data, Package_hanabi* package);
-static void remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);
-static void remote_player_turn__remote_play(game_data& data, Package_hanabi* package);
-static void remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);
-static void remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);
-static void remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);
-static void wait_draw__draw_next(game_data& data, Package_hanabi* package);
-static void wait_draw__draw_last(game_data& data, Package_hanabi* package);
-static void sc_1_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);
-static void sc_1_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);
-static void sc_1_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);
-static void sc_1_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);
-static void sc_1_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);
-static void sc_1_wait_draw__draw_fake(game_data& data, Package_hanabi* package);
-static void sc_1_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);
-static void sc_1_local_player_turn__local_play(game_data& data, Package_hanabi* package);
-static void sc_1_local_player_turn__local_discard(game_data& data, Package_hanabi* package);
-static void sc_1_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);
-static void sc_1_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);
-static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& data, Package_hanabi* package);
-static void sc_2_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);
-static void sc_2_local_player_turn__local_play(game_data& data, Package_hanabi* package);
-static void sc_2_local_player_turn__local_discard(game_data& data, Package_hanabi* package);
-static void sc_2_wait_remote_player_response__ack(game_data& data, Package_hanabi* package);
-static void sc_2_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);
-static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);
-static void sc_2_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);
-static void sc_2_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);
-static void sc_2_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);
-static void sc_2_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);
-static void sc_2_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);
-static void sc_2_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);
+static void b_wait_remote_play_again_answer__remote_go(game_data& data, Package_hanabi* package);					//-------------
+static void local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);							//Done!
+static void local_player_turn__local_play(game_data& data, Package_hanabi* package);								//Done!
+static void local_player_turn__local_discard(game_data& data, Package_hanabi* package);								//Done!
+static void wait_remote_player_response__ack(game_data& data, Package_hanabi* package);								//Done!
+static void wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);					//Done!
+static void wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);					//Done!
+static void wait_sw_draw__sw_draw_next(game_data& data, Package_hanabi* package);									//Done!
+static void wait_sw_draw__sw_draw_last(game_data& data, Package_hanabi* package);									//Done!
+static void remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);							//Done!
+static void remote_player_turn__remote_play(game_data& data, Package_hanabi* package);								//Done!
+static void remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);							//Done!
+static void remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);							//Done!
+static void remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);							//Done!
+static void wait_draw__draw_next(game_data& data, Package_hanabi* package);											//Done!
+static void wait_draw__draw_last(game_data& data, Package_hanabi* package);											//Done!
+static void sc_1_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);					//Done!
+static void sc_1_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);							//Done!
+static void sc_1_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);						//Done!
+static void sc_1_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);						//Done!
+static void sc_1_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);					//Done!
+static void sc_1_wait_draw__draw_fake(game_data& data, Package_hanabi* package);									//Done!
+static void sc_1_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);						//Done!
+static void sc_1_local_player_turn__local_play(game_data& data, Package_hanabi* package);							//Done!
+static void sc_1_local_player_turn__local_discard(game_data& data, Package_hanabi* package);						//Done!
+static void sc_1_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);				//Done!
+static void sc_1_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);				//Done!
+static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& data, Package_hanabi* package);		//Done!
+static void sc_2_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);						//Done!
+static void sc_2_local_player_turn__local_play(game_data& data, Package_hanabi* package);							//Done!
+static void sc_2_local_player_turn__local_discard(game_data& data, Package_hanabi* package);						//Done!
+static void sc_2_wait_remote_player_response__ack(game_data& data, Package_hanabi* package);						//Done!
+static void sc_2_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);				//Done!
+static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);				//Done!
+static void sc_2_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);					//Done!
+static void sc_2_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);						//Done!
+static void sc_2_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);							//Done!
+static void sc_2_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);						//Done!
+static void sc_2_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);					//Done!
 static void local_player_quit__ack(game_data& data, Package_hanabi* package);										//Done!
 static void common__error_ev(game_data& data, Package_hanabi* package);												//Done!
-static void common__bad(game_data& data, Package_hanabi* package);													//Done!
+static void common__bad(game_data& data, Package_hanabi* package);													//Done!				//For these final packages must implement menu
 static void common__quit(game_data& data, Package_hanabi* package);													//Done!
 static void common__local_quit(game_data& data, Package_hanabi* package);											//Done!
 
@@ -1019,7 +1223,7 @@ static void new_game(game_data& data)
 	data.lightnings = 0;
 	data.discard_count = 0;
 	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
-		data.color_stack[i] = 0;
+		data.color_stack[i] = 0;		
 }
 
 static void local_player_turn_starts(game_data& data)
@@ -1035,6 +1239,14 @@ static void local_player_turn_starts(game_data& data)
 	data.elements.message->SetText("It's your turn.");
 	data.elements.message->SetIsVisible(true);
 	data.discard_mode_enabled = false;
+	//No clue
+	data.got_clue = false;
+	//Deselect ALL clue color buttons
+	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+		data.elements.give_clue_menu.color_button[i]->SetUseTopBitmap(false);
+	//Deselect ALL clue number buttons
+	for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
+		data.elements.give_clue_menu.number_button[i]->SetUseTopBitmap(false);
 	data.redraw = true;
 }
 
@@ -1046,10 +1258,85 @@ static void local_player_turn_ends(game_data& data)
 	data.elements.give_clue_menu.menu->SetIsActive(false);
 	data.elements.discard_card_button->SetIsVisible(false);
 	data.elements.discard_card_button->SetIsActive(false);
+	data.elements.discard_card_button->SetUseTopBitmap(false);
 	data.elements.message->SetText("");
 	data.elements.message->SetIsVisible(false);
 	data.discard_mode_enabled = false;
+	data.got_clue = false;
 	data.redraw = true;
+}
+
+static void we_lost_message(game_data& data)
+{
+	//Show game finished menu
+	data.elements.game_finished_menu.menu->SetIsVisible(true);
+	data.elements.game_finished_menu.menu->SetIsActive(true);
+	data.elements.game_finished_menu.title->SetText("You lost! :(");
+	data.elements.game_finished_menu.title->SetIsVisible(true);
+	data.elements.game_finished_menu.score->SetIsVisible(false);
+	data.elements.game_finished_menu.score_message->SetText("The public is still waiting for the fireworks...");
+	data.elements.game_finished_menu.score_message->SetIsVisible(true);
+	data.redraw = true;
+	data.feedback_event = FB_NO_EVENT;
+}
+static void match_is_over_message(game_data& data)
+{
+	unsigned int score = 0;
+	char score_ascii[3];
+	//Show game finished menu
+	data.elements.game_finished_menu.menu->SetIsVisible(true);
+	data.elements.game_finished_menu.menu->SetIsActive(true);
+	data.elements.game_finished_menu.title->SetText("Match is over. Your score:");
+	data.elements.game_finished_menu.title->SetIsVisible(true);
+	//Calculate score
+	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+		score += data.color_stack[i];
+	//Show it
+	itoa(score, score_ascii, 10);
+	data.elements.game_finished_menu.score->SetText(score_ascii);
+	data.elements.game_finished_menu.score->SetIsVisible(true);
+	//Show International Association of Pyrotechnics (aka IPA) message
+	string ipa_message;
+	if (score <= MAX_LEVEL_0)
+		ipa_message = MESSAGE_LEVEL_0;
+	else if (score <= MAX_LEVEL_1)
+		ipa_message = MESSAGE_LEVEL_1;
+	else if (score <= MAX_LEVEL_2)
+		ipa_message = MESSAGE_LEVEL_2;
+	else if (score <= MAX_LEVEL_3)
+		ipa_message = MESSAGE_LEVEL_3;
+	else if (score <= MAX_LEVEL_4)
+		ipa_message = MESSAGE_LEVEL_4;
+	else if (score <= MAX_LEVEL_5)
+		ipa_message = MESSAGE_LEVEL_5;
+	data.elements.game_finished_menu.score_message->SetText(ipa_message);
+	data.elements.game_finished_menu.score_message->SetIsVisible(true);
+	data.redraw = true;
+	data.feedback_event = FB_NO_EVENT;
+}
+
+static void we_are_the_champions_message(game_data& data)
+{
+	unsigned int score = 0;
+	char score_ascii[3];
+	//Show game finished menu
+	data.elements.game_finished_menu.menu->SetIsVisible(true);
+	data.elements.game_finished_menu.menu->SetIsActive(true);
+	data.elements.game_finished_menu.title->SetText("YOU WON!! Your score:");
+	data.elements.game_finished_menu.title->SetIsVisible(true);
+	//Calculate score (yep, it should be 50)
+	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+		score += data.color_stack[i];
+	//Show it
+	itoa(score, score_ascii, 10);
+	data.elements.game_finished_menu.score->SetText(score_ascii);
+	data.elements.game_finished_menu.score->SetIsVisible(true);
+	//Show International Association of Pyrotechnics (aka IPA) message
+	string ipa_message = MESSAGE_LEVEL_5;
+	data.elements.game_finished_menu.score_message->SetText(ipa_message);
+	data.elements.game_finished_menu.score_message->SetIsVisible(true);
+	data.redraw = true;
+	data.feedback_event = FB_NO_EVENT;
 }
 
 static void remote_player_turn_starts(game_data& data)
@@ -1074,6 +1361,7 @@ static void discard_card(const card& c, game_data& data)
 }
 static bool play_card(const card& c, game_data& data)
 {
+	cout << "Playing " << c.get_color() << "," << c.get_number() << ", stack:" << data.color_stack[c.get_color()] << endl;
 	if (data.color_stack[c.get_color()] == c.get_number())
 	{
 		if ((++data.color_stack[c.get_color()]) == HANABI_TOTAL_NUMBERS && data.clues != HANABI_TOTAL_CLUE_INDICATORS)
@@ -1086,7 +1374,8 @@ static bool play_card(const card& c, game_data& data)
 	else
 	{
 		discard_card(c, data);
-		data.elements.indicators.lightning_indicators[data.lightnings++]->SetUseTopBitmap(true);
+		if(data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
+			data.elements.indicators.lightning_indicators[data.lightnings++]->SetUseTopBitmap(true);
 		data.redraw = true;
 	}
 	return false;
@@ -1135,15 +1424,19 @@ static void s_wait_nameis__nameis(game_data& data, Package_hanabi* package)
 	string name;
 	Package_name_is *rec_p;
 	char raw_data[MAX_PACKAGE_SIZE];
+	//Read package..
 	if ((rec_p = dynamic_cast<Package_name_is*>(package)) != nullptr)
 	{
 		Package_ack p;
 		size_t data_size;
+		size_t sent_bytes;
+		//Read name
 		rec_p->get_name(name);
+		//Show it
 		data.elements.player.remote.name->SetText(name);
 		data.elements.player.remote.name->SetIsVisible(true);
+		//Send ACK
 		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
-		size_t sent_bytes;
 		data.feedback_event = FB_NO_EVENT;
 		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
@@ -1151,30 +1444,40 @@ static void s_wait_nameis__nameis(game_data& data, Package_hanabi* package)
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
+
 static void s_wait_name__name(game_data& data, Package_hanabi* package)
 {
-	//Received name request! send name_is
+	//Received name request! send name_is with my name
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_name_is p;
-	p.set_name(data.user_name);
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+	//Add name to package
+	p.set_name(data.user_name);
+	//Send it
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
+
 static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package)
 {
-	//Send start info!
+	//Send start info
 	Package_start_info p;
 	char raw_data[MAX_PACKAGE_SIZE];
 	size_t data_size;
+	size_t sent_bytes;
+	//Sending start info, so new game will start
+	//prepare data for new game
 	new_game(data);
 	for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
 	{
+		//One card for me
 		data.local_player_card[i] = data.card_deck.pick_top();
+		//One card for you
 		data.remote_player_card[i] = data.card_deck.pick_top();
+		//See remote card
 		data.elements.player.remote.player_card[i]->SetDefaultBitmap(data.skin.get_bitmap(data.remote_player_card[i]));
 		data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(data.local_player_card[i]));	//Just for debugging
 	}
@@ -1183,7 +1486,6 @@ static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package)
 	p.set_info(data.remote_player_card, data.local_player_card);
 	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	data.feedback_event = FB_NO_EVENT;
-	size_t sent_bytes;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
@@ -1228,11 +1530,18 @@ static void c_wait_nameis__nameis(game_data& data, Package_hanabi* package)
 static void c_wait_start_info__start_info(game_data& data, Package_hanabi* package)
 {
 	//Received start info!
+	//So new game will start.
 	Package_start_info *rec_p;
 	char raw_data[MAX_PACKAGE_SIZE];
+	//Prepare data for new game
 	new_game(data);
 	if ((rec_p = dynamic_cast<Package_start_info*>(package)) != nullptr)
 	{
+		Package_ack p;
+		size_t data_size;
+		size_t sent_bytes;
+
+		//Load cards
 		rec_p->get_info(data.local_player_card, data.remote_player_card);
 		//Show remote cards!
 		for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
@@ -1242,12 +1551,12 @@ static void c_wait_start_info__start_info(game_data& data, Package_hanabi* packa
 			data.card_deck.remove_card(data.local_player_card[i]);
 			data.card_deck.remove_card(data.remote_player_card[i]);
 		}
+		//Now, local cards and remote cards are visible.
 		data.elements.player.local.cards_menu->SetIsVisible(true);
 		data.elements.player.remote.cards_menu->SetIsVisible(true);
-		Package_ack p;
-		size_t data_size;
+
+		//Send ACK
 		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
-		size_t sent_bytes;
 		data.feedback_event = FB_NO_EVENT;
 		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
@@ -1285,28 +1594,31 @@ static const STATE c_wait_start_info[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void wait_start_info_ack__ack(game_data& data, Package_hanabi* package)
 {
+	//Ask software to decide who should start the game
 	data.feedback_event = FB_WHO;
 }
 static void wait_software_who__sw_who_i(game_data& data, Package_hanabi* package)
 {
+	//Software decided local player starts.
 	//Send I start
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_i_start p;
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;
 }
 static void wait_software_who__sw_who_you(game_data& data, Package_hanabi* package)
 {
+	//Software decided remote player starts.
 	//Send you start
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_you_start p;
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;
@@ -1341,20 +1653,26 @@ static const STATE wait_i_start_ack[] =
 //$ Action group: INITIALIZATION, branch: MACHINE_B $
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void wait_who__i_start(game_data& data, Package_hanabi* package)
-{
+{	
+	//Remote player turn starts
+	//Remember remote says who, and he told me "I start"
 	//Send ack
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_ack p;
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;
+	//Remote turn
 	remote_player_turn_starts(data);
 }
 static void wait_who__you_start(game_data& data, Package_hanabi* package)
 {
+	//Local player turn starts
+	//Remember remote says who, and he told me "YOU start"
 	local_player_turn_starts(data);
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1439,77 +1757,227 @@ static const STATE b_wait_remote_play_again_answer[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void local_player_turn__local_give_clue(game_data& data, Package_hanabi* package)
 {
+	//We are here because local player wants to give a clue to remote player
+	//Sice we are here, we KNOW we have clues. but let's check anyway
+
+	//Local player turn finished
 	local_player_turn_ends(data);
+	if (data.clues != 0)
+	{
+		//Ok, we have got clues. give clue!
+		char raw_data[MAX_PACKAGE_SIZE];
+		Package_you_have p;
+		size_t data_size;
+		size_t sent_bytes;
+		string message = "You gave clue: ";
+		//Prepare clue
+		card c;
+		if (data.local_event_clue_is_color)
+		{
+			c = card((card_color_t)data.local_event_clue_id, NO_NUMBER);	//Color?
+			message += color_string[data.local_event_clue_id];
+		}
+		else
+		{
+			c = card(NO_COLOR, (card_number_t)data.local_event_clue_id);	//Or number?
+			message += (char)('0' + data.local_event_clue_id + 1);
+		}
+		p.set_clue(c);
+
+		//Show message
+		data.elements.message2->SetText(message);
+		data.elements.message2->SetIsVisible(true);
+		data.redraw = true;
+
+
+		//Don't forget: USE CLUE
+		data.elements.indicators.clue_indicators[--data.clues]->SetUseTopBitmap(true);
+		data.redraw = true;
+
+		//Send clue!
+		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+		data.feedback_event = FB_NO_EVENT;
+		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+	}
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void local_player_turn__local_play(game_data& data, Package_hanabi* package)
 {
+	//We are here because local player played a card
+	card c;
+	string card_name, message;
+	char raw_data[MAX_PACKAGE_SIZE];
+	Package_play p;
+	size_t data_size;
+	size_t sent_bytes;
+
+	//Local player turn finished
 	local_player_turn_ends(data);
-	card c = data.local_player_card[data.local_event_card_offset];
-	string card_name(color_string[c.get_color()]);
+
+	//Pick played card
+	c = data.local_player_card[data.local_event_card_offset];
+
+	//Generate string for card
+	card_name = color_string[c.get_color()];
 	card_name += "-";
 	card_name += '0' + c.get_number() + 1;
 	transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
-	string message = string("You played ") + card_name;
+	message = string("You played ") + card_name;
+
+	//Play card and finish string
 	if (play_card(c, data))
 		message += " - SUCCESS!";
 	else
 		message += " - Card discarded :(";
+
+	//Show message
 	data.elements.message2->SetText(message.c_str());
 	data.elements.message2->SetIsVisible(true);
-	data.local_player_card[data.local_event_card_offset] = card();
+
+	//Leave blank space where card was
+	data.local_player_card[data.local_event_card_offset] = card(NO_COLOR,NO_NUMBER);
 	data.elements.player.local.player_card[data.local_event_card_offset]->SetIsVisible(false);
 	data.redraw = true;
+
 	//Send play package
-	char raw_data[MAX_PACKAGE_SIZE];
-	Package_play p;
 	p.set_card_id(data.local_event_card_offset);
-	size_t data_size;
 	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
-	size_t sent_bytes;
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void local_player_turn__local_discard(game_data& data, Package_hanabi* package)
 {
+	//We are here because local player discarded a card
+	card c;
+	string card_name, message;
+	char raw_data[MAX_PACKAGE_SIZE];
+	Package_discard p;
+	size_t data_size;
+	size_t sent_bytes;
+
+	//Local player turn finished
 	local_player_turn_ends(data);
-	card c = data.local_player_card[data.local_event_card_offset];
-	string card_name(color_string[c.get_color()]);
+
+	//Pick discarded card
+	c = data.local_player_card[data.local_event_card_offset];
+	//Discard it
+	discard_card(c, data);
+
+	//Generate card string
+	card_name = color_string[c.get_color()];
 	card_name += "-";
 	card_name += '0' + c.get_number() + 1;
 	transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
-	string message = string("You discarded ") + card_name;
-	discard_card(c, data);
+
+	//Inform card was discarded
+	message = string("You discarded ") + card_name;
 	data.elements.message2->SetText(message.c_str());
 	data.elements.message2->SetIsVisible(true);
-	data.local_player_card[data.local_event_card_offset] = card();
+
+	//Leave blank space where card was
+	data.local_player_card[data.local_event_card_offset] = card(NO_COLOR,NO_NUMBER);
 	data.elements.player.local.player_card[data.local_event_card_offset]->SetIsVisible(false);
 	data.redraw = true;
 	//Send discard package
-	char raw_data[MAX_PACKAGE_SIZE];
-	Package_discard p;
+	
 	p.set_card_id(data.local_event_card_offset);
-	size_t data_size;
 	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
-	size_t sent_bytes;
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void wait_remote_player_response__ack(game_data& data, Package_hanabi* package)
 {
+	//Remote player ack our move. But wait... Didn't we won? Didn't we lost?
+	//Check lightning indicators
+	if (data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
+	{
+		//Ok, we did not lose. Did we won? count played cards
+		unsigned int played_cards = 0;
+		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+			played_cards += data.color_stack[i];
+		//are color stacks complete?
+		if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS)
+		{
+			//WE WON! WE HAVE AN ERROR
+			data.feedback_event = FB_ERROR;
+		}
+		else
+			//Everything is OK!
+			data.feedback_event = FB_DRAW;	//Next, draw a card
+	}
+	else
+		//WE LOST! WE HAVE AN ERROR;
+		data.feedback_event = FB_ERROR;
 }
 static void wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package)
 {
+	//Remote player says we won. Really??
+	unsigned int played_cards = 0;
+	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+		played_cards += data.color_stack[i];
+	//are color stacks complete?
+	if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS)
+		//Ok, we won!!!!!
+		we_are_the_champions_message(data);
+	else
+		//WE LOST! WE HAVE AN ERROR;
+		data.feedback_event = FB_ERROR;
 }
 static void wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package)
 {
+	//Remote player says we lost. But, did we lose?
+	//Check lightning indicators
+	if (data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS)
+		//Ok, we did lose. 
+		we_lost_message(data);
+	else
+		//WE DID NOT LOSE! WE HAVE AN ERROR;
+		data.feedback_event = FB_ERROR;
 }
 static void wait_sw_draw__sw_draw_next(game_data& data, Package_hanabi* package)
 {
+	//We are here because local user wants to draw a card
+	
+	card c;
+	char raw_data[MAX_PACKAGE_SIZE];
+	Package_draw p;
+	size_t data_size;
+	size_t sent_bytes;
+
+	//Pick card
+	c = data.card_deck.pick_top();
+	for(unsigned int i = 0 ; i < HANABI_HAND_SIZE ; i++)
+		if (data.local_player_card[i] == card(NO_COLOR, NO_NUMBER))
+		{
+			//Put it in blank space
+			data.local_player_card[i] = c;
+			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(c));
+			data.elements.player.local.player_card[i]->SetIsVisible(true);
+			break;
+		}
+	//Send draw package
+
+	p.set_card(c);
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+
+	data.feedback_event = FB_NO_EVENT;
+	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
+	else
+		remote_player_turn_starts(data);
 }
 static void wait_sw_draw__sw_draw_last(game_data& data, Package_hanabi* package)
 {
+	//We are here because local user wants to draw a card
+	//We already know this card is last deck card
+	data.elements.deck->useSecondBitmap(true);	//Show empty deck
+	data.redraw = true;
+	wait_sw_draw__sw_draw_next(data, package);	//Same as draw next
+
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1541,38 +2009,118 @@ static const STATE wait_sw_draw[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package)
 {
+	//We are here because remote player gave us a clue
+	//Let's process data
+	Package_you_have *rec_p;
+	//We know remote user turn finished
+	//Have we got clues?
+	if (data.clues != 0)
+	{
+		if ((rec_p = dynamic_cast<Package_you_have*>(package)) != nullptr)
+		{
+			card c;
+			string message;
+
+			//Don't forget: USE CLUE
+			data.elements.indicators.clue_indicators[--data.clues]->SetUseTopBitmap(true);
+			//Remote player turn finished
+			remote_player_turn_ends(data);
+			//And now is local turn
+			local_player_turn_starts(data);
+
+			//Read clue
+			rec_p->get_clue(&c);
+
+			//Prepare message
+			message = "Remote says: You have ";
+
+			//Number or color
+			if (c.get_color() != NO_COLOR)
+			{
+				//Clue is color
+				message += color_string[c.get_color()];
+				for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
+					if (data.local_player_card[i].get_color() == c.get_color())
+						data.elements.clue.clue_marker[i]->SetIsVisible(true);
+					else
+						data.elements.clue.clue_marker[i]->SetIsVisible(false);
+			}
+			else
+			{
+				//Clue is number
+				message += (string("Number ") + (char)('0' + c.get_number() + 1));
+				for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
+					if (data.local_player_card[i].get_number() == c.get_number())
+						data.elements.clue.clue_marker[i]->SetIsVisible(true);
+					else
+						data.elements.clue.clue_marker[i]->SetIsVisible(false);
+			}
+
+			//Show message.
+			data.elements.message2->SetText(message.c_str());
+			data.elements.message2->SetIsVisible(true);
+
+
+			//SHOW CLUE
+			data.elements.clue.menu->SetIsVisible(true);
+			data.elements.clue.menu->SetIsActive(true);
+
+
+			data.redraw = true;
+
+
+		}
+		else
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+	}
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
+
 static void remote_player_turn__remote_play(game_data& data, Package_hanabi* package)
 {
-	remote_player_turn_ends(data);
-	//Received play info!
+	//We are here because remote player played a card
+	//Let's process data
 	Package_play *rec_p;
-	new_game(data);
+	//We know remote user turn finished
+	remote_player_turn_ends(data);
 	if ((rec_p = dynamic_cast<Package_play*>(package)) != nullptr)
 	{
 		unsigned int card_id;
+		card c;
+		string card_name, message;
+		char raw_data[MAX_PACKAGE_SIZE];
+		Package_ack p;
+		size_t data_size;
+		size_t sent_bytes;
+
+		//Card played?
 		rec_p->get_card_id(&card_id);
-		card c = data.remote_player_card[card_id];
-		string card_name(color_string[c.get_color()]);
+		c = data.remote_player_card[card_id];
+
+		//Compute card string
+		card_name = color_string[c.get_color()];
 		card_name += "-";
 		card_name += '0' + c.get_number() + 1;
 		transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
-		string message = string("Friend played ") + card_name;
+
+		//Prepare string..
+		message = string("Friend played ") + card_name;
+
+		//Play card and finish string
 		if (play_card(c, data))
 			message += " - SUCCESS!";
 		else
 			message += " - Card discarded :(";
+		//Show message
 		data.elements.message2->SetText(message.c_str());
 		data.elements.message2->SetIsVisible(true);
-		data.remote_player_card[card_id] = card();
+		//Leave black sapce where played card was
+		data.remote_player_card[card_id] = card(NO_COLOR,NO_NUMBER);
 		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
 		data.redraw = true;
 		//Send ack package
-		char raw_data[MAX_PACKAGE_SIZE];
-		Package_ack p;
-		size_t data_size;
 		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
-		size_t sent_bytes;
 		data.feedback_event = FB_NO_EVENT;
 		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
@@ -1582,32 +2130,46 @@ static void remote_player_turn__remote_play(game_data& data, Package_hanabi* pac
 }
 static void remote_player_turn__remote_discard(game_data& data, Package_hanabi* package)
 {
-	//Received discard info!
-	remote_player_turn_ends(data);
+	//We are here because remote player discarded a card
+	//Let's process data
 	Package_discard *rec_p;
-	new_game(data);
+	//We know remote user turn finished
+	remote_player_turn_ends(data);
 	if ((rec_p = dynamic_cast<Package_discard*>(package)) != nullptr)
 	{
 		unsigned int card_id;
-		rec_p->get_card_id(&card_id);
-		card c = data.remote_player_card[card_id];
-		string card_name(color_string[c.get_color()]);
-		card_name += "-";
-		card_name += '0' + c.get_number() + 1;
-		transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
-		string message = string("Friend discarded ") + card_name;
-		discard_card(c, data);
-		data.elements.message2->SetText(message.c_str());
-		data.elements.message2->SetIsVisible(true);
-		data.remote_player_card[card_id] = card();
-		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
-		data.redraw = true;
-		//Send ack package
+		card c;
+		string card_name, message;
 		char raw_data[MAX_PACKAGE_SIZE];
 		Package_ack p;
 		size_t data_size;
-		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 		size_t sent_bytes;
+
+		//Card discarded?
+		rec_p->get_card_id(&card_id);
+		c = data.remote_player_card[card_id];
+		discard_card(c, data);
+
+		//Compute card string
+		card_name = color_string[c.get_color()];
+		card_name += "-";
+		card_name += '0' + c.get_number() + 1;
+		transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
+
+		//Prepare message to show
+		message = string("Friend discarded ") + card_name;
+
+		//Show message.
+		data.elements.message2->SetText(message.c_str());
+		data.elements.message2->SetIsVisible(true);
+
+		//Leave a blank space where card was
+		data.remote_player_card[card_id] = card(NO_COLOR,NO_NUMBER);
+		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
+		data.redraw = true;
+
+		//Send ack package
+		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 		data.feedback_event = FB_NO_EVENT;
 		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
@@ -1617,15 +2179,143 @@ static void remote_player_turn__remote_discard(game_data& data, Package_hanabi* 
 }
 static void remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package)
 {
+	//We are here because remote player played a card. And yes, we won.
+	//Let's process data
+	Package_play *rec_p;
+	//We know remote user turn finished
+	remote_player_turn_ends(data);
+	if ((rec_p = dynamic_cast<Package_play*>(package)) != nullptr)
+	{
+		unsigned int card_id;
+		card c;
+		string card_name, message;
+		char raw_data[MAX_PACKAGE_SIZE];
+		Package_we_won p;
+		size_t data_size;
+		size_t sent_bytes;
+
+		//Card played?
+		rec_p->get_card_id(&card_id);
+		c = data.remote_player_card[card_id];
+
+		//Compute card string
+		card_name = color_string[c.get_color()];
+		card_name += "-";
+		card_name += '0' + c.get_number() + 1;
+		transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
+
+		//Prepare string..
+		message = string("Friend played ") + card_name;
+
+		//Play card and finish string
+		if (play_card(c, data))
+			message += " - SUCCESS!";
+		else
+			message += " - Card discarded :(";
+		//Show message
+		data.elements.message2->SetText(message.c_str());
+		data.elements.message2->SetIsVisible(true);
+		//Leave black sapce where played card was
+		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
+		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
+		data.redraw = true;
+
+		//WE WON :)
+		we_are_the_champions_message(data);
+		//Inform remote player we won
+		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+		data.feedback_event = FB_NO_EVENT;
+		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+	}
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package)
 {
+	//We are here because remote player played a card. And yes, we lost.
+	//Let's process data
+	Package_play *rec_p;
+	//We know remote user turn finished
+	remote_player_turn_ends(data);
+	if ((rec_p = dynamic_cast<Package_play*>(package)) != nullptr)
+	{
+		unsigned int card_id;
+		card c;
+		string card_name, message;
+		char raw_data[MAX_PACKAGE_SIZE];
+		Package_we_lost p;
+		size_t data_size;
+		size_t sent_bytes;
+
+		//Card played?
+		rec_p->get_card_id(&card_id);
+		c = data.remote_player_card[card_id];
+
+		//Compute card string
+		card_name = color_string[c.get_color()];
+		card_name += "-";
+		card_name += '0' + c.get_number() + 1;
+		transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
+
+		//Prepare string..
+		message = string("Friend played ") + card_name;
+
+		//Play card and finish string
+		if (play_card(c, data))
+			message += " - SUCCESS!";
+		else
+			message += " - Card discarded :(";
+		//Show message
+		data.elements.message2->SetText(message.c_str());
+		data.elements.message2->SetIsVisible(true);
+		//Leave black sapce where played card was
+		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
+		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
+		data.redraw = true;
+
+		//We lost :(
+		we_lost_message(data);
+		//Inform remote player we lost
+		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+		data.feedback_event = FB_NO_EVENT;
+		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+	}
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void wait_draw__draw_next(game_data& data, Package_hanabi* package)
 {
+	//We are here because remote draw a card, and he informed us his card.
+	//Let's process data
+	Package_draw *rec_p;
+	if ((rec_p = dynamic_cast<Package_draw*>(package)) != nullptr)
+	{
+		card c;
+		rec_p->get_card(&c);				//Get his card
+		data.card_deck.remove_card(c);		//If he has this card, then remove it from card deck.
+		for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
+			if (data.remote_player_card[i] == card(NO_COLOR, NO_NUMBER))
+			{
+				//Give card to local representation of remote user
+				data.remote_player_card[i] = c;
+				data.elements.player.remote.player_card[i]->SetDefaultBitmap(data.skin.get_bitmap(c));
+				data.elements.player.remote.player_card[i]->SetIsVisible(true);
+				break;
+			}
+		local_player_turn_starts(data);
+		data.redraw = true;
+	}
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void wait_draw__draw_last(game_data& data, Package_hanabi* package)
 {
+	//We are here because remote draw last card!
+	data.elements.deck->useSecondBitmap(true);	//Show empty deck
+	data.redraw = true;
+	wait_draw__draw_next(data, package);		//Same as draw next
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1652,21 +2342,37 @@ static const STATE wait_draw[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void sc_1_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_give_clue(data, package);
 }
 static void sc_1_remote_player_turn__remote_play(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_play(data, package);
 }
 static void sc_1_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_discard(data, package);
 }
 static void sc_1_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_play_won(data, package);
 }
 static void sc_1_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_play_lost(data, package);
 }
 static void sc_1_wait_draw__draw_fake(game_data& data, Package_hanabi* package)
 {
+	//We are here because remote draw a card, and he informed us his card. 
+	//This is the 'NO CARD' card
+	//Not much to do here...
+	local_player_turn_starts(data);
+	data.redraw = true;
+	data.feedback_event = FB_NO_EVENT;
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1690,22 +2396,53 @@ static const STATE sc_1_wait_draw[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void sc_1_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	local_player_turn__local_give_clue(data, package);
 }
 static void sc_1_local_player_turn__local_play(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	local_player_turn__local_play(data, package);
 }
 static void sc_1_local_player_turn__local_discard(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	local_player_turn__local_discard(data, package);
 }
 static void sc_1_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	wait_remote_player_response__remote_we_won(data, package);
 }
 static void sc_1_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	wait_remote_player_response__remote_we_lost(data, package);
 }
 static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& data, Package_hanabi* package)
 {
+	//Remote player says we match is over. But, didn't we win? lose?
+	//Check lightning indicators
+	if (data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
+	{
+		//Ok, we didn't lose
+		//Did we win?
+		unsigned int card_count = 0;
+		//count cards in stacks
+		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
+			card_count += data.color_stack[i];
+		if (card_count != HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS)
+			//Ok, match is over
+			match_is_over_message(data);
+		else
+			//WE WON! WE GOT AN ERROR HERE
+			data.feedback_event = FB_ERROR;
+	}
+	else
+		//WE LOST! WE GOT AN ERROR HERE
+		data.feedback_event = FB_ERROR;
 }
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FISRT), branch: LOCAL_PLAYER %
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1727,21 +2464,51 @@ static const STATE sc_1_wait_remote_player_response[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void sc_2_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	local_player_turn__local_give_clue(data, package);
 }
 static void sc_2_local_player_turn__local_play(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	local_player_turn__local_play(data, package);
 }
 static void sc_2_local_player_turn__local_discard(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	local_player_turn__local_discard(data, package);
 }
 static void sc_2_wait_remote_player_response__ack(game_data& data, Package_hanabi* package)
 {
+	//Almost same as normal
+	wait_remote_player_response__ack(data, package);
+	//INTERCEPT FEEDBACK EVENT!
+	if (data.feedback_event == FB_DRAW)
+	{
+		//Send draw card here, no need for an extra state!
+		card c(NO_COLOR,NO_NUMBER);
+		char raw_data[MAX_PACKAGE_SIZE];
+		Package_draw p;
+		size_t data_size;
+		size_t sent_bytes;
+		p.set_card(c);
+		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+		data.feedback_event = FB_NO_EVENT;
+		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+		else
+			remote_player_turn_starts(data);
+		data.feedback_event = FB_NO_EVENT;
+	}
 }
 static void sc_2_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	wait_remote_player_response__remote_we_won(data, package);
 }
 static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	wait_remote_player_response__remote_we_lost(data, package);
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER %
@@ -1758,24 +2525,87 @@ static const STATE sc_2_wait_remote_player_response[] =
 	{ REMOTE_WE_WON,sc_2_wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 };
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 //$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER $
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void sc_2_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_give_clue(data, package);
 }
 static void sc_2_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_discard(data, package);
 }
 static void sc_2_remote_player_turn__remote_play(game_data& data, Package_hanabi* package)
 {
+	//IF WE ARE HERE IS BECAUSE MATCH IS OVER!!!
+	//We are here because remote player played a card.
+	//Let's process data
+	Package_play *rec_p;
+	//We know remote user turn finished
+	remote_player_turn_ends(data);
+	if ((rec_p = dynamic_cast<Package_play*>(package)) != nullptr)
+	{
+		unsigned int card_id;
+		card c;
+		string card_name, message;
+		char raw_data[MAX_PACKAGE_SIZE];
+		Package_match_is_over p;
+		size_t data_size;
+		size_t sent_bytes;
+
+		//Card played?
+		rec_p->get_card_id(&card_id);
+		c = data.remote_player_card[card_id];
+
+		//Compute card string
+		card_name = color_string[c.get_color()];
+		card_name += "-";
+		card_name += '0' + c.get_number() + 1;
+		transform(card_name.begin(), card_name.end(), card_name.begin(), toupper);
+
+		//Prepare string..
+		message = string("Friend played ") + card_name;
+
+		//Play card and finish string
+		if (play_card(c, data))
+			message += " - SUCCESS!";
+		else
+			message += " - Card discarded :(";
+		//Show message
+		data.elements.message2->SetText(message.c_str());
+		data.elements.message2->SetIsVisible(true);
+		//Leave black sapce where played card was
+		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
+		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
+		data.redraw = true;
+
+		//Match is over
+		match_is_over_message(data);
+		//Inform remote player match is over
+		p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+		data.feedback_event = FB_NO_EVENT;
+		if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+	}
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
+
 }
 static void sc_2_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_play_won(data, package);
 }
 static void sc_2_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package)
 {
+	//Same as normal
+	remote_player_turn__remote_play_lost(data, package);
 }
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER %
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1823,32 +2653,43 @@ static const STATE end_state[] =
 //#################################
 static void common__error_ev(game_data& data, Package_hanabi* package)
 {
+	//Error event.
+	//Remote user was already informer
+	//Or cannot inform remote about error
+	//Just disconect and exit
 	data.break_event_loop = true;
 	data.connection->disconnect();
 };
-
 static void common__bad(game_data& data, Package_hanabi* package)
 {
-	//Send error package
+	//Something bad happened :( inform error to remote
+	//Send error;
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_error p;
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
-		data.feedback_event = FB_NO_EVENT;	//Don't care about fatal errors here. We areF over.
+		data.feedback_event = FB_NO_EVENT;	//Don't care about fatal errors here. We are over.
+	//After an error, disconect and exit game
 	data.break_event_loop = true;
 	data.connection->disconnect();
 };
 static void common__quit(game_data& data, Package_hanabi* package)
 {
-	//Send ack and quit
+	//We are here because remote player left the game.
+	//Just send ack;
+
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_ack p;
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;
@@ -1858,12 +2699,15 @@ static void common__quit(game_data& data, Package_hanabi* package)
 };
 static void common__local_quit(game_data& data, Package_hanabi* package)
 {
+	//We are here because local player left the game.
 	//Send quit package
 	char raw_data[MAX_PACKAGE_SIZE];
 	Package_quit p;
 	size_t data_size;
-	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 	size_t sent_bytes;
+
+	p.get_raw_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+
 	data.feedback_event = FB_NO_EVENT;
 	if (!data.connection->send_data(raw_data, data_size, &sent_bytes) || data_size != sent_bytes)
 		data.feedback_event = FB_ERROR;
@@ -1871,6 +2715,7 @@ static void common__local_quit(game_data& data, Package_hanabi* package)
 
 //This state is actually part of all states.
 //nullptr means stay in same state
+
 static const STATE common[] =
 {
 	{ ERROR_EV,common__error_ev,end_state },

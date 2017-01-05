@@ -369,6 +369,7 @@
     <ClInclude Include="Gui\GuiImage.h" />
     <ClInclude Include="Gui\GuiSubmenu.h" />
     <ClInclude Include="Gui\GuiText.h" />
+    <ClInclude Include="hanabi_messages.h" />
     <ClInclude Include="handle_game.h" />
     <ClInclude Include="handle_menu.h" />
     <ClInclude Include="Net connection\Client.h" />

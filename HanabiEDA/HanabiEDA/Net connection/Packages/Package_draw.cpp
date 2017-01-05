@@ -130,19 +130,16 @@ bool Package_draw::get_card(card * c)
 bool Package_draw::is_raw_data_valid(const char * data, size_t data_length)
 {
 	const package_data* p_data = (const package_data*)data;
-	bool data_valid = data_length == HEADER_SIZE && data[0] == DRAW_ID;
+	bool data_valid = data_length == sizeof(package_data) && data[0] == DRAW_ID;
 	if (data_valid)
 	{
-		unsigned char colors[] = { COLOR_BLUE,COLOR_GREEN,COLOR_RED,COLOR_WHITE,COLOR_YELLOW };
-		unsigned char numbers[] = { NUMBER_ONE,NUMBER_TWO,NUMBER_THREE,NUMBER_FOUR,NUMBER_FIVE };
+		unsigned char colors[] = { BLUE,GREEN,RED,WHITE,YELLOW };
+		unsigned char numbers[] = { ONE,TWO,THREE,FOUR,FIVE };
 		unsigned char color_length = sizeof(colors) / sizeof(colors[0]);
 		unsigned char number_length = sizeof(numbers) / sizeof(numbers[0]);
-		for (unsigned int i = 0; i < TOTAL_HAND_CARDS && data_valid; i++)
-		{
-			data_valid &= find(colors, colors + color_length, p_data->card.color) != colors + color_length;
-			data_valid &= find(numbers, numbers + number_length, p_data->card.number) != numbers + number_length;
-			data_valid |= p_data->card.color == NO_CARD_COLOR && p_data->card.number == NO_CARD_NUMBER;
-		}
+		data_valid &= find(colors, colors + color_length, p_data->card.color) != colors + color_length;
+		data_valid &= find(numbers, numbers + number_length, p_data->card.number) != numbers + number_length;
+		data_valid |= p_data->card.color == NO_CARD_COLOR && p_data->card.number == NO_CARD_NUMBER;
 	}
 	return data_valid;
 }

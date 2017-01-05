@@ -9,6 +9,8 @@
 class Net_connection
 {
 public:
+	Net_connection();
+	~Net_connection();
 	bool send_data(const char* data, size_t length, size_t* sent_bytes = NULL);
 	bool receive_data(char* data, size_t buffer_size, size_t* received_bytes = NULL);
 	void disconnect();
@@ -17,8 +19,6 @@ protected:
 	apr_socket_t	*sock;		//Remote computer related socket
 	bool init_succ;
 	bool connected;
-	Net_connection();
-	~Net_connection();
 };
 
 #include "Client.h"
