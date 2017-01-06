@@ -16,7 +16,12 @@ card_number_t card::get_number() const
 	return number;
 }
 
-bool card::operator==(const card & other)
+bool card::operator==(const card & other) const
 {
 	return (this->color == other.color && this->number == other.number);
+}
+
+bool card::operator!=(const card & other) const
+{
+	return !(this->operator==(other));
 }

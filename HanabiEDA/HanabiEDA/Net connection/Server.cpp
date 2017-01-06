@@ -27,13 +27,6 @@ Server::Server(unsigned int port)
 	}
 }
 
-Server::~Server()
-{
-	disconnect();
-	if (serv_sock != NULL)
-		apr_socket_close(serv_sock);
-}
-
 bool Server::listen_for_connection(unsigned int timeout_ms)
 {
 	if (serv_sock != NULL && !connected && init_succ)
@@ -59,4 +52,24 @@ bool Server::listen_for_connection(unsigned int timeout_ms)
 		}
 	}
 	return false;
+}
+
+void Server::disconnect()
+{
+	if (connected)
+	{
+		connected = false;
+		apr_socket_close(sock);
+		sock = NULL;
+		if (serv_sock != nullptr)
+		{
+			apr_socket_close(serv_sock);
+			serv_sock = nullptr;
+		}
+	}
+}
+
+Server::~Server()
+{
+	disconnect();
 }

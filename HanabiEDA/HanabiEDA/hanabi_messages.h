@@ -1,6 +1,7 @@
 #ifndef HANABI_MESSAGES_H_
 #define HANABI_MESSAGES_H_
 
+#define MESSAGE_LOST	"The crowd is still waiting for the fireworks..."
 #define	MESSAGE_LEVEL_0 "Oh dear! The crowd booed."
 #define MESSAGE_LEVEL_1 "Poor! Hardly applaused."
 #define MESSAGE_LEVEL_2 "OK! The viewers have seen better."

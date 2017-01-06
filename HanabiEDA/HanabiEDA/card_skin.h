@@ -6,6 +6,7 @@
 
 #define CARD_SKIN_DIRECTORY	"Hanabi_textures\\Cards"
 #define CARD_SKIN_EXTENSION	"png"
+#define BLACKSIDE_FILENAME	"Blackside"
 
 //Filename:		%CARD_SKIN_DIRECTORY%\%COLOR%\card_%NUMBER%.%CARD_SKIN_EXTENSION%
 
@@ -22,6 +23,7 @@ public:
 	~card_skin();
 private:
 	ALLEGRO_BITMAP* skin[HANABI_TOTAL_COLORS][HANABI_TOTAL_NUMBERS];
+	ALLEGRO_BITMAP* blackside;
 	bool success;
 };
 

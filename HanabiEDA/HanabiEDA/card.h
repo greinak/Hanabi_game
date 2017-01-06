@@ -23,7 +23,8 @@ public:
 	//Get card data.
 	card_color_t get_color() const;
 	card_number_t get_number() const;
-	bool operator==(const card& other);
+	bool operator==(const card& other) const;
+	bool operator!=(const card& other) const;
 private:
 	card_color_t color;
 	card_number_t number;

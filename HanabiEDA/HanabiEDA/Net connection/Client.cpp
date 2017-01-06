@@ -37,3 +37,19 @@ bool Client::connect_to_server(string server_ip, unsigned int port, unsigned int
 	}
 	return false;
 }
+
+
+void Client::disconnect()
+{
+	if (connected)
+	{
+		connected = false;
+		apr_socket_close(sock);
+		sock = NULL;
+	}
+}
+
+Client::~Client()
+{
+	disconnect();
+}

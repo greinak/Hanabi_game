@@ -157,6 +157,7 @@ Gui::Gui(istream &xml)
 		{
 			parsed_data.children.clear();	//No need to keep this info, we can free memory by clearing it...
 			//Now, create display in order to show menu
+
 			if ((display = al_create_display(gui_width*gui_sx, gui_height*gui_sy)) != nullptr)
 			{
 				if (gui_title.size() != 0)

@@ -10,6 +10,10 @@ class Client : public Net_connection
 {
 public:
 	bool connect_to_server(string server_ip, unsigned int port, unsigned int timeout_ms);
+	virtual void disconnect();
+	virtual ~Client();
+private:
+
 };
 
 #endif //CLIENT_H_

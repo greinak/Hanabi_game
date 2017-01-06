@@ -51,7 +51,7 @@ bool Net_connection::receive_data(char* data, size_t buffer_size, size_t* receiv
 	bool ret_val = false;
 	apr_status_t rv;
 	size_t bytes;
-	if (connected && buffer_size != 0)
+	if (connected && buffer_size != 0 && send_data(nullptr, 0,received_bytes))	//Sending zero length data is a workaround for detecting when connection falls
 	{
 		bytes = buffer_size;
 		rv = apr_socket_recv(sock, data, &bytes);
@@ -65,18 +65,13 @@ bool Net_connection::receive_data(char* data, size_t buffer_size, size_t* receiv
 	return ret_val;
 }
 
-void Net_connection::disconnect()
+bool Net_connection::is_connected()
 {
-	if (connected)
-	{
-		apr_socket_close(sock);
-		sock = NULL;
-	}
+	return connected;
 }
 
 Net_connection::~Net_connection()
 {
-	disconnect();
 	if (mp != NULL)
 	{
 		apr_pool_destroy(mp);

@@ -17,7 +17,7 @@ void GuiImage::SetSecondBitmap(ALLEGRO_BITMAP * bitmap)
 	this->second_bitmap = bitmap;
 }
 
-void GuiImage::useSecondBitmap(bool use_second_bitmap)
+void GuiImage::UseSecondBitmap(bool use_second_bitmap)
 {
 	this->use_second_bitmap = use_second_bitmap;
 }

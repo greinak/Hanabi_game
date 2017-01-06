@@ -7,8 +7,9 @@ class Server : public Net_connection
 {
 public:
 	Server(unsigned int port);
-	~Server();
 	bool listen_for_connection(unsigned int timeout_ms);
+	virtual void disconnect();
+	virtual ~Server();
 private:
 	apr_socket_t* serv_sock;
 };
