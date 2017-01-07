@@ -1,25 +1,18 @@
 <GuiMenu>
-  <size width="800" height = "750"/>
-  <!-- NORMAL SCALE -->
-  <!--<scale sx="1" sy="1"/>-->
-  <!-- SMALL WINDOW, for debugging -->
-  <scale sx="0.5" sy="0.5"/>
-  <backgBitmap>Hanabi_textures/background.png</backgBitmap>
+  <size width="634" height = "832"/>
+  <scale sx="1" sy="1"/>
+  <backgBitmap>Hanabi_textures/connect_menu_background.png</backgBitmap>
   <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
   <title>Hanabi Game - Connect menu</title>
   <elements>
-    <GuiImage>
-      <position x="400" y="130"/>
-      <offset x ="379" y="116"/>
-      <imageBitmap>Hanabi_textures/logo.png</imageBitmap>
-    </GuiImage>
     <GuiSubmenu>
-      <offset x="-400" y="0"/>
-      <position x="0" y="250"/>
+      <offset x="-317" y="0"/>
+      <position x="0" y="300"/>
       <elements>
         <GuiText>
-          <position x="-320" y="0"/>
+          <position x="0" y="0"/>
           <text>Name</text>
+          <textAlign>CENTER</textAlign>
           <font size="50" type="font.ttf"/>
           <textColor>0xFFFFFFFF</textColor>
         </GuiText>
@@ -38,12 +31,13 @@
       </elements>
     </GuiSubmenu>
     <GuiSubmenu>
-      <offset x="-400" y="0"/>
-      <position x="0" y="400"/>
+      <offset x="-317" y="0"/>
+      <position x="0" y="450"/>
       <elements>
         <GuiText>
-          <position x="-320" y="0"/>
+          <position x="0" y="0"/>
           <text>IP</text>
+          <textAlign>CENTER</textAlign>
           <font size="50" type="font.ttf"/>
           <textColor>0xFFFFFFFF</textColor>
         </GuiText>
@@ -65,17 +59,17 @@
       <baseBitmap>Hanabi_textures/Others/connect.png</baseBitmap>
       <hoverBitmap>Hanabi_textures/Others/connect_hover.png</hoverBitmap>
       <clickBitmap>Hanabi_textures/Others/connect_click.png</clickBitmap>
-      <position x="400" y="630"/>
+      <position x="317" y="675"/>
       <offset x="150" y="50"/>
       <checkAlpha>true</checkAlpha>
     </GuiButton>
     <GuiText id="message_text">
-          <position x="400" y="700"/>
+          <position x="317" y="750"/>
           <textAlign>CENTER</textAlign>
           <textbox color="0x000000F0" up="10" down="0" left="10" right="10" radius="10"/>
           <font size="20" type="font.ttf"/>
           <textColor>0xFFFFFFFF</textColor>
           <visible>false</visible>
-        </GuiText>
+      </GuiText>
   </elements>
 </GuiMenu>

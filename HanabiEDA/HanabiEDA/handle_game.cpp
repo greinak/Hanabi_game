@@ -17,7 +17,7 @@
 #define HANABI_TOTAL_CLUE_INDICATORS		8
 
 //Define CHEAT_SHOW_LOCAL_CARDS to show local player cards!
-#define CHEAT_SHOW_LOCAL_CARDS
+//#define CHEAT_SHOW_LOCAL_CARDS
 
 //Timeout
 #define HANABI_TIMEOUT	5	//ONE MINUTE TIMEOUT

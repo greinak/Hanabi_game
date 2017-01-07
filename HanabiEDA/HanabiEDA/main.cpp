@@ -93,7 +93,9 @@ void destroy()
 bool initialize()
 {
 	cout << "[HANABI_MAIN][INFO] : Starting system..." << endl;
-	srand(time(NULL));
+	unsigned int seed = time(NULL);
+	srand(seed);
+	cout << "[HANABI_MAIN][INFO] : Debug info: Using SEED: " << seed << endl;
 	if (al_init())
 	{
 		if (al_init_image_addon())
