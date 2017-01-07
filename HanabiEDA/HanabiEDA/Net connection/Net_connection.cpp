@@ -35,31 +35,24 @@ bool Net_connection::send_data(const char* data, size_t length, size_t* sent_byt
 	bool ret_val = false;
 	size_t bytes = length;
 	apr_status_t rv;
-	if (sent_bytes != nullptr)
+	if (sent_bytes != nullptr && length != 0)
 	{
 		if (connected)
 		{
 			rv = apr_socket_send(sock, data, &bytes);
-			if (sent_bytes != NULL)
-				*sent_bytes = bytes;
+			*sent_bytes = bytes;
 			if (rv == APR_SUCCESS)	//Send data
 			{
-				if (length != 0)
-				{
-					ios::fmtflags f(cout.flags());
-					cout << "[NET_CONNECTION][INFO] : " << (int) length << " byte(s) sent! Data: " ;
-					for (unsigned int i = 0; i < length; i++)
-						cout << uppercase << setw(2) << setfill('0') << hex << (int)((unsigned char*)data)[i];
-					cout << endl;
-					cout.flags(f);
-				}
+				ios::fmtflags f(cout.flags());
+				cout << "[NET_CONNECTION][INFO] : " << (int) length << " byte(s) sent! Data: " ;
+				for (unsigned int i = 0; i < length; i++)
+					cout << uppercase << setw(2) << setfill('0') << hex << (int)((unsigned char*)data)[i];
+				cout << endl;
+				cout.flags(f);
 				ret_val = true;
 			}
 			else
-			{
-				if (length != 0)
-					cerr << "[NET_CONNECTION][ERROR] : Cannot send data." << endl;
-			}
+				cerr << "[NET_CONNECTION][ERROR] : Cannot send data." << endl;
 		}
 	}
 	else
@@ -72,30 +65,35 @@ bool Net_connection::receive_data(char* data, size_t buffer_size, size_t* receiv
 	bool ret_val = false;
 	apr_status_t rv;
 	size_t bytes;
-	if (received_bytes != nullptr)
+
+	if (received_bytes != nullptr && buffer_size != 0)
 	{
-		if (connected && buffer_size != 0 && send_data(nullptr, 0, received_bytes))	//Sending zero length data is a workaround for detecting when connection falls
+		if (connected)
 		{
-			bytes = buffer_size;
-			rv = apr_socket_recv(sock, data, &bytes);
-			if (received_bytes != NULL)
-				*received_bytes = bytes;
-			if (rv == APR_SUCCESS || rv != APR_EOF)
+			size_t dummy = 0;
+			if (apr_socket_send(sock, data, &dummy) == APR_SUCCESS) //Send 0 bytes to check if connection is OK!
 			{
-				if (*received_bytes != 0)
+				bytes = buffer_size;
+				rv = apr_socket_recv(sock, data, &bytes);
+				if (received_bytes != NULL)
+					*received_bytes = bytes;
+				if (rv == APR_SUCCESS || rv != APR_EOF)
 				{
-					ios::fmtflags f(cout.flags());
-					cout << "[NET_CONNECTION][INFO] : Received " << (int) *received_bytes << " byte(s)! Data: ";
-					for (unsigned int i = 0; i < *received_bytes; i++)
-						cout << uppercase << setw(2) << setfill('0') << hex << (int)((unsigned char*)data)[i];
-					cout << endl;
-					cout.flags(f);
+					if (*received_bytes != 0)
+					{
+						ios::fmtflags f(cout.flags());
+						cout << "[NET_CONNECTION][INFO] : Received " << (int)*received_bytes << " byte(s)! Data: ";
+						for (unsigned int i = 0; i < *received_bytes; i++)
+							cout << uppercase << setw(2) << setfill('0') << hex << (int)((unsigned char*)data)[i];
+						cout << endl;
+						cout.flags(f);
+					}
+					ret_val = true;
 				}
-				ret_val = true;
 			}
+			if (!ret_val)
+				cerr << "[NET_CONNECTION][ERROR] : Error receiving data! Connection with remote computer may have been lost." << endl;
 		}
-		if (!ret_val)
-			cerr << "[NET_CONNECTION][ERROR] : Error receiving data! Connection with remote computer may have been lost." << endl;
 	}
 	else
 		cerr << "[NET_CONNECTION][ERROR] : Bad call to receive data." << endl;

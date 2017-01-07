@@ -837,7 +837,7 @@ bool Gui::get_bitmap_from_string(const string& filename, ALLEGRO_BITMAP** bitmap
 	else
 		ret_val = false;
 	if (!ret_val)
-		cerr << "[GUI][ERROR] : Could not load resource: [IMAGE]\"" << filename << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load resource: [IMAGE] \"" << filename << "\"" << endl;
 	return ret_val;
 }
 
@@ -852,7 +852,7 @@ bool Gui::get_font_from_string(const string& filename, unsigned int size, ALLEGR
 	else
 		ret_val = false;
 	if (!ret_val)
-		cerr << "[GUI][ERROR] : Could not load resource: [FONT]\"" << filename << "\", size: \"" << size << endl;
+		cerr << "[GUI][ERROR] : Could not load resource: [FONT] \"" << filename << "\", size: \"" << size << endl;
 	return ret_val;
 }
 

@@ -6,16 +6,16 @@ Client::Client()
 {
 	cout << "[NET_CONNECTION][INFO] : Initializing client." << endl;
 }
-bool Client::connect_to_server(string server_ip, unsigned int port, unsigned int timeout_ms)
+bool Client::connect_to_server(string server, unsigned int port, unsigned int timeout_ms)
 {
 	unsigned int start_time = clock();
 	unsigned int elapsed_time;
 	if (!connected && init_succ)
 	{
 		cout << "[NET_CONNECTION][INFO] : Attempting connection to server: ";
-		cout << server_ip << ":" << port << ", timeout:" << timeout_ms << "ms." << endl;
+		cout << server << ":" << port << ", timeout:" << timeout_ms << "ms." << endl;
 		apr_sockaddr_t *sa;
-		if (apr_sockaddr_info_get(&sa, server_ip.c_str(), AF_INET, port, 0, mp) == APR_SUCCESS)
+		if (apr_sockaddr_info_get(&sa, server.c_str(), AF_INET, port, 0, mp) == APR_SUCCESS)
 		{
 			if (apr_socket_create(&sock, APR_UNSPEC, SOCK_STREAM, APR_PROTO_TCP, mp) == APR_SUCCESS)
 			{
@@ -33,6 +33,7 @@ bool Client::connect_to_server(string server_ip, unsigned int port, unsigned int
 						//See next comment
 						connected = true;
 						apr_socket_timeout_set(sock, 0);
+						cout << "[NET_CONNECTION][INFO] : Connected to server!" << endl;
 						return true;
 					}
 				}

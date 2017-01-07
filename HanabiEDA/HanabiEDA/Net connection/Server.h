@@ -7,11 +7,12 @@ class Server : public Net_connection
 {
 public:
 	Server(unsigned int port);
-	bool listen_for_connection(unsigned int timeout_ms);
+	bool listen_for_connection(string allowed, unsigned int timeout_ms);
 	virtual void disconnect();
 	virtual ~Server();
 private:
 	apr_socket_t* serv_sock;
+	unsigned int port;
 };
 
 #endif //SERVER_H_

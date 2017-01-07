@@ -12,6 +12,7 @@ typedef struct
 	//Menu elements
 	GuiButton *name_button, *remote_host_button, *connect_button;
 	GuiText *name_text, *remote_host_text, *message;
+	GuiSubmenu *ip_menu;
 	Gui* gui;
 	//Event queue
 	ALLEGRO_EVENT_QUEUE* ev_q;
@@ -47,7 +48,8 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 		data.connect_button = dynamic_cast<GuiButton *>(menu->get_element_from_id("connect_button"));
 		data.name_text = dynamic_cast<GuiText *>(menu->get_element_from_id("name_textbox"));
 		data.remote_host_text = dynamic_cast<GuiText *>(menu->get_element_from_id("ip_textbox"));
-		data.message = dynamic_cast<GuiText *>(menu->get_element_from_id("message_text"));
+		data.message = dynamic_cast<GuiText *>(menu->get_element_from_id("message_text")); 
+		data.ip_menu = dynamic_cast<GuiSubmenu *>(menu->get_element_from_id("ip_menu"));
 		//Set data variables
 		data.gui = menu;
 		data.exit = false;
@@ -170,7 +172,7 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 		{
 			Client *cl;
 			Server *sv;
-			data->message->SetText("Connecting...");
+			data->message->SetText("Connecting as client...");
 			data->message->SetIsVisible(true);
 			al_pause_event_queue(data->ev_q, true);
 			data->gui->redraw();
@@ -198,9 +200,12 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 			//As server
 			if (data->exit == false && data->connected == false)
 			{
+				data->message->SetText("Trying as server...");
+				data->ip_menu->SetIsVisible(false);
+				data->gui->redraw();
 				if ((sv = new Server(CONNECTION_PORT)) != nullptr)
 				{
-					if (sv->listen_for_connection(wait_as_server))
+					if (sv->listen_for_connection(data->remote_host_text->GetText(),wait_as_server))
 					{
 						data->connected = true;
 						data->net = sv;
@@ -214,6 +219,8 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 					data->exit = true;
 					cerr << "[MENU_HANDLER][ERROR] : Error creating server connection object" << endl;
 				}
+				if (!data->connected)
+					data->ip_menu->SetIsVisible(true);
 			}
 			if (!data->exit)
 			{

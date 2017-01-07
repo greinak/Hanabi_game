@@ -16,6 +16,8 @@
 #define HANABI_TOTAL_LIGHTNING_INDICATORS	3
 #define HANABI_TOTAL_CLUE_INDICATORS		8
 
+//To decrease %CPU. See code
+#define	PROGRAM_BREATH_FREQUENCY	60
 //Define CHEAT_SHOW_LOCAL_CARDS to show local player cards!
 //#define CHEAT_SHOW_LOCAL_CARDS
 
@@ -356,7 +358,6 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 
 	ret_event->package = nullptr;	//If no data, always to nullptr. That's the rule
 	ret_event->fsm_event = GND;		//Just in order to initialize it to something
-
 	while (!got_event)
 	{
 		//Feedback events FIRST.
@@ -738,6 +739,10 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 				ret_event->package = nullptr;		//If no data, always to nullptr!
 			}
 		}
+		//Decrease %CPU
+		if(!got_event)	al_rest(1.0 / PROGRAM_BREATH_FREQUENCY);	
+		//That will define the frecuency at which program will look for events
+		//About 0% CPU usage when IDLE in my PC!
 	}
 }
 

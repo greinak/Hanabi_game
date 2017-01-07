@@ -15,11 +15,8 @@ Server::Server(unsigned int port)
 			apr_socket_opt_set(serv_sock, APR_SO_REUSEADDR, 1);
 			if (apr_socket_bind(serv_sock, sa) == APR_SUCCESS)
 			{
-				if (apr_socket_listen(serv_sock, SOMAXCONN) == APR_SUCCESS)
-				{
 					//See next comment
 					return;
-				}
 			}
 			apr_socket_close(serv_sock);
 			serv_sock = NULL;
@@ -29,29 +26,28 @@ Server::Server(unsigned int port)
 	}
 }
 
-bool Server::listen_for_connection(unsigned int timeout_ms)
+bool Server::listen_for_connection(string allowed, unsigned int timeout_ms)
 {
 	if (serv_sock != NULL && !connected && init_succ)
 	{
-		cout << "[NET_CONNECTION][INFO] : Listening for connections, timeout: " << timeout_ms << "ms." << endl;
-		clock_t server_timer = clock();
-		bool go_on = true;
-		do
+		if (apr_socket_listen(serv_sock, -1) == APR_SUCCESS)
 		{
-			//Check if address is equal to expected address
-			apr_socket_accept(&sock, serv_sock, mp);
+			cout << "[NET_CONNECTION][INFO] : Listening for connections, timeout: " << timeout_ms << "ms." << endl;
+			clock_t server_timer = clock();
+			bool go_on = true;
+			do
+				apr_socket_accept(&sock, serv_sock, mp);
+			while (sock == NULL && (go_on = (float)((clock() - server_timer) / (float)CLOCKS_PER_SEC) * 1000 < timeout_ms));
 			if (sock != NULL)
 			{
-				//Don't know how to do this, let's accept all connections.
+				apr_socket_opt_set(sock, APR_SO_NONBLOCK, 1);
+				apr_socket_timeout_set(sock, 0);
+				connected = true;
+				apr_socket_close(serv_sock);
+				serv_sock = nullptr;
+				cout << "[NET_CONNECTION][INFO] : Connected to client!" << endl;
+				return true;
 			}
-		}
-		while (sock == NULL && (go_on = (float)((clock() - server_timer) / (float)CLOCKS_PER_SEC)*1000 < timeout_ms));
-		if (sock != NULL)
-		{
-			apr_socket_opt_set(sock, APR_SO_NONBLOCK, 1);
-			apr_socket_timeout_set(sock, 0);
-			connected = true;
-			return true;
 		}
 	}
 	return false;

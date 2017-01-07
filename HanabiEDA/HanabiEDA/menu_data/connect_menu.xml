@@ -3,7 +3,7 @@
   <scale sx="1" sy="1"/>
   <backgBitmap>Hanabi_textures/connect_menu_background.png</backgBitmap>
   <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
-  <title>Hanabi Game - Connect menu</title>
+  <title>Hanabi - Connect menu</title>
   <elements>
     <GuiSubmenu>
       <offset x="-317" y="0"/>
@@ -30,7 +30,7 @@
         </GuiButton>
       </elements>
     </GuiSubmenu>
-    <GuiSubmenu>
+    <GuiSubmenu id="ip_menu">
       <offset x="-317" y="0"/>
       <position x="0" y="450"/>
       <elements>
