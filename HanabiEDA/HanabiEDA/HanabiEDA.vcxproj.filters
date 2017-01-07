@@ -40,9 +40,6 @@
     <Filter Include="Header Files\Hanabi">
       <UniqueIdentifier>{430bec78-bedf-4c04-88b2-e2102c1d4e08}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Net connection\Packages\REVISAR">
-      <UniqueIdentifier>{43189455-9f08-4c45-8f2b-6a2558555a82}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Net connection\Client.cpp">
@@ -108,9 +105,6 @@
     <ClCompile Include="Gui\Gui.cpp">
       <Filter>Source Files\Gui</Filter>
     </ClCompile>
-    <ClCompile Include="main2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -125,9 +119,6 @@
     </ClCompile>
     <ClCompile Include="handle_game.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Net connection\Packages\Package_draw.cpp">
-      <Filter>Source Files\Net connection\Packages\REVISAR</Filter>
     </ClCompile>
     <ClCompile Include="Net connection\Packages\Package_i_start.cpp">
       <Filter>Source Files\Net connection\Packages</Filter>
@@ -149,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="card_skin.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Net connection\Packages\Package_draw.cpp">
+      <Filter>Source Files\Net connection\Packages</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -270,9 +264,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Font Include="font.ttf" />
   </ItemGroup>
   <ItemGroup>
-    <Font Include="font.ttf" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

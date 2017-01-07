@@ -7,7 +7,7 @@
 #define CONNECTION_TIMEOUT		15000
 #define CONNECTION_PORT			13796
 #define CONNECTED_HOLD_TIME		1
-
+ 
 typedef struct
 {
 	//Menu elements

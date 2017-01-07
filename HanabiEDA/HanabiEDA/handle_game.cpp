@@ -15,8 +15,9 @@
 
 #define HANABI_TOTAL_LIGHTNING_INDICATORS	3
 #define HANABI_TOTAL_CLUE_INDICATORS		8
-
 #define CHEAT_SHOW_LOCAL_CARDS
+
+#define HANABI_TIMEOUT	5	//ONE MINUTE TIMEOUT
 
 using namespace std;
 
@@ -169,6 +170,7 @@ typedef enum	//Any event may arrive at any state!!
 	ERROR_EV,		//Remote machine informed a communication error		
 	QUIT,			//Remote left the game
 	LOCAL_QUIT,		//Local left the game
+	TIMEOUT,		//Timer timeout
 	//<--Control events-->
 	ACK,			//ACK
 	EXIT_GAME,		//Break event loop
@@ -217,6 +219,7 @@ static const char* fsm_event_name[] =
 	"QUIT",			//Remote left the game
 	"LOCAL_QUIT",		//Local left the game
 																			//<--Control events-->
+	"TIMEOUT",		//Timer timeout
 	"ACK",			//ACK
 	"EXIT_GAME",		//Break event loop
 																							//<--Initial events-->
@@ -234,6 +237,7 @@ typedef struct
 	Net_connection* connection;
 	Gui* game_ui;
 	ALLEGRO_EVENT_QUEUE* ev_q;
+	ALLEGRO_TIMER* timer;
 	string user_name;
 	bool break_event_loop;
 	bool redraw;
@@ -254,6 +258,7 @@ typedef struct
 	queue<local_user_event_T> local_event_queue;
 	unsigned int discard_count;
 	bool quit_button_enabled;
+
 }game_data;
 
 typedef enum {MOUSE,DISPLAY_CLOSE,FSM} event_id;
@@ -315,59 +320,66 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 	game_data data;
 	data.connection = net;
 	data.game_ui = game_ui;
-	data.ev_q = al_create_event_queue();
 	data.break_event_loop = false;
 	data.user_name = user_name;
 	data.feedback_event = FB_NO_EVENT;
 	if (data.skin.initialized_successfully())
 	{
+		data.ev_q = al_create_event_queue();
 		if (data.ev_q != nullptr)
 		{
-			al_register_event_source(data.ev_q, al_get_mouse_event_source());
-			al_register_event_source(data.ev_q, al_get_display_event_source(data.game_ui->get_display()));
-			if (attach_menu_elements(data.elements, game_ui))
+			data.timer = al_create_timer(HANABI_TIMEOUT);
+			if(data.timer != nullptr)
 			{
-				attach_callbacks_to_elements(data.elements,data);
-				data.elements.player.local.name->SetText(data.user_name);
-				data.elements.player.local.name->SetIsVisible(true);
-				data.elements.message->SetText("Handshake... Please wait...");
-				data.elements.message->SetIsVisible(true);
-				data.game_ui->redraw();
-				data.quit_button_enabled = true;
-				const STATE* state = fsm_start_point;
-				if (is_server)
-					state = fsm_handler(state, SERVER, data, nullptr);
-				else
-					state = fsm_handler(state, CLIENT, data, nullptr);
-				game_event_t ev;
-				while (!data.break_event_loop)
+				al_register_event_source(data.ev_q, al_get_mouse_event_source());
+				al_register_event_source(data.ev_q, al_get_display_event_source(data.game_ui->get_display()));
+				al_register_event_source(data.ev_q, al_get_timer_event_source(data.timer));
+				if (attach_menu_elements(data.elements, game_ui))
 				{
-					ev.package = nullptr;		//Always to nullptr if no data
-					wait_for_event(&ev, data);
-					if (ev.ev_id == MOUSE)
+					attach_callbacks_to_elements(data.elements, data);
+					data.elements.player.local.name->SetText(data.user_name);
+					data.elements.player.local.name->SetIsVisible(true);
+					data.elements.message->SetText("Handshake... Please wait...");
+					data.elements.message->SetIsVisible(true);
+					data.game_ui->redraw();
+					data.quit_button_enabled = true;
+					const STATE* state = fsm_start_point;
+					if (is_server)
+						state = fsm_handler(state, SERVER, data, nullptr);
+					else
+						state = fsm_handler(state, CLIENT, data, nullptr);
+					game_event_t ev;
+					while (!data.break_event_loop)
 					{
-						ALLEGRO_MOUSE_STATE st;
-						al_get_mouse_state(&st);
-						data.redraw |= data.game_ui->feed_mouse_event(st);
+						ev.package = nullptr;		//Always to nullptr if no data
+						wait_for_event(&ev, data);
+						if (ev.ev_id == MOUSE)
+						{
+							ALLEGRO_MOUSE_STATE st;
+							al_get_mouse_state(&st);
+							data.redraw |= data.game_ui->feed_mouse_event(st);
+						}
+						else if (ev.ev_id == DISPLAY_CLOSE)
+						{
+							data.elements.exit_menu.menu->SetIsVisible(true);
+							data.elements.exit_menu.menu->SetIsActive(true);
+							data.redraw = true;
+						}
+						else if (ev.ev_id == FSM)
+						{
+							state = fsm_handler(state, ev.fsm_event, data, ev.package);
+							cout << "Next..." << endl;
+						}
+						if (data.redraw && al_is_event_queue_empty(data.ev_q))
+						{
+							data.redraw = false;
+							data.game_ui->redraw();
+						}
+						delete ev.package;	//delete, if any data, no nullptr, else, nullptr, so OK!
 					}
-					else if (ev.ev_id == DISPLAY_CLOSE)
-					{
-						data.elements.exit_menu.menu->SetIsVisible(true);
-						data.elements.exit_menu.menu->SetIsActive(true);
-						data.redraw = true;
-					}
-					else if (ev.ev_id == FSM)
-					{
-						state = fsm_handler(state, ev.fsm_event, data, ev.package);
-						cout << "Next..." << endl;
-					}
-					if (data.redraw && al_is_event_queue_empty(data.ev_q))
-					{
-						data.redraw = false;
-						data.game_ui->redraw();
-					}
-					delete ev.package;	//delete, if any data, no nullptr, else, nullptr, so OK!
 				}
+				al_unregister_event_source(data.ev_q,al_get_timer_event_source(data.timer));
+				al_destroy_timer(data.timer);
 			}
 			else
 				cout << "ERROR: Could not load game UI properly" << endl;
@@ -397,6 +409,7 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 
 	while (!got_event)
 	{
+		//Feedback events
 		if (g_data.feedback_event != FB_NO_EVENT)
 		{
 			switch (g_data.feedback_event)
@@ -404,9 +417,7 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 			case FB_WHO:
 			{
 				ret_event->ev_id = FSM;
-				int rand_value = rand();
-				cout << rand_value << endl;	//For debugging
-				ret_event->fsm_event = (rand_value%2)?SW_WHO_I:SW_WHO_YOU;	//Pseudorandomly select who starts.
+				ret_event->fsm_event = (rand() %2)?SW_WHO_I:SW_WHO_YOU;	//Pseudorandomly select who starts.
 				ret_event->package = nullptr;		//If no data, always to nullptr
 				got_event = true;
 				break;
@@ -431,43 +442,43 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 			}
 			g_data.feedback_event = FB_NO_EVENT;
 		}
-		else if (!got_event)
+		//Local events
+		if (!got_event && !g_data.local_event_queue.empty())
 		{
-			if (!g_data.local_event_queue.empty())
+			got_event = true;
+			ret_event->ev_id = FSM;
+			local_user_event_T ev = g_data.local_event_queue.front();
+			g_data.local_event_queue.pop();
+			switch(ev)
 			{
-				got_event = true;
-				ret_event->ev_id = FSM;
-				local_user_event_T ev = g_data.local_event_queue.front();
-				g_data.local_event_queue.pop();
-				switch(ev)
-				{
-				case USER_PLAY_CARD:
-					ret_event->fsm_event = LOCAL_PLAY;
-					break;
-				case USER_DISCARD_CARD:
-					ret_event->fsm_event = LOCAL_DISCARD;
-					break;
-				case USER_GIVE_CLUE:
-					ret_event->fsm_event = LOCAL_GIVE_CLUE;
-					break;
-				case USER_QUIT:
-					ret_event->fsm_event = LOCAL_QUIT;
-					break;
-				case USER_EXIT_GAME_NOW:
-					ret_event->fsm_event = EXIT_GAME;
-					break;
-				case USER_PLAY_AGAIN:
-					ret_event->fsm_event = LOCAL_PA;
-					break;
-				case USER_GAME_OVER:
-					ret_event->fsm_event = LOCAL_GO;
-					break;
-				default:
-					ret_event->fsm_event = BAD;
-					break;
-				}
+			case USER_PLAY_CARD:
+				ret_event->fsm_event = LOCAL_PLAY;
+				break;
+			case USER_DISCARD_CARD:
+				ret_event->fsm_event = LOCAL_DISCARD;
+				break;
+			case USER_GIVE_CLUE:
+				ret_event->fsm_event = LOCAL_GIVE_CLUE;
+				break;
+			case USER_QUIT:
+				ret_event->fsm_event = LOCAL_QUIT;
+				break;
+			case USER_EXIT_GAME_NOW:
+				ret_event->fsm_event = EXIT_GAME;
+				break;
+			case USER_PLAY_AGAIN:
+				ret_event->fsm_event = LOCAL_PA;
+				break;
+			case USER_GAME_OVER:
+				ret_event->fsm_event = LOCAL_GO;
+				break;
+			default:
+				ret_event->fsm_event = BAD;
+				break;
 			}
-			else if (!got_event && !al_is_event_queue_empty(g_data.ev_q))
+		}
+		//Allegro mouse and display events
+		if (!got_event && !al_is_event_queue_empty(g_data.ev_q))
 			{
 				ALLEGRO_EVENT ev;
 				al_wait_for_event(g_data.ev_q, &ev);
@@ -487,265 +498,270 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 						got_event = true;
 					}
 				}
-			}
-			else if (!got_event && g_data.connection->is_connected())
-			{
-				connection_ok = g_data.connection->receive_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
-				if (connection_ok)
+				else if (ev.timer.type == ALLEGRO_EVENT_TIMER)
 				{
-					if (data_size != 0)
+					ret_event->ev_id = FSM;
+					ret_event->fsm_event = TIMEOUT;
+					ret_event->package = nullptr;
+					got_event = true;
+				}
+			}
+		//Connection events
+		if (!got_event && g_data.connection->is_connected())
+		{
+			connection_ok = g_data.connection->receive_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+			if (connection_ok)
+			{
+				if (data_size != 0)
+				{
+					bool data_ok = true;
+					package_type p_type;
+					ret_event->ev_id = FSM;
+					got_event = true;
+					switch ((p_type = get_package_type_from_raw_data(raw_data, data_size)))
 					{
-						bool data_ok = true;
-						package_type p_type;
-						ret_event->ev_id = FSM;
-						got_event = true;
-						switch ((p_type = get_package_type_from_raw_data(raw_data, data_size)))
+						case ACK_P:
 						{
-							case ACK_P:
-							{
-								Package_ack* package = new Package_ack;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							Package_ack* package = new Package_ack;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
 
-									ret_event->fsm_event = ACK;
-								else
-									data_ok = false;
-								break;
-							}
-							case NAME_P:
-							{
-								Package_name* package = new Package_name;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = NAME;
-								else
-									data_ok = false;
-								break;
-							}
-							case NAME_IS_P:
-							{
-								Package_name_is* package = new Package_name_is;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = NAMEIS;
-								else
-									data_ok = false;
-								break;
-							}
-							case START_INFO_P:
-							{
-								Package_start_info* package = new Package_start_info;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								{
-									bool start_info_ok = true;
-									card hand_1[HANABI_HAND_SIZE];
-									card hand_2[HANABI_HAND_SIZE];
-									deck start_info_deck;	//Create deck in order to check if start info is valid.
-									package->get_info(hand_1, hand_2);
-									initialize_deck(start_info_deck);
-									for (unsigned int i = 0; i < HANABI_HAND_SIZE && start_info_ok; i++)
-									{
-										start_info_ok &= start_info_deck.remove_card(hand_1[i]);
-										start_info_ok &= start_info_deck.remove_card(hand_2[i]);
-									}
-									if (start_info_ok)
-										ret_event->fsm_event = START_INFO;
-									else
-										data_ok = false;
-								}
-								else
-									data_ok = false;
-								break;
-							}
-							case YOU_START_P:
-							{
-								Package_you_start* package = new Package_you_start;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = YOU_START;
-								else
-									data_ok = false;
-								break;
-							}
-							case I_START_P:
-							{
-								Package_i_start* package = new Package_i_start;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = I_START;
-								else
-									data_ok = false;
-								break;
-							}
-							case PLAY_P:
-							{
- 								Package_play* package = new Package_play;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								{
-									unsigned int i;
-									package->get_card_id(&i);
-									card c = g_data.remote_player_card[i];
-									if (g_data.color_stack[c.get_color()] != c.get_number())
-									{
-										if (g_data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)
-											ret_event->fsm_event = REMOTE_PLAY_LOST;
-										else
-											ret_event->fsm_event = REMOTE_PLAY;
-									}
-									else
-									{
-										unsigned int played_cards = 0;
-										if (c.get_number() == HANABI_TOTAL_NUMBERS - 1)
-										{
-											for (unsigned int j = 0; j < HANABI_TOTAL_COLORS; j++)
-												played_cards += g_data.color_stack[j];
-											if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS - 1)
-												ret_event->fsm_event = REMOTE_PLAY_WON;
-											else
-												ret_event->fsm_event = REMOTE_PLAY;
-										}
-										else
-											ret_event->fsm_event = REMOTE_PLAY;
-									}
-								}
-								else
-									data_ok = false;
-								break;
-							}
-							case DISCARD_P:
-							{
-								Package_discard* package = new Package_discard;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_DISCARD;
-								else
-									data_ok = false;
-								break;
-							}
-							case YOU_HAVE_P:
-							{
-								Package_you_have* package = new Package_you_have;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								{
-									if(g_data.clues != 0)
-										ret_event->fsm_event = REMOTE_GIVE_CLUE;
-									else
-										ret_event->fsm_event = BAD;
-								}
-								else
-									data_ok = false;
-								break;
-							}
-							case DRAW_P:
-							{
-								Package_draw* package = new Package_draw;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								{
-									card c;
-									package->get_card(&c);
-									if (g_data.card_deck.size() == 0)
-										ret_event->fsm_event = DRAW_FAKE;
-									else if (g_data.card_deck.count_cards(c) != 0)
-									{
-										if (g_data.card_deck.size() > 1)
-											ret_event->fsm_event = DRAW_NEXT;
-										else
-											ret_event->fsm_event = DRAW_LAST;
-									}
-									else
-										data_ok = false;
-										
-								}
-								else
-									data_ok = false;
-								break;
-							}
-							case WE_WON_P:
-							{
-								Package_we_won* package = new Package_we_won;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_WE_WON;
-								else
-									data_ok = false;
-								break;
-							}
-							case WE_LOST_P:
-							{
-								Package_we_lost* package = new Package_we_lost;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_WE_LOST;
-								else
-									data_ok = false;
-								break;
-							}
-							case MATCH_IS_OVER_P:
-							{
-								Package_match_is_over* package = new Package_match_is_over;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_MATCH_IS_OVER;
-								else
-									data_ok = false;
-								break;
-							}
-							case PLAY_AGAIN_P:
-							{
-								Package_play_again* package = new Package_play_again;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_PA;
-								else
-									data_ok = false;
-								break;
-							}
-							case GAME_OVER_P:
-							{
-								Package_game_over* package = new Package_game_over;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = REMOTE_GO;
-								else
-									data_ok = false;
-								break;
-							}
-							case QUIT_P:
-							{
-								Package_quit* package = new Package_quit;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = QUIT;
-								else
-									data_ok = false;
-								break;
-							}
-							case ERROR_P:
-							{
-								Package_error* package = new Package_error;
-								if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-									ret_event->fsm_event = ERROR_EV;
-								else
-									data_ok = false;
-								break;
-							}
-							default:
-							{
+								ret_event->fsm_event = ACK;
+							else
 								data_ok = false;
-								break;
-							}
+							break;
 						}
-						if (!data_ok)
+						case NAME_P:
 						{
-							delete ret_event->package;		//Free package data!!
-							ret_event->fsm_event = BAD;		//BAD, since must inform remote!
-							ret_event->package = nullptr;	//If no data, always to nullptr
+							Package_name* package = new Package_name;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = NAME;
+							else
+								data_ok = false;
+							break;
+						}
+						case NAME_IS_P:
+						{
+							Package_name_is* package = new Package_name_is;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = NAMEIS;
+							else
+								data_ok = false;
+							break;
+						}
+						case START_INFO_P:
+						{
+							Package_start_info* package = new Package_start_info;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							{
+								bool start_info_ok = true;
+								card hand_1[HANABI_HAND_SIZE];
+								card hand_2[HANABI_HAND_SIZE];
+								deck start_info_deck;	//Create deck in order to check if start info is valid.
+								package->get_info(hand_1, hand_2);
+								initialize_deck(start_info_deck);
+								for (unsigned int i = 0; i < HANABI_HAND_SIZE && start_info_ok; i++)
+								{
+									start_info_ok &= start_info_deck.remove_card(hand_1[i]);
+									start_info_ok &= start_info_deck.remove_card(hand_2[i]);
+								}
+								if (start_info_ok)
+									ret_event->fsm_event = START_INFO;
+								else
+									data_ok = false;
+							}
+							else
+								data_ok = false;
+							break;
+						}
+						case YOU_START_P:
+						{
+							Package_you_start* package = new Package_you_start;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = YOU_START;
+							else
+								data_ok = false;
+							break;
+						}
+						case I_START_P:
+						{
+							Package_i_start* package = new Package_i_start;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = I_START;
+							else
+								data_ok = false;
+							break;
+						}
+						case PLAY_P:
+						{
+ 							Package_play* package = new Package_play;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							{
+								unsigned int i;
+								package->get_card_id(&i);
+								card c = g_data.remote_player_card[i];
+								if (g_data.color_stack[c.get_color()] != c.get_number())
+								{
+									if (g_data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)
+										ret_event->fsm_event = REMOTE_PLAY_LOST;
+									else
+										ret_event->fsm_event = REMOTE_PLAY;
+								}
+								else
+								{
+									unsigned int played_cards = 0;
+									if (c.get_number() == HANABI_TOTAL_NUMBERS - 1)
+									{
+										for (unsigned int j = 0; j < HANABI_TOTAL_COLORS; j++)
+											played_cards += g_data.color_stack[j];
+										if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS - 1)
+											ret_event->fsm_event = REMOTE_PLAY_WON;
+										else
+											ret_event->fsm_event = REMOTE_PLAY;
+									}
+									else
+										ret_event->fsm_event = REMOTE_PLAY;
+								}
+							}
+							else
+								data_ok = false;
+							break;
+						}
+						case DISCARD_P:
+						{
+							Package_discard* package = new Package_discard;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = REMOTE_DISCARD;
+							else
+								data_ok = false;
+							break;
+						}
+						case YOU_HAVE_P:
+						{
+							Package_you_have* package = new Package_you_have;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							{
+								if(g_data.clues != 0)
+									ret_event->fsm_event = REMOTE_GIVE_CLUE;
+								else
+									ret_event->fsm_event = BAD;
+							}
+							else
+								data_ok = false;
+							break;
+						}
+						case DRAW_P:
+						{
+							Package_draw* package = new Package_draw;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							{
+								card c;
+								package->get_card(&c);
+								if (g_data.card_deck.size() == 0)
+									ret_event->fsm_event = DRAW_FAKE;
+								else if (g_data.card_deck.count_cards(c) != 0)
+								{
+									if (g_data.card_deck.size() > 1)
+										ret_event->fsm_event = DRAW_NEXT;
+									else
+										ret_event->fsm_event = DRAW_LAST;
+								}
+								else
+									data_ok = false;
+										
+							}
+							else
+								data_ok = false;
+							break;
+						}
+						case WE_WON_P:
+						{
+							Package_we_won* package = new Package_we_won;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = REMOTE_WE_WON;
+							else
+								data_ok = false;
+							break;
+						}
+						case WE_LOST_P:
+						{
+							Package_we_lost* package = new Package_we_lost;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = REMOTE_WE_LOST;
+							else
+								data_ok = false;
+							break;
+						}
+						case MATCH_IS_OVER_P:
+						{
+							Package_match_is_over* package = new Package_match_is_over;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = REMOTE_MATCH_IS_OVER;
+							else
+								data_ok = false;
+							break;
+						}
+						case PLAY_AGAIN_P:
+						{
+							Package_play_again* package = new Package_play_again;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = REMOTE_PA;
+							else
+								data_ok = false;
+							break;
+						}
+						case GAME_OVER_P:
+						{
+							Package_game_over* package = new Package_game_over;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = REMOTE_GO;
+							else
+								data_ok = false;
+							break;
+						}
+						case QUIT_P:
+						{
+							Package_quit* package = new Package_quit;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = QUIT;
+							else
+								data_ok = false;
+							break;
+						}
+						case ERROR_P:
+						{
+							Package_error* package = new Package_error;
+							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+								ret_event->fsm_event = ERROR_EV;
+							else
+								data_ok = false;
+							break;
+						}
+						default:
+						{
+							data_ok = false;
+							break;
 						}
 					}
-					else
+					if (!data_ok)
 					{
-						//No data received :)
+						delete ret_event->package;		//Free package data!!
+						ret_event->fsm_event = BAD;		//BAD, since must inform remote!
+						ret_event->package = nullptr;	//If no data, always to nullptr
 					}
 				}
 				else
 				{
-					got_event = true;
-					ret_event->ev_id = FSM;
-					ret_event->fsm_event = ERROR_EV;	//FATAL CONNECTION ERROR.
-					ret_event->package = nullptr;		//If no data, always to nullptr
+					//No data received :)
 				}
 			}
+			else
+			{
+				got_event = true;
+				ret_event->ev_id = FSM;
+				ret_event->fsm_event = ERROR_EV;	//FATAL CONNECTION ERROR.
+				ret_event->package = nullptr;		//If no data, always to nullptr
+			}
 		}
-		if (!got_event)
-			al_rest(1.0/60.0);	//Just decrease %CPU
 	}
 }
 
@@ -1094,7 +1110,6 @@ bool give_clue_ok_button_callback(GuiButton* source, bool forced, bool mouse_ove
 			data->elements.message2->SetIsVisible(true);
 			(*redraw) = true;
 		}
-
 	}
 	return false;
 }
@@ -1189,14 +1204,18 @@ static void fsm_start_point__client(game_data& data, Package_hanabi* package);		
 static void s_wait_nameis__nameis(game_data& data, Package_hanabi* package);										//Done!
 static void s_wait_name__name(game_data& data, Package_hanabi* package);											//Done!
 static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package);										//Done!
+static void s_wait_nameis_ack__timeout(game_data& data, Package_hanabi* package);									//Done!
 static void c_wait_name__name(game_data& data, Package_hanabi* package);											//Done!
 static void c_wait_nameis_ack__ack(game_data& data, Package_hanabi* package);										//Done!
+static void c_wait_nameis_ack__timeout(game_data& data, Package_hanabi* package);									//Done!				
 static void c_wait_nameis__nameis(game_data& data, Package_hanabi* package);										//Done!
 static void c_wait_start_info__start_info(game_data& data, Package_hanabi* package);								//Done!
 static void wait_start_info_ack__ack(game_data& data, Package_hanabi* package);										//Done!
+static void wait_start_info_ack__timeout(game_data& data, Package_hanabi* package);									//Done!
 static void wait_software_who__sw_who_i(game_data& data, Package_hanabi* package);									//Done!
 static void wait_software_who__sw_who_you(game_data& data, Package_hanabi* package);								//Done!
 static void wait_i_start_ack__ack(game_data& data, Package_hanabi* package);										//Done!
+static void wait_i_start_ack__timeout(game_data& data, Package_hanabi* package);									//Done!
 static void wait_who__i_start(game_data& data, Package_hanabi* package);											//Done!
 static void wait_who__you_start(game_data& data, Package_hanabi* package);											//Done!
 static void a_wait_remote_play_again_answer__remote_pa(game_data& data, Package_hanabi* package);					//Done!
@@ -1219,6 +1238,7 @@ static void local_player_turn__local_discard(game_data& data, Package_hanabi* pa
 static void wait_remote_player_response__ack(game_data& data, Package_hanabi* package);								//Done!
 static void wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);					//Done!
 static void wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);					//Done!
+static void wait_remote_player_response__timeout(game_data& data, Package_hanabi* package);							//Done!
 static void wait_sw_draw__sw_draw_next(game_data& data, Package_hanabi* package);									//Done!
 static void wait_sw_draw__sw_draw_last(game_data& data, Package_hanabi* package);									//Done!
 static void remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);							//Done!
@@ -1228,24 +1248,28 @@ static void remote_player_turn__remote_play_won(game_data& data, Package_hanabi*
 static void remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);							//Done!
 static void wait_draw__draw_next(game_data& data, Package_hanabi* package);											//Done!
 static void wait_draw__draw_last(game_data& data, Package_hanabi* package);											//Done!
+static void wait_draw__timeout(game_data& data, Package_hanabi* package);											//Done!
 static void sc_1_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);					//Done!
 static void sc_1_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);							//Done!
 static void sc_1_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);						//Done!
 static void sc_1_remote_player_turn__remote_play_won(game_data& data, Package_hanabi* package);						//Done!
 static void sc_1_remote_player_turn__remote_play_lost(game_data& data, Package_hanabi* package);					//Done!
 static void sc_1_wait_draw__draw_fake(game_data& data, Package_hanabi* package);									//Done!
+static void sc_1_wait_draw__timeout(game_data& data, Package_hanabi* package);										//Done!
 static void sc_1_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);						//WHAT SHOULD BE DONE HERE?
 static void sc_1_local_player_turn__local_play(game_data& data, Package_hanabi* package);							//Done!
 static void sc_1_local_player_turn__local_discard(game_data& data, Package_hanabi* package);						//Done!
 static void sc_1_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);				//Done!
 static void sc_1_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);				//Done!
 static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& data, Package_hanabi* package);		//Done!
+static void sc_1_wait_remote_palyer_response__timeout(game_data& data, Package_hanabi* package);					//Done!
 static void sc_2_local_player_turn__local_give_clue(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_local_player_turn__local_play(game_data& data, Package_hanabi* package);							//Done!
 static void sc_2_local_player_turn__local_discard(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_wait_remote_player_response__ack(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package);				//Done!
 static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package);				//Done!
+static void sc_2_wait_remote_player_response__timeout(game_data& data, Package_hanabi* package);					//Done!
 static void sc_2_remote_player_turn__remote_give_clue(game_data& data, Package_hanabi* package);					//WHAT SHOULD BE DONE HERE?
 static void sc_2_remote_player_turn__remote_discard(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_remote_player_turn__remote_play(game_data& data, Package_hanabi* package);							//Done!
@@ -1299,6 +1323,24 @@ extern const STATE local_player_quit[];
 //####################################
 //# Useful functions for FSM actions #
 //####################################
+
+//Prototypes
+static void new_game(game_data& data);
+static void game_finished(game_data& data);
+static void reveal_local_cards(game_data& data);
+static void local_player_turn_starts(game_data& data);
+static void local_player_turn_ends(game_data& data);
+static void remote_player_turn_starts(game_data& data);
+static void remote_player_turn_ends(game_data& data);
+static void we_are_the_champions_message(game_data& data);
+static void we_lost_message(game_data& data);
+static void match_is_over_message(game_data& data);
+static void discard_card(const card& c, game_data& data);
+static bool play_card(const card& c, game_data& data);
+static void start_timeout_count(game_data& data);
+static void abort_timeout_count(game_data& data);
+static void timeout(game_data& data, Package_hanabi* package);
+static bool send_package(Package_hanabi& package, Net_connection* connection);
 
 //Called every time a new game should start
 static void new_game(game_data& data)
@@ -1560,6 +1602,23 @@ static bool play_card(const card& c, game_data& data)
 	return false;
 }
 
+//Timeout
+static void start_timeout_count(game_data& data)
+{
+	al_start_timer(data.timer);
+}
+static void abort_timeout_count(game_data& data)
+{
+	al_stop_timer(data.timer);
+}
+static void timeout(game_data& data, Package_hanabi* package)
+{
+	//Disable timer
+	abort_timeout_count(data);
+	//Same as bad
+	common__bad(data, package);
+}
+
 //Send a package to remote player
 static bool send_package(Package_hanabi& package, Net_connection* connection)
 {
@@ -1583,6 +1642,8 @@ static void fsm_start_point__server(game_data& data, Package_hanabi* package)
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
+	//Should not enable timeout here
+	//For compatibility with other implementations
 }
 static void fsm_start_point__client(game_data& data, Package_hanabi* package)
 {
@@ -1633,14 +1694,21 @@ static void s_wait_name__name(game_data& data, Package_hanabi* package)
 	p.set_name(data.user_name);
 	//Send it
 	if (send_package(p, data.connection))
+	{
 		data.feedback_event = FB_NO_EVENT;
+		//Name is will wait ack
+		//Enable timeout timer
+		start_timeout_count(data);
+	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package)
 {
-	//Send start info
+
 	Package_start_info p;
+	//Got ack. disable timer
+	abort_timeout_count(data);
 	//Sending start info, so new game will start
 	//prepare data for new game
 	new_game(data);
@@ -1663,11 +1731,19 @@ static void s_wait_nameis_ack__ack(game_data& data, Package_hanabi* package)
 	p.set_info(data.remote_player_card, data.local_player_card);
 	//Send data
 	if (send_package(p, data.connection))
+	{
 		data.feedback_event = FB_NO_EVENT;
+		//Start info will wait ack
+		//Enable timeout timer
+		start_timeout_count(data);
+	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
-
+static void s_wait_nameis_ack__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
+}
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: HANDSHAKE, branch: Server %
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1683,7 +1759,8 @@ static const STATE s_wait_name[] =
 };
 static const STATE s_wait_nameis_ack[] =
 {
-	{ ACK,s_wait_nameis_ack__ack,wait_start_info_ack },  // --> GO TO INITIALIZATION
+	{ TIMEOUT, s_wait_nameis_ack__timeout, end_state},		//break
+	{ ACK,s_wait_nameis_ack__ack,wait_start_info_ack },		// --> GO TO INITIALIZATION
 	{ GND,nullptr,nullptr }
 };
 
@@ -1696,11 +1773,19 @@ static void c_wait_name__name(game_data& data, Package_hanabi* package)
 }
 static void c_wait_nameis_ack__ack(game_data& data, Package_hanabi* package)
 {
+	//Got ack, dissable timer
+	abort_timeout_count(data);
 	fsm_start_point__server(data, package);	//Same as fsm_start_point__server
+}
+static void c_wait_nameis_ack__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 static void c_wait_nameis__nameis(game_data& data, Package_hanabi* package)
 {
 	s_wait_nameis__nameis(data, package);	//Same as server
+	//Will not start timer for start info
+	//For compatibility with other implementations
 }
 static void c_wait_start_info__start_info(game_data& data, Package_hanabi* package)
 {
@@ -1733,7 +1818,11 @@ static void c_wait_start_info__start_info(game_data& data, Package_hanabi* packa
 
 		//Send ACK
 		if (send_package(p, data.connection))
+		{
 			data.feedback_event = FB_NO_EVENT;
+			//Wait who starts!
+			start_timeout_count(data);
+		}
 		else
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
 	}
@@ -1752,6 +1841,7 @@ static const STATE c_wait_name[] =
 static const STATE c_wait_nameis_ack[] =
 {
 	{ ACK,c_wait_nameis_ack__ack,c_wait_nameis },
+	{ TIMEOUT,c_wait_nameis_ack__timeout,end_state },		//Break
 	{ GND,nullptr,nullptr }
 };
 static const STATE c_wait_nameis[] =
@@ -1770,8 +1860,14 @@ static const STATE c_wait_start_info[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void wait_start_info_ack__ack(game_data& data, Package_hanabi* package)
 {
+	//Got ack. disable timer
+	abort_timeout_count(data);
 	//Ask software to decide who should start the game
 	data.feedback_event = FB_WHO;
+}
+static void wait_start_info_ack__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 static void wait_software_who__sw_who_i(game_data& data, Package_hanabi* package)
 {
@@ -1779,7 +1875,11 @@ static void wait_software_who__sw_who_i(game_data& data, Package_hanabi* package
 	//Send I start
 	Package_i_start p;
 	if (send_package(p, data.connection))
+	{
 		data.feedback_event = FB_NO_EVENT;
+		//Must wait ack
+		start_timeout_count(data);
+	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
@@ -1796,8 +1896,15 @@ static void wait_software_who__sw_who_you(game_data& data, Package_hanabi* packa
 }
 static void wait_i_start_ack__ack(game_data& data, Package_hanabi* package)
 {
+	//Got ack. disable timer
+	abort_timeout_count(data);
+	//Local player turn!!
 	local_player_turn_starts(data);
 	data.feedback_event = FB_NO_EVENT;
+}
+static void wait_i_start_ack__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1806,6 +1913,7 @@ static void wait_i_start_ack__ack(game_data& data, Package_hanabi* package)
 static const STATE wait_start_info_ack[] =
 {
 	{ ACK,wait_start_info_ack__ack,wait_software_who },
+	{ TIMEOUT,wait_start_info_ack__timeout,end_state },		//Break
 	{ GND,nullptr,nullptr }
 };
 static const STATE wait_software_who[] =
@@ -1817,6 +1925,7 @@ static const STATE wait_software_who[] =
 static const STATE wait_i_start_ack[] =
 {
 	{ ACK,wait_i_start_ack__ack,local_player_turn },	// --> GO TO GAME
+	{ TIMEOUT, wait_i_start_ack__timeout,end_state},		//break
 	{ GND,nullptr,nullptr }
 };
 
@@ -1827,8 +1936,10 @@ static void wait_who__i_start(game_data& data, Package_hanabi* package)
 {	
 	//Remote player turn starts
 	//Remember remote says who, and he told me "I start"
-	//Send ack
 	Package_ack p;
+	//Got who!
+	abort_timeout_count(data);
+	//Send ack
 	if (send_package(p, data.connection))
 		data.feedback_event = FB_NO_EVENT;
 	else
@@ -1840,6 +1951,8 @@ static void wait_who__you_start(game_data& data, Package_hanabi* package)
 {
 	//Local player turn starts
 	//Remember remote says who, and he told me "YOU start"
+	//Got who!
+	abort_timeout_count(data);
 	local_player_turn_starts(data);
 	data.feedback_event = FB_NO_EVENT;
 }
@@ -1906,6 +2019,7 @@ static void a_wait_local_play_again_answer__local_pa(game_data& data, Package_ha
 	//We must send start info. This is done here:
 	s_wait_nameis_ack__ack(data, nullptr);
 	//Now must wait ack...
+	start_timeout_count(data);
 	//Menu with option quit will close, so...
 	data.quit_button_enabled = true;
 }
@@ -2124,7 +2238,11 @@ static void local_player_turn__local_play(game_data& data, Package_hanabi* packa
 	//Send play package
 	p.set_card_id(data.local_event_card_offset);
 	if (send_package(p, data.connection))
+	{
 		data.feedback_event = FB_NO_EVENT;
+		//After play, ack. So enable timer
+		start_timeout_count(data);
+	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
@@ -2162,12 +2280,18 @@ static void local_player_turn__local_discard(game_data& data, Package_hanabi* pa
 	
 	p.set_card_id(data.local_event_card_offset);
 	if (send_package(p, data.connection))
+	{
 		data.feedback_event = FB_NO_EVENT;
+		//After discard, ack. So enable timer
+		start_timeout_count(data);
+	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 static void wait_remote_player_response__ack(game_data& data, Package_hanabi* package)
 {
+	//Got ack! disable timer
+	abort_timeout_count(data);
 	//Remote player ack our move. But wait... Didn't we won? Didn't we lost?
 	//Check lightning indicators
 	if (data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
@@ -2192,6 +2316,8 @@ static void wait_remote_player_response__ack(game_data& data, Package_hanabi* pa
 }
 static void wait_remote_player_response__remote_we_won(game_data& data, Package_hanabi* package)
 {
+	//Equivalent to ack! disable timer
+	abort_timeout_count(data);
 	//Remote player says we won. Really??
 	unsigned int played_cards = 0;
 	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
@@ -2217,6 +2343,8 @@ static void wait_remote_player_response__remote_we_won(game_data& data, Package_
 }
 static void wait_remote_player_response__remote_we_lost(game_data& data, Package_hanabi* package)
 {
+	//Equivalent to ack! disable timer
+	abort_timeout_count(data);
 	//Remote player says we lost. But, did we lose?
 	//Check lightning indicators
 	if (data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS)
@@ -2236,6 +2364,10 @@ static void wait_remote_player_response__remote_we_lost(game_data& data, Package
 	else
 		//WE DID NOT LOSE! WE HAVE AN ERROR;
 		data.feedback_event = FB_ERROR;
+}
+static void wait_remote_player_response__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 static void wait_sw_draw__sw_draw_next(game_data& data, Package_hanabi* package)
 {
@@ -2294,6 +2426,7 @@ static const STATE wait_remote_player_response[] =
 	{ ACK,wait_remote_player_response__ack,wait_sw_draw },
 	{ REMOTE_WE_WON,wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_WE_LOST,wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ TIMEOUT,wait_remote_player_response__timeout,end_state },											//  break
 	{ GND,nullptr,nullptr }
 };
 static const STATE wait_sw_draw[] =
@@ -2415,7 +2548,11 @@ static void remote_player_turn__remote_play(game_data& data, Package_hanabi* pac
 		data.redraw = true;
 		//Send ack package
 		if (send_package(p, data.connection))
+		{
 			data.feedback_event = FB_NO_EVENT;
+			//After play, will receive draw package, so enable timeout
+			start_timeout_count(data);
+		}
 		else
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
 	}
@@ -2461,7 +2598,11 @@ static void remote_player_turn__remote_discard(game_data& data, Package_hanabi* 
 
 		//Send ack package
 		if (send_package(p, data.connection))
+		{
 			data.feedback_event = FB_NO_EVENT;
+			//After discard, will receive draw package, so enable timeout
+			start_timeout_count(data);
+		}
 		else
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
 	}
@@ -2588,6 +2729,8 @@ static void remote_player_turn__remote_play_lost(game_data& data, Package_hanabi
 }
 static void wait_draw__draw_next(game_data& data, Package_hanabi* package)
 {
+	//Got draw! disable timer
+	abort_timeout_count(data);
 	//We are here because remote draw a card, and he informed us his card.
 	//Let's process data
 	Package_draw *rec_p;
@@ -2614,11 +2757,17 @@ static void wait_draw__draw_next(game_data& data, Package_hanabi* package)
 }
 static void wait_draw__draw_last(game_data& data, Package_hanabi* package)
 {
+	//Got draw! disable timer
+	abort_timeout_count(data);
 	//We are here because remote draw last card!
 	data.elements.deck->UseSecondBitmap(false);	//Show empty deck
 	data.redraw = true;
 	//Same as draw next
 	wait_draw__draw_next(data, package);
+}
+static void wait_draw__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2637,6 +2786,7 @@ static const STATE wait_draw[] =
 {
 	{ DRAW_NEXT,wait_draw__draw_next,local_player_turn },
 	{ DRAW_LAST,wait_draw__draw_last,sc_2_local_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 2
+	{ TIMEOUT, wait_draw__timeout, end_state},					//break
 	{ GND,nullptr,nullptr }
 };
 
@@ -2670,6 +2820,8 @@ static void sc_1_remote_player_turn__remote_play_lost(game_data& data, Package_h
 }
 static void sc_1_wait_draw__draw_fake(game_data& data, Package_hanabi* package)
 {
+	//Got draw! disable timeout
+	abort_timeout_count(data);
 	//We are here because remote draw a card, and he informed us his card. 
 	//This is the 'NO CARD' card
 	//Not much to do here...
@@ -2677,7 +2829,10 @@ static void sc_1_wait_draw__draw_fake(game_data& data, Package_hanabi* package)
 	data.redraw = true;
 	data.feedback_event = FB_NO_EVENT;
 }
-
+static void sc_1_wait_draw__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
+}
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FIRST), branch: REMOTE_PLAYER %
@@ -2693,6 +2848,7 @@ static const STATE sc_1_remote_player_turn[] =
 static const STATE sc_1_wait_draw[] =
 {
 	{ DRAW_FAKE,sc_1_wait_draw__draw_fake,sc_1_local_player_turn },
+	{ TIMEOUT,sc_1_wait_draw__timeout,end_state },		//break
 };
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -2730,6 +2886,8 @@ static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& da
 	//@@TO_DO: CHECK THIS AFTER AGUSTIN ANSWERS MAIL!
 	//Remote player says we match is over. But, didn't we win? lose?
 	//Check lightning indicators
+	//Got match is over! disable timeout
+	abort_timeout_count(data);
 	if (data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
 	{
 		//Ok, we didn't lose
@@ -2760,6 +2918,10 @@ static void sc_1_wait_remote_player_response__remote_match_is_over(game_data& da
 		//WE LOST! WE GOT AN ERROR HERE
 		data.feedback_event = FB_ERROR;
 }
+static void sc_1_wait_remote_palyer_response__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
+}
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FISRT), branch: LOCAL_PLAYER %
@@ -2775,6 +2937,7 @@ static const STATE sc_1_wait_remote_player_response[] =
 	{ REMOTE_WE_WON,sc_1_wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
 	{ REMOTE_WE_LOST,sc_1_wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
 	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_player_response__remote_match_is_over,b_wait_local_play_again_answer },	//  --> GO TO END OF GAME
+	{ TIMEOUT,sc_1_wait_remote_palyer_response__timeout,end_state },	//break
 };
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -2826,6 +2989,10 @@ static void sc_2_wait_remote_player_response__remote_we_lost(game_data& data, Pa
 	//Same as normal
 	wait_remote_player_response__remote_we_lost(data, package);
 }
+static void sc_2_wait_remote_player_response__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
+}
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER %
@@ -2841,6 +3008,7 @@ static const STATE sc_2_wait_remote_player_response[] =
 	{ ACK,sc_2_wait_remote_player_response__ack,sc_2_remote_player_turn },
 	{ REMOTE_WE_WON,sc_2_wait_remote_player_response__remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response__remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ TIMEOUT,sc_2_wait_remote_player_response__timeout,end_state },										//break
 };
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -3001,10 +3169,16 @@ static const STATE sc_2_remote_player_turn[] =
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 static void local_player_quit__ack(game_data& data, Package_hanabi* package)
 {
+	//Got ack! dissable timer
+	abort_timeout_count(data);
 	//Exit!
 	data.break_event_loop = true;
 	data.connection->disconnect();
 	data.feedback_event = FB_NO_EVENT;
+}
+static void local_player_quit__timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3012,7 +3186,8 @@ static void local_player_quit__ack(game_data& data, Package_hanabi* package)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static const STATE local_player_quit[] =
 {
-	{ ACK,local_player_quit__ack,end_state },	//break
+	{ ACK,local_player_quit__ack,end_state },			//break
+	{ TIMEOUT,local_player_quit__timeout,end_state },	//break
 	{ GND, nullptr, nullptr}
 };
 
@@ -3021,6 +3196,9 @@ static const STATE local_player_quit[] =
 //$$$$$$$$$$$$$$$$$$$$$
 static void end_state__end_game(game_data& data, Package_hanabi* package)
 {
+	//Dissable timer, just in case
+	abort_timeout_count(data);
+
 	data.connection->disconnect();	//Just in case
 	data.break_event_loop = true;
 	data.feedback_event = FB_NO_EVENT;
@@ -3038,8 +3216,15 @@ static const STATE end_state[] =
 //#################################
 //# Actions common to all states! #
 //#################################
+static void common__timeout(game_data& data, Package_hanabi* package)
+{
+	cout << "Unexpected timeout!!" << endl;
+	timeout(data, package);
+}
 static void common__error_ev(game_data& data, Package_hanabi* package)
 {
+	//Dissable timer, just in case
+	abort_timeout_count(data);
 	//Error event.
 	//Remote user was already informed
 	//Or cannot inform remote user about it
@@ -3059,7 +3244,8 @@ static void common__bad(game_data& data, Package_hanabi* package)
 {
 	//Something bad happened :(
 	Package_error p;
-
+	//Dissable timer, just in case
+	abort_timeout_count(data);
 	//If user was about to exit game... prevent that
 	data.elements.exit_menu.menu->SetIsActive(false);
 	data.elements.exit_menu.menu->SetIsVisible(false);
@@ -3068,6 +3254,7 @@ static void common__bad(game_data& data, Package_hanabi* package)
 	data.elements.error_menu.menu->SetIsActive(true);
 	data.elements.error_menu.menu->SetIsVisible(true);
 	data.quit_button_enabled = false;
+
 	data.redraw = true;
 
 	//Send error;
@@ -3081,6 +3268,8 @@ static void common__quit(game_data& data, Package_hanabi* package)
 	//We are here because remote player left the game.
 	Package_ack p;
 
+	//Dissable timer
+	abort_timeout_count(data);
 	//If user was about to exit game... prevent that
 	data.elements.exit_menu.menu->SetIsActive(false);
 	data.elements.exit_menu.menu->SetIsVisible(false);
@@ -3103,7 +3292,8 @@ static void common__local_quit(game_data& data, Package_hanabi* package)
 	//We are here because local player left the game.
 	//Send quit package
 	Package_quit p;
-
+	//Abort timeout
+	abort_timeout_count(data);
 	//Show quiting message
 	data.elements.message->SetText("Quiting...");
 	data.elements.message->SetIsVisible(true);
@@ -3112,7 +3302,11 @@ static void common__local_quit(game_data& data, Package_hanabi* package)
 	data.redraw = true;
 
 	if (send_package(p, data.connection))
+	{
 		data.feedback_event = FB_NO_EVENT;
+		//Will wait ack.. enable timer
+		start_timeout_count(data);
+	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 	//Now must wait ack...
@@ -3122,10 +3316,10 @@ static void common__local_quit(game_data& data, Package_hanabi* package)
 //nullptr means stay in same state
 static const STATE common[] =
 {
-	//Add timeout here! and add do_nothing when timeout in states that do not timeout! (or the other way around...)
+	{ TIMEOUT, common__timeout, end_state},					//Catch timeout and do nothing
 	{ ERROR_EV,common__error_ev,end_state },				//break
 	{ BAD,common__bad,end_state },							//break
 	{ QUIT,common__quit,end_state },						//break
 	{ LOCAL_QUIT,common__local_quit,local_player_quit },	//wait ack and break
-	{ GND,common__bad,end_state }	//Any other event will execute common__bad and change state to end_state
+	{ GND,common__bad,end_state }							//Any other event will execute common__bad and change state to end_state
 };

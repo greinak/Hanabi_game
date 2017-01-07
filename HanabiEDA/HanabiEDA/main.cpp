@@ -5,6 +5,7 @@
 #include <allegro5\allegro_primitives.h>
 #include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
+#include <allegro5\timer.h>
 #include "Gui\Gui.h"
 #include "Net connection\Net_connection.h"
 #include "handle_menu.h"
