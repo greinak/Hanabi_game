@@ -6,6 +6,10 @@
 #include <apr_pools.h>
 #include <apr_general.h>
 #include <apr_network_io.h>
+#include <iostream>
+
+using namespace std;
+
 class Net_connection
 {
 public:

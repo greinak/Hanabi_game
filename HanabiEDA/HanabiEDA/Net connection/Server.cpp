@@ -1,7 +1,9 @@
 #include "Server.h"
+#include <iostream>
 
 Server::Server(unsigned int port)
 {
+	cout << "[NET_CONNECTION][INFO] : Initializing server with port " << port << endl;
 	serv_sock = NULL;
 	apr_sockaddr_t* sa;
 	if (apr_sockaddr_info_get(&sa, NULL, AF_INET, port, 0, mp) == APR_SUCCESS)
@@ -31,6 +33,7 @@ bool Server::listen_for_connection(unsigned int timeout_ms)
 {
 	if (serv_sock != NULL && !connected && init_succ)
 	{
+		cout << "[NET_CONNECTION][INFO] : Listening for connections." << endl;
 		clock_t server_timer = clock();
 		bool go_on = true;
 		do
@@ -58,6 +61,7 @@ void Server::disconnect()
 {
 	if (connected)
 	{
+		cout << "[NET_CONNECTION][INFO] : Disconnecting server" << endl;
 		connected = false;
 		apr_socket_close(sock);
 		sock = NULL;
@@ -72,4 +76,5 @@ void Server::disconnect()
 Server::~Server()
 {
 	disconnect();
+	cout << "[NET_CONNECTION][INFO] : Server closed" << endl;
 }

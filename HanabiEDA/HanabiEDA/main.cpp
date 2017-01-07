@@ -23,49 +23,65 @@ int main(int argc, char* argv[])
 		bool exit = false;
 		while (!exit)
 		{
-			ifstream menu_gui_data;
+			ifstream menu_gui_data;	//Gui menu UI file
 			Gui* menu = nullptr;
-			menu_gui_data.open("menu_data/connect_menu.xml", std::ifstream::in);
-			if (menu_gui_data.is_open() && (menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())
+			menu_gui_data.open("menu_data/connect_menu.xml", std::ifstream::in);	//Open it
+			cout << "[HANABI_MAIN][INFO] : Opening connect menu..." << endl;
+			if (menu_gui_data.is_open() && (menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())	//Parse it
 			{
+				//Menu should be open now
 				menu_gui_data.close();
 				string name;
 				bool is_server;
 				Net_connection* net = nullptr;
+				//Handle menu
 				if (handle_menu(menu, &name, &net, &is_server))
 				{
 					delete menu;
 					menu = nullptr;
 					Gui* game_ui = nullptr;
-					ifstream game_ui_data;
-					game_ui_data.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);
-					if (game_ui_data.is_open() && (game_ui = new Gui(game_ui_data)) != nullptr && game_ui->initialized_successfully())
+					cout << "[HANABI_MAIN][INFO] : Opening game.." << endl;
+					ifstream game_ui_data;	//Game UI file
+					game_ui_data.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);	//Open it
+					if (game_ui_data.is_open() && (game_ui = new Gui(game_ui_data)) != nullptr && game_ui->initialized_successfully())	//Parse it
 					{
+						//Game UI should be open now
 						game_ui_data.close();
+						//Go to game!
 						handle_game(game_ui, name, net, is_server);
 					}
 					else
-						cout << "Error creating game UI" << endl;
+					{
+						cerr << "[HANABI_MAIN][ERROR] : Cannot create game menu UI!" << endl;
+						exit = true;
+						game_ui_data.close();
+					}
 					game_ui_data.close();
 					delete game_ui;
 				}
 				else
 					exit = true;
+				delete net;
 			}
 			else
-				cout << "Error creating menu UI" << endl;
+			{
+				cerr << "[HANABI_MAIN][ERROR] : Cannot open connect menu!" << endl;
+				exit = true;
+				menu_gui_data.close();
+			}
 			menu_gui_data.close();
 			delete menu;
 		}
 		destroy();
 	}
-	cout << "EXITING!!" << endl;
+	cout << "[HANABI_MAIN][INFO] : EXITING!" << endl;
 	return 0;
 }
 
 
 void destroy()
 {
+	cout << "[HANABI_MAIN][INFO] : Shutting down system!" << endl;
 	al_uninstall_mouse();
 	al_shutdown_ttf_addon();
 	al_shutdown_font_addon();
@@ -76,6 +92,7 @@ void destroy()
 
 bool initialize()
 {
+	cout << "[HANABI_MAIN][INFO] : Starting system!" << endl;
 	srand(time(NULL));
 	if (al_init())
 	{
@@ -91,34 +108,34 @@ bool initialize()
 						{
 							if (al_install_keyboard())
 							{
-								cout << "Allegro system initialized successfully" << endl;
+								cout << "[HANABI_MAIN][INFO] : System initialized successfully" << endl;
 								return true;
 							}
 							else
-								cerr << "ERROR: Could not initialize allegro keyboard." << endl;
+								cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro keyboard." << endl;
 							al_uninstall_mouse();
 						}
 						else
-							cerr << "ERROR: Could not initialize allegro mouse." << endl;
+							cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro mouse." << endl;
 						al_shutdown_ttf_addon();
 					}
 					else
-						cerr << "ERROR: Could not initialize allegro ttf addon." << endl;
+						cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro ttf addon." << endl;
 					al_shutdown_font_addon();
 				}
 				else
-					cerr << "ERROR: Could not initialize allegro font addon." << endl;
+					cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro font addon." << endl;
 				al_shutdown_primitives_addon();
 			}
 			else
-				cerr << "ERROR: Could not initialize allegro primitives addon." << endl;
+				cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro primitives addon." << endl;
 			al_shutdown_image_addon();
 		}
 		else
-			cerr << "ERROR: Could not initialize allegro image addon." << endl;
+			cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro image addon." << endl;
 		al_uninstall_system();
 	}
 	else
-		cerr << "ERROR: Could not initialize allegro." << endl;
+		cerr << "[HANABI_MAIN][ERROR] : Could not initialize allegro." << endl;
 	return false;
 }

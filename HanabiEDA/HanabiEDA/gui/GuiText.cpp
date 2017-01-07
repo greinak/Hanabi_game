@@ -18,7 +18,7 @@ void GuiText::SetText(const string & text)
 	this->text = text;
 }
 
-string GuiText::getText()
+string GuiText::GetText()
 {
 	return this->text;
 }

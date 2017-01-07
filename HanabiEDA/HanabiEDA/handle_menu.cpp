@@ -1,5 +1,4 @@
 #include "handle_menu.h"
-#include <sys/utime.h>
 
 #define MAX_TEXT_SIZE 40
 #define WAIT_AS_CLIENT_TIME_MIN	200
@@ -32,10 +31,10 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 
 bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 {
-	bool ret_val = false;
+	bool connected = false;
 	menu_data data;
 	if (menu == nullptr || name == nullptr || net == nullptr || is_server == nullptr)
-		return false;
+		return false;	//Return false if any parameter is invalid
 	if ((data.ev_q = al_create_event_queue()) != nullptr)
 	{
 		//Register event sources in event queue
@@ -78,7 +77,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 
 				if (ev.any.source == al_get_display_event_source(menu->get_display()))
 				{
-					if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE)	//Display close? close it.
+					if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE)		//Display close? close it.
 						data.exit = true;
 				}
 				else if (ev.any.source == al_get_mouse_event_source())		//Mouse event? feed it to gui
@@ -98,7 +97,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 							GuiText* target = data.on_name ? data.name_text : data.on_remote_host ? data.remote_host_text : nullptr;	//Prepare target
 							if (target != nullptr)	//If any textbox is selected, write on it.
 							{
-								string text = target->getText();
+								string text = target->GetText();
 								if (c == '\b' && text.size() != 0)
 									text = text.substr(0, text.size() - 1);
 								else if (isprint(c) && text.length() < MAX_TEXT_SIZE)
@@ -126,20 +125,20 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 				{
 					(*is_server) = data.is_server;
 					(*net) = data.net;
-					(*name) = data.name_text->getText();
+					(*name) = data.name_text->GetText();
 					al_rest(CONNECTED_HOLD_TIME);
 					data.exit = true;
-					ret_val = true;
+					connected = true;
 				}
 			}
 		}
 		else
-			cerr << "Could not connect to Menu UI elements" << endl;
+			cerr << "[MENU_HANDLER][ERROR] : Could not connect to Menu UI elements" << endl;
 		al_destroy_event_queue(data.ev_q);
 	}
 	else
-		cerr << "Error creating event queue for handling menu." << endl;
-	return ret_val;
+		cerr << "[MENU_HANDLER][ERROR] : Error creating event queue for handling menu." << endl;
+	return connected;
 }
 
 
@@ -167,7 +166,7 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 	menu_data* data = (menu_data*)user_data;
 	if (mouse_over_element && !forced)
 	{
-		if (data->name_text->getText().size() != 0 && data->remote_host_text->getText().size() != 0)
+		if (data->name_text->GetText().size() != 0 && data->remote_host_text->GetText().size() != 0)
 		{
 			Client *cl;
 			Server *sv;
@@ -178,10 +177,11 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 			//Attempt connection.
 			unsigned int wait_as_client = ((float)rand() / (float)RAND_MAX)*(WAIT_AS_CLIENT_TIME_MAX - WAIT_AS_CLIENT_TIME_MIN) + WAIT_AS_CLIENT_TIME_MIN;
 			unsigned int wait_as_server = CONNECTION_TIMEOUT - wait_as_client;
+			cout << "[MENU_HANDLER][INFO] : Attempting connection to: " << data->remote_host_text->GetText() << endl;
 			//As client...
 			if ((cl = new Client) != nullptr)
 			{
-				if (cl->connect_to_server(data->remote_host_text->getText(), CONNECTION_PORT, wait_as_client))
+				if (cl->connect_to_server(data->remote_host_text->GetText(), CONNECTION_PORT, wait_as_client))
 				{
 					data->connected = true;
 					data->net = cl;
@@ -193,7 +193,7 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 			else
 			{
 				data->exit = true;
-				cerr << "Error creating client connection" << endl;
+				cerr << "[MENU_HANDLER][ERROR] : Error creating client connection object" << endl;
 			}
 			//As server
 			if (data->exit == false && data->connected == false)
@@ -212,19 +212,19 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 				else
 				{
 					data->exit = true;
-					cerr << "Error creating server connection" << endl;
+					cerr << "[MENU_HANDLER][ERROR] : Error creating server connection object" << endl;
 				}
 			}
 			if (!data->exit)
 			{
 				if (data->connected)
 				{
-					cout << "Connected! Opening game..." << endl;
+					cout << "[MENU_HANDLER][INFO] : Connected! Opening game..." << endl;
 					data->message->SetText("Connected! Opening game...");
 				}
 				else
 				{
-					cout << "Could not connect." << endl;
+					cout << "[MENU_HANDLER][INFO] : Could not connect." << endl;
 					data->message->SetText("Could not connect.");
 				}
 			}

@@ -1,11 +1,18 @@
 #include "Client.h"
+#include <iostream>
+using namespace std;
 
+Client::Client()
+{
+	cout << "[NET_CONNECTION][INFO] : Initializing client." << endl;
+}
 bool Client::connect_to_server(string server_ip, unsigned int port, unsigned int timeout_ms)
 {
 	unsigned int start_time = clock();
 	unsigned int elapsed_time;
 	if (!connected && init_succ)
 	{
+		cout << "[NET_CONNECTION][INFO] : Attempting connection to server: " << server_ip << ":" << port << endl;
 		apr_sockaddr_t *sa;
 		if (apr_sockaddr_info_get(&sa, server_ip.c_str(), AF_INET, port, 0, mp) == APR_SUCCESS)
 		{
@@ -34,6 +41,7 @@ bool Client::connect_to_server(string server_ip, unsigned int port, unsigned int
 			//Checked apr source code. when source code uses sockaddr, it does not free it
 			//I suppose apr pool manages this
 		}
+		cout << "[NET_CONNECTION][INFO] : Could not connect to server."  << endl;
 	}
 	return false;
 }
@@ -43,6 +51,7 @@ void Client::disconnect()
 {
 	if (connected)
 	{
+		cout << "[NET_CONNECTION][INFO] : Disconnecting client." << endl;
 		connected = false;
 		apr_socket_close(sock);
 		sock = NULL;
@@ -52,4 +61,5 @@ void Client::disconnect()
 Client::~Client()
 {
 	disconnect();
+	cout << "[NET_CONNECTION][INFO] : Client closed." << endl;
 }
