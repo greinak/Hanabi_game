@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 					delete menu;
 					menu = nullptr;
 					Gui* game_ui = nullptr;
-					cout << "[HANABI_MAIN][INFO] : Opening game.." << endl;
+					cout << "[HANABI_MAIN][INFO] : Opening game..." << endl;
 					ifstream game_ui_data;	//Game UI file
 					game_ui_data.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);	//Open it
 					if (game_ui_data.is_open() && (game_ui = new Gui(game_ui_data)) != nullptr && game_ui->initialized_successfully())	//Parse it
@@ -92,7 +92,7 @@ void destroy()
 
 bool initialize()
 {
-	cout << "[HANABI_MAIN][INFO] : Starting system!" << endl;
+	cout << "[HANABI_MAIN][INFO] : Starting system..." << endl;
 	srand(time(NULL));
 	if (al_init())
 	{

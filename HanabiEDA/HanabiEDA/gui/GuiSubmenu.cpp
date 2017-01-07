@@ -79,6 +79,7 @@ bool GuiSubmenu::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_cont
 					close_menu |= close_menu_flag;
 					break;
 				}
+		//Should close menu?
 		if (close_menu)
 		{
 			SetIsActive(false);
@@ -113,6 +114,7 @@ bool GuiSubmenu::FeedMouseState(const ALLEGRO_MOUSE_STATE & st, bool *close_cont
 				}
 			}
 		}
+		//Should close menu?
 		if (close_menu)
 		{
 			SetIsActive(false);

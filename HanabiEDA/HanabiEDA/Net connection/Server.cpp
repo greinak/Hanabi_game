@@ -33,7 +33,7 @@ bool Server::listen_for_connection(unsigned int timeout_ms)
 {
 	if (serv_sock != NULL && !connected && init_succ)
 	{
-		cout << "[NET_CONNECTION][INFO] : Listening for connections." << endl;
+		cout << "[NET_CONNECTION][INFO] : Listening for connections, timeout: " << timeout_ms << "ms." << endl;
 		clock_t server_timer = clock();
 		bool go_on = true;
 		do

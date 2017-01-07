@@ -324,11 +324,13 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 						delete ev.package;	//delete, if any data, no nullptr, else, nullptr, so OK!
 					}
 				}
+				else
+					cerr << "[GAME_HANDLER][ERROR] : Error identifying menu elements." << endl;
 				al_unregister_event_source(data.ev_q,al_get_timer_event_source(data.timer));
 				al_destroy_timer(data.timer);
 			}
 			else
-				cerr << "[GAME_HANDLER][ERROR] : Could not load game UI properly" << endl;
+				cerr << "[GAME_HANDLER][ERROR] : Could not create allegro timer for game." << endl;
 			al_destroy_event_queue(data.ev_q);
 		}
 		else
@@ -1315,7 +1317,7 @@ static void new_game(game_data& data)
 	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
 		data.color_stack[i] = 0;		
 	//Show card deck full
-	data.elements.deck->UseSecondBitmap(true);
+	data.elements.deck->SetUseSecondBitmap(true);
 	//Enable discarded cards button
 	data.elements.discarded_cards.open_button->SetIsActive(true);
 	data.elements.discarded_cards.open_button->SetIsVisible(true);
@@ -1352,13 +1354,13 @@ static void game_finished(game_data& data)
 	data.elements.discarded_cards.open_button->SetUseTopBitmap(false);
 	//Remove discarded cards
 	for (unsigned int i = 0; i < HANABI_TOTAL_CARDS; i++)
-		data.elements.discarded_cards.cards[i]->UseSecondBitmap(false);
+		data.elements.discarded_cards.cards[i]->SetUseSecondBitmap(false);
 	//Remote cards from stacks
 	for (unsigned int c = 0; c < HANABI_TOTAL_COLORS; c++)
 		for (unsigned int n = 0; n < HANABI_TOTAL_NUMBERS; n++)
 			data.elements.center_cards[c][n]->SetIsVisible(false);
 	//Show deck cards empty
-	data.elements.deck->UseSecondBitmap(false);
+	data.elements.deck->SetUseSecondBitmap(false);
 	//Enable all clue indicators
 	for (unsigned int i = 0; i < HANABI_TOTAL_CLUE_INDICATORS; i++)
 		data.elements.indicators.clue_indicators[i]->SetUseTopBitmap(false);
@@ -1544,7 +1546,7 @@ static void discard_card(const card& c, game_data& data)
 	data.elements.discarded_cards.open_button->SetTopBitmap(data.skin.get_bitmap(c));
 	data.elements.discarded_cards.open_button->SetUseTopBitmap(true);
 	data.elements.discarded_cards.cards[data.discard_count]->SetSecondBitmap(data.skin.get_bitmap(c));
-	data.elements.discarded_cards.cards[data.discard_count++]->UseSecondBitmap(true);
+	data.elements.discarded_cards.cards[data.discard_count++]->SetUseSecondBitmap(true);
 	data.redraw = true;
 }
 //Action send card!
@@ -2354,7 +2356,7 @@ static void wait_sw_draw____sw_draw_last(game_data& data, Package_hanabi* packag
 	//We are here because local user wants to draw a card
 	//We already know this card is last deck card
 	cout << "[GAME_HANDLER][LOG] : LAST CARD!" << endl;
-	data.elements.deck->UseSecondBitmap(false);	//Show empty deck
+	data.elements.deck->SetUseSecondBitmap(false);	//Show empty deck
 	data.redraw = true;
 	wait_sw_draw____sw_draw_next(data, package);	//Same as draw next
 }
@@ -2696,7 +2698,7 @@ static void wait_draw____draw_last(game_data& data, Package_hanabi* package)
 	abort_timeout_count(data);
 	cout << "[GAME_HANDLER][LOG] : LAST CARD!" << endl;
 	//We are here because remote draw last card!
-	data.elements.deck->UseSecondBitmap(false);	//Show empty deck
+	data.elements.deck->SetUseSecondBitmap(false);	//Show empty deck
 	data.redraw = true;
 	//Same as draw next
 	wait_draw____draw_next(data, package);

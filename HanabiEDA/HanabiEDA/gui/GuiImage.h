@@ -12,7 +12,7 @@ public:
 	GuiImage();	//Initialization
 	void SetDefaultBitmap(ALLEGRO_BITMAP* bitmap);		//Set default image bitmap
 	void SetSecondBitmap(ALLEGRO_BITMAP* bitmap);		//Set second bitmap
-	void UseSecondBitmap(bool use_second_bitmap);		//Use second bitmap?
+	void SetUseSecondBitmap(bool use_second_bitmap);		//Use second bitmap?
 	void SetDrawOption(draw_option_t draw_option);			//Set image draw flag
 	virtual void Draw();								//Draw image
 private:

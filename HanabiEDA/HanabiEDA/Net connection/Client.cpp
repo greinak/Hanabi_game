@@ -12,7 +12,8 @@ bool Client::connect_to_server(string server_ip, unsigned int port, unsigned int
 	unsigned int elapsed_time;
 	if (!connected && init_succ)
 	{
-		cout << "[NET_CONNECTION][INFO] : Attempting connection to server: " << server_ip << ":" << port << endl;
+		cout << "[NET_CONNECTION][INFO] : Attempting connection to server: ";
+		cout << server_ip << ":" << port << ", timeout:" << timeout_ms << "ms." << endl;
 		apr_sockaddr_t *sa;
 		if (apr_sockaddr_info_get(&sa, server_ip.c_str(), AF_INET, port, 0, mp) == APR_SUCCESS)
 		{

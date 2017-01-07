@@ -117,6 +117,7 @@ bool XML_parser_object::finished()
 //Now, GUI
 Gui::Gui(istream &xml)
 {
+	//Initialize everything
 	this->display = nullptr;
 	this->gui_background = nullptr;
 	this->gui_icon = nullptr;
@@ -124,13 +125,16 @@ Gui::Gui(istream &xml)
 	this->gui_backg_color = al_map_rgb(0, 0, 0);
 	this->gui_height = this->gui_width = 0;
 	this->initialized = false;
+
 	XML_Parser parser = XML_ParserCreate(nullptr);
 	XML_parser_object data(&parser);
 	XML_SetUserData(parser, &data);
 	XML_SetElementHandler(parser, startElement, endElement);
 	XML_SetCharacterDataHandler(parser, charData);
+
 	char buf[BUFSIZ];
-	bool done;
+	bool done = false;
+	cout << "[GUI][INFO] : Reading GUI XML data..." << endl;
 	xml.read(buf, 1);	//This is a workaround for readsome not reading any data
 	if (!xml.fail())
 	{
@@ -142,7 +146,7 @@ Gui::Gui(istream &xml)
 				streamsize len = xml.readsome(buf, BUFSIZ);
 				if (xml.fail())
 					break;
-				done = xml.peek() == EOF;
+				done = (xml.peek() == EOF);
 				if (XML_Parse(parser, buf, (size_t)len, done) == XML_STATUS_ERROR)
 					break;
 			} while (!done);
@@ -150,16 +154,18 @@ Gui::Gui(istream &xml)
 	}
 	XML_ParserFree(parser);	//Parsing finished
 	my_XML_element parsed_data = data.get_parsed_data();	//Get data
-	if (data.finished() && !parsed_data.name.compare("GuiMenu"))	//is main elemeng GuiMenu? 
-																	//has parsed finished? or was is stopped?
+	if (done && data.finished())	//is main element GuiMenu? 
+																			//has parsed finished? or was is stopped?
 	{
-		if (handle_gui_menu_data(parsed_data))	//This will convert data to GUI data
+		cout << "[GUI][INFO] : Data loaded OK! parsing data and loading resources..." << endl;
+		if (!parsed_data.name.compare("GuiMenu") && handle_gui_menu_data(parsed_data))	//This will convert data to GUI data
 		{
 			parsed_data.children.clear();	//No need to keep this info, we can free memory by clearing it...
+			cout << "[GUI][INFO] : Data parsed successfully! Opening GUI..." << endl;
 			//Now, create display in order to show menu
-
 			if ((display = al_create_display(gui_width*gui_sx, gui_height*gui_sy)) != nullptr)
 			{
+				cout << "[GUI][INFO] : GUI \"" << gui_title  <<"\" opened!..." << endl;
 				if (gui_title.size() != 0)
 					al_set_window_title(display, gui_title.c_str());
 				if (gui_icon != nullptr)
@@ -169,10 +175,10 @@ Gui::Gui(istream &xml)
 				return;
 			}
 			else
-				cerr << "Error creating allegro display for GUI\n" << endl;
+				cerr << "[GUI][ERROR] : Could not create display for GUI..." << endl;
 		}
 		else
-			cerr << "Error creating GUI from XML file. Please check your XML file.\n" << endl;
+			cerr << "[GUI][ERROR] : Invalid XML GUI data..." << endl;
 		menu_element_list.clear();
 		submenus.clear();
 		images.clear();
@@ -189,7 +195,7 @@ Gui::Gui(istream &xml)
 		font_dictionary.clear();
 	}
 	else
-		cerr << "Error parsing XML data\n" << endl;
+		cerr << "[GUI][ERROR] : Could not load XML data... check XML file." << endl;
 }
 
 bool Gui::initialized_successfully()
@@ -213,6 +219,7 @@ Gui::~Gui()
 			al_destroy_bitmap(gui_background);
 		if (gui_icon != nullptr)
 			al_destroy_bitmap(gui_icon);
+		cout << "[GUI][INFO] : GUI \"" << gui_title << "\" closed." << endl;
 	}
 }
 
@@ -305,7 +312,7 @@ bool Gui::handle_gui_menu_data(const my_XML_element & element)
 			ret_val = false;
 	}
 	if (!ret_val)
-		cerr << "Error in GUImenu XML data, at label \"" << name << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load GUI XML Data. Error at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -432,7 +439,7 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GuiElement** c
 			submenu.AddElement(*it);
 	}
 	else
-		cerr << "Error in GuiSubmenu XML data, at label \"" << name << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load GUI XML Data. Error at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -523,7 +530,7 @@ bool Gui::handle_gui_image_data(const my_XML_element & element, GuiElement** cre
 		}
 	}
 	if (!ret_val)
-		cerr << "Error in GuiImage XML data, at label \"" << name << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load GUI XML Data. Error at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -637,7 +644,7 @@ bool Gui::handle_gui_button_data(const my_XML_element & element, GuiElement** cr
 		}
 	}
 	if (!ret_val)
-		cerr << "Error in GuiButton XML data, at label \"" << name << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load GUI XML Data. Error at label \"" << name << "\"" << endl;
 	return ret_val;
 }
 
@@ -777,7 +784,7 @@ bool Gui::handle_gui_text_data(const my_XML_element & element, GuiElement** crea
 		}
 	}
 	if (!ret_val)
-		cerr << "Error in GuiText XML data, at label \"" << name << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load GUI XML Data. Error at label \"" << name << "\"" << endl;
 	return ret_val;
 
 }
@@ -830,7 +837,7 @@ bool Gui::get_bitmap_from_string(const string& filename, ALLEGRO_BITMAP** bitmap
 	else
 		ret_val = false;
 	if (!ret_val)
-		cerr << "Error loading bitmap \"" << filename << "\"" << endl;
+		cerr << "[GUI][ERROR] : Could not load resource: [IMAGE]\"" << filename << "\"" << endl;
 	return ret_val;
 }
 
@@ -845,7 +852,7 @@ bool Gui::get_font_from_string(const string& filename, unsigned int size, ALLEGR
 	else
 		ret_val = false;
 	if (!ret_val)
-		cerr << "Error loading font \"" << filename << "\" with size " << size << "!" << endl;
+		cerr << "[GUI][ERROR] : Could not load resource: [FONT]\"" << filename << "\", size: \"" << size << endl;
 	return ret_val;
 }
 
@@ -859,7 +866,7 @@ bool Gui::get_bool_from_string(const string & string, bool * result)
 	else
 		ret_val = false;
 	if (!ret_val)
-		cerr << "Error on bool value. Values must be either \"true\" or \"false\"." << endl;
+		cerr << "[GUI][ERROR] : Invalid bool value. Bool values must be either \"true\" or \"false\"." << endl;
 	return ret_val;
 }
 
@@ -882,7 +889,7 @@ bool Gui::get_color_from_string(const string & color_string, ALLEGRO_COLOR* colo
 		ret_val = true;
 	}
 	if (!ret_val)
-		cerr << "Error parsing color!" << endl;
+		cerr << "[GUI][ERROR] : Invalid color value." << endl;
 	return ret_val;
 }
 
@@ -908,7 +915,8 @@ bool Gui::get_attributes_from_strings(const attr_t &attr, const char ** key, con
 		}
 	}
 	if (!ret_val)
-		cerr << "Invalid attribute key given!" << endl;
+		if (!ret_val)
+			cerr << "[GUI][ERROR] : Invalid attribute key given!" << endl;
 	return ret_val;
 }
 
@@ -1020,6 +1028,7 @@ bool Gui::feed_mouse_event(ALLEGRO_MOUSE_STATE & state)
 
 GuiElement * Gui::get_element_from_id(const char* element_id)
 {
+	//This function is extremely important!
 	GuiElement* return_pointer = nullptr;
 	id_dic_t::iterator it = id_dictionary.find(string(element_id));
 	if (it != id_dictionary.end())

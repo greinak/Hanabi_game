@@ -133,7 +133,7 @@ bool handle_menu(Gui* menu, string* name, Net_connection** net, bool* is_server)
 			}
 		}
 		else
-			cerr << "[MENU_HANDLER][ERROR] : Could not connect to Menu UI elements" << endl;
+			cerr << "[MENU_HANDLER][ERROR] : Error identifying menu elements." << endl;
 		al_destroy_event_queue(data.ev_q);
 	}
 	else

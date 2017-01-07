@@ -37,8 +37,6 @@ bool Net_connection::send_data(const char* data, size_t length, size_t* sent_byt
 	apr_status_t rv;
 	if (sent_bytes != nullptr)
 	{
-		if (length != 0)
-			cout << "[NET_CONNECTION][INFO] : Sending data..." << endl;
 		if (connected)
 		{
 			rv = apr_socket_send(sock, data, &bytes);
