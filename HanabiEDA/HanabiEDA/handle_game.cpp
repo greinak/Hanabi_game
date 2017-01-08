@@ -182,6 +182,17 @@ typedef enum	//Any event may arrive at any state!!
 	//<--FSM behaviour related events-->
 	GND,					//Identifier of end of common event state blocks list. Not a real event.
 }fsm_event_T;
+
+const char* fsm_event_name[] =
+{
+
+"NAME","NAMEIS","START_INFO","SW_WHO_I","SW_WHO_YOU","I_START","YOU_START","LOCAL_PA","LOCAL_GO","REMOTE_PA",
+"REMOTE_GO","LOCAL_GIVE_CLUE","LOCAL_PLAY","LOCAL_DISCARD","SW_DRAW_NEXT","SW_DRAW_LAST","REMOTE_WE_WON",
+"REMOTE_WE_LOST","REMOTE_MATCH_IS_OVER","REMOTE_GIVE_CLUE","REMOTE_PLAY","REMOTE_DISCARD","REMOTE_PLAY_WON",
+"REMOTE_PLAY_LOST","DRAW_NEXT","DRAW_LAST","DRAW_FAKE","BAD","ERROR_EV","QUIT","LOCAL_QUIT","TIMEOUT", "ACK",
+"EXIT_GAME","SERVER","CLIENT","GND"
+};
+
 //Game data
 typedef struct
 {
@@ -231,19 +242,28 @@ typedef struct
 //FSM action
 typedef void(*action)(game_data& data, Package_hanabi* package);
 //FSM state block
+struct state_block;
+typedef struct state_block STATE_BEHAVIOUR_LIST;
+typedef struct
+{
+	char* name;
+	const STATE_BEHAVIOUR_LIST* list;
+}STATE;
 typedef struct state_block
 {
 	fsm_event_T	block_ev;
 	action action;
-	const struct state_block* next_state;
+	const STATE* next_state;
 }state_block;
 //FSM STATE!
-typedef struct state_block STATE;
+
+
+
 
 //FSM HANDLER
 static const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, game_data& data, Package_hanabi* package);
 //FSM initial state
-extern const STATE fsm_start_point[];	//Here is where all starts
+extern const STATE fsm_start_point;	//Here is where all starts
 
 //# Some functions prototypes #
 static void initialize_deck(deck& card_deck);
@@ -294,7 +314,7 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 					data.elements.message->SetIsVisible(true);
 					data.game_ui->redraw();
 					data.quit_button_enabled = true;
-					const STATE* state = fsm_start_point;
+					const STATE* state = &fsm_start_point;
 					if (is_server)
 						state = fsm_handler(state, SERVER, data, nullptr);
 					else
@@ -1140,31 +1160,38 @@ bool game_over_button_callback(GuiButton* source, bool forced, bool mouse_over_e
 //First, let's define a do nothing function
 static void do_nothing(game_data& data, Package_hanabi* package) { return; }
 //And, common fake event
-extern const STATE common[];
+extern const STATE common;
 //And end state
-extern const STATE end_state[];
+extern const STATE end_state;
 
 //This is the golden function
 static const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, game_data& data, Package_hanabi* package)
 {
-	const STATE* st = current_state;
-
+	const STATE_BEHAVIOUR_LIST* list = current_state->list;
+	const STATE* next_state;
+	cerr << "[GAME_HANDLER][F.S.M.] : Received event \"" << fsm_event_name[ev] << "\" while in state \"" << current_state->name << "\"" << endl;
 	//State event table
-	while (st->block_ev != ev && st->block_ev != GND)
-		st++;
-	if (st->block_ev != GND)
+	while (list->block_ev != ev && list->block_ev != GND)
+		list++;
+	if (list->block_ev != GND)
 	{
-		st->action(data, package);
-		return st->next_state;
+		list->action(data, package);
+		next_state = list->next_state;
 	}
-	//Common event tablex
-	st = common;
-	while (st->block_ev != ev && st->block_ev != GND)
-		st++;
-		st->action(data, package);
-		st = st->next_state;
+	else
+	{
+		//Common event tablex
+		list = common.list;
+		while (list->block_ev != ev && list->block_ev != GND)
+			list++;
+		list->action(data, package);
+		next_state = list->next_state;
 		//In common event table, nullptr means stay in same state
-		return (st == nullptr ? current_state : st);
+		if (next_state == nullptr)
+			next_state = current_state;
+	}
+	cerr << "[GAME_HANDLER][F.S.M.] : New state is \"" << next_state->name << "\"" << endl;
+	return next_state;
 }
 
 //# Actions prototypes #
@@ -1255,38 +1282,37 @@ static void common____local_quit(game_data& data, Package_hanabi* package);					
 
 //# States prototypes #
 
-//extern const STATE fsm_start_point[]; Defined above!
-extern const STATE s_wait_nameis[];
-extern const STATE s_wait_name[];
-extern const STATE s_wait_nameis_ack[];
-extern const STATE c_wait_name[];
-extern const STATE c_wait_nameis_ack[];
-extern const STATE c_wait_nameis[];
-extern const STATE c_wait_start_info[];
-extern const STATE wait_start_info_ack[];
-extern const STATE wait_software_who[];
-extern const STATE wait_i_start_ack[];
-extern const STATE wait_who[];
-extern const STATE a_wait_remote_play_again_answer[];
-extern const STATE a_wait_remote_play_again_answer_local_pa[];
-extern const STATE a_wait_local_play_again_answer[];
-extern const STATE b_wait_local_play_again_answer[];
-extern const STATE b_wait_remote_play_again_answer[];
-extern const STATE local_player_turn[];
-extern const STATE wait_remote_player_response[];
-extern const STATE wait_sw_draw[];
-extern const STATE remote_player_turn[];
-extern const STATE wait_draw[];
-extern const STATE sc_1_remote_player_turn[];
-extern const STATE sc_1_wait_draw[];
-extern const STATE sc_1_local_player_turn[];
-extern const STATE sc_1_wait_remote_player_response[];
-extern const STATE sc_2_local_player_turn[];
-extern const STATE sc_2_wait_remote_player_response[];
-extern const STATE sc_2_remote_player_turn[];
-extern const STATE local_player_quit[];
-//extern const STATE end_state[];	//Defined above!
-
+//extern const STATE fsm_start_point;	//Defined above
+extern const STATE s_wait_nameis;
+extern const STATE s_wait_name;
+extern const STATE s_wait_nameis_ack;
+extern const STATE c_wait_name;
+extern const STATE c_wait_nameis_ack;
+extern const STATE c_wait_nameis;
+extern const STATE c_wait_start_info;
+extern const STATE wait_start_info_ack;
+extern const STATE wait_software_who;
+extern const STATE wait_i_start_ack;
+extern const STATE wait_who;
+extern const STATE a_wait_remote_play_again_answer;
+extern const STATE a_wait_remote_play_again_answer_local_pa;
+extern const STATE a_wait_local_play_again_answer;
+extern const STATE b_wait_local_play_again_answer;
+extern const STATE b_wait_remote_play_again_answer;
+extern const STATE local_player_turn;
+extern const STATE wait_remote_player_response;
+extern const STATE wait_sw_draw;
+extern const STATE remote_player_turn;
+extern const STATE wait_draw;
+extern const STATE sc_1_remote_player_turn;
+extern const STATE sc_1_wait_draw;
+extern const STATE sc_1_local_player_turn;
+extern const STATE sc_1_wait_remote_player_response;
+extern const STATE sc_2_local_player_turn;
+extern const STATE sc_2_wait_remote_player_response;
+extern const STATE sc_2_remote_player_turn;
+extern const STATE local_player_quit;
+//extern const STATE end_state;	//Defined above
 
 //# Useful functions for FSM actions #
 
@@ -1632,12 +1658,14 @@ static void fsm_start_point____client(game_data& data, Package_hanabi* package)
 	data.feedback_event = FB_NO_EVENT;
 }
 //% State group: START %
-static const STATE fsm_start_point[] =
+static const STATE_BEHAVIOUR_LIST fsm_start_point_list[] =
 {
-	{ SERVER,fsm_start_point____server,s_wait_nameis },
-	{ CLIENT,fsm_start_point____client,c_wait_name },
+	{ SERVER,fsm_start_point____server,&s_wait_nameis },
+	{ CLIENT,fsm_start_point____client,&c_wait_name },
 	{ GND,nullptr,nullptr }
 };
+static const STATE fsm_start_point = {"fsm_start_point",fsm_start_point_list};
+//=====
 
 //$ Action group: HANDSHAKE, branch: Server $
 static void s_wait_nameis____nameis(game_data& data, Package_hanabi* package)
@@ -1722,22 +1750,28 @@ static void s_wait_nameis_ack____timeout(game_data& data, Package_hanabi* packag
 	timeout(data, package);
 }
 //% State group: HANDSHAKE, branch: Server %
-static const STATE s_wait_nameis[] =
+static const STATE_BEHAVIOUR_LIST s_wait_nameis_list[] =
 {
-	{ NAMEIS,s_wait_nameis____nameis,s_wait_name },
+	{ NAMEIS,s_wait_nameis____nameis,&s_wait_name },
 	{ GND,nullptr,nullptr}
 };
-static const STATE s_wait_name[] =
+static const STATE s_wait_nameis = {"s_wait_nameis",s_wait_nameis_list};
+//====
+static const STATE_BEHAVIOUR_LIST s_wait_name_list[] =
 {
-	{ NAME,s_wait_name____name,s_wait_nameis_ack },
+	{ NAME,s_wait_name____name,&s_wait_nameis_ack },
 	{ GND,nullptr,nullptr}
 };
-static const STATE s_wait_nameis_ack[] =
+static const STATE s_wait_name = {"s_wait_name",s_wait_name_list};
+//====
+static const STATE_BEHAVIOUR_LIST s_wait_nameis_ack_list[] =
 {
-	{ TIMEOUT, s_wait_nameis_ack____timeout, end_state},		//break
-	{ ACK,s_wait_nameis_ack____ack,wait_start_info_ack },		// --> GO TO INITIALIZATION
+	{ TIMEOUT, s_wait_nameis_ack____timeout, &end_state},		//break
+	{ ACK,s_wait_nameis_ack____ack,&wait_start_info_ack },		// --> GO TO INITIALIZATION
 	{ GND,nullptr,nullptr }
 };
+static const STATE s_wait_nameis_ack = {"s_wait_nameis_ack",s_wait_nameis_ack_list};
+//====
 
 //$ Action group: HANDSHAKE, branch: Client $
 static void c_wait_name____name(game_data& data, Package_hanabi* package)
@@ -1803,27 +1837,35 @@ static void c_wait_start_info____start_info(game_data& data, Package_hanabi* pac
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
 }
 //% State group: HANDSHAKE, branch: Client %
-static const STATE c_wait_name[] =
+static const STATE_BEHAVIOUR_LIST c_wait_name_list[] =
 {
-	{ NAME,c_wait_name____name,c_wait_nameis_ack },
+	{ NAME,c_wait_name____name,&c_wait_nameis_ack },
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_nameis_ack[] =
+static const STATE c_wait_name = {"c_wait_name",c_wait_name_list};
+//====
+static const STATE_BEHAVIOUR_LIST c_wait_nameis_ack_list[] =
 {
-	{ ACK,c_wait_nameis_ack____ack,c_wait_nameis },
-	{ TIMEOUT,c_wait_nameis_ack____timeout,end_state },		//Break
+	{ ACK,c_wait_nameis_ack____ack,&c_wait_nameis },
+	{ TIMEOUT,c_wait_nameis_ack____timeout,&end_state },		//Break
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_nameis[] =
+static const STATE c_wait_nameis_ack = {"c_wait_nameis_ack", c_wait_nameis_ack_list};
+//====
+static const STATE_BEHAVIOUR_LIST c_wait_nameis_list[] =
 {
-	{ NAMEIS,c_wait_nameis____nameis,c_wait_start_info },
+	{ NAMEIS,c_wait_nameis____nameis,&c_wait_start_info },
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_start_info[] =
+static const STATE c_wait_nameis = {"c_wait_nameis",c_wait_nameis_list};
+//====
+static const STATE_BEHAVIOUR_LIST c_wait_start_info_list[] =
 {
-	{ START_INFO,c_wait_start_info____start_info,wait_who },	// --> GO TO INITIALIZATION
+	{ START_INFO,c_wait_start_info____start_info,&wait_who },	// --> GO TO INITIALIZATION
 	{ GND,nullptr,nullptr }
 };
+static const STATE c_wait_start_info = {"c_wait_start_info",c_wait_start_info_list};
+//====
 
 //$ Action group: INITIALIZATION, branch: MACHINE_A $
 static void wait_start_info_ack____ack(game_data& data, Package_hanabi* package)
@@ -1877,24 +1919,30 @@ static void wait_i_start_ack____timeout(game_data& data, Package_hanabi* package
 	timeout(data, package);
 }
 //% State group: INITIALIZATION, branch: MACHINE_A %
-static const STATE wait_start_info_ack[] =
+static const STATE_BEHAVIOUR_LIST wait_start_info_ack_list[] =
 {
-	{ ACK,wait_start_info_ack____ack,wait_software_who },
-	{ TIMEOUT,wait_start_info_ack____timeout,end_state },		//Break
+	{ ACK,wait_start_info_ack____ack,&wait_software_who },
+	{ TIMEOUT,wait_start_info_ack____timeout,&end_state },		//Break
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_software_who[] =
+static const STATE wait_start_info_ack = {"wait_start_info_ack",wait_start_info_ack_list};
+//====
+static const STATE_BEHAVIOUR_LIST wait_software_who_list[] =
 {
-	{ SW_WHO_I,wait_software_who____sw_who_i,wait_i_start_ack },
-	{ SW_WHO_YOU,wait_software_who____sw_who_you,remote_player_turn },	//  --> GO TO GAME
+	{ SW_WHO_I,wait_software_who____sw_who_i,&wait_i_start_ack },
+	{ SW_WHO_YOU,wait_software_who____sw_who_you,&remote_player_turn },	//  --> GO TO GAME
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_i_start_ack[] =
+static const STATE wait_software_who = {"wait_software_who",wait_software_who_list};
+//====
+static const STATE_BEHAVIOUR_LIST wait_i_start_ack_list[] =
 {
-	{ ACK,wait_i_start_ack____ack,local_player_turn },	// --> GO TO GAME
-	{ TIMEOUT, wait_i_start_ack____timeout,end_state},		//break
+	{ ACK,wait_i_start_ack____ack,&local_player_turn },	// --> GO TO GAME
+	{ TIMEOUT, wait_i_start_ack____timeout,&end_state},		//break
 	{ GND,nullptr,nullptr }
 };
+static const STATE wait_i_start_ack = {"wait_i_start_ack",wait_i_start_ack_list};
+//====
 
 //$ Action group: INITIALIZATION, branch: MACHINE_B $
 static void wait_who____i_start(game_data& data, Package_hanabi* package)
@@ -1924,12 +1972,14 @@ static void wait_who____you_start(game_data& data, Package_hanabi* package)
 	data.feedback_event = FB_NO_EVENT;
 }
 //% State group: INITIALIZATION, branch: MACHINE_B %
-static const STATE wait_who[] =
+static const STATE_BEHAVIOUR_LIST wait_who_list[] =
 {
-	{ I_START,wait_who____i_start,remote_player_turn },
-	{ YOU_START,wait_who____you_start,local_player_turn },	// --> GO TO GAME
+	{ I_START,wait_who____i_start,&remote_player_turn },
+	{ YOU_START,wait_who____you_start,&local_player_turn },	// --> GO TO GAME
 	{ GND,nullptr,nullptr }
 };
+static const STATE wait_who = {"wait_who",wait_who_list};
+//====
 
 //$ Action group: END OF GAME, branch: A:INFORMER (The one who informed game result) $
 static void a_wait_remote_play_again_answer____remote_pa(game_data& data, Package_hanabi* package)
@@ -2009,25 +2059,31 @@ static void a_wait_local_play_again_answer____local_go(game_data& data, Package_
 	//Now must wait ack...
 }
 //% State group: END OF GAME, branch: A:INFORMER (The one who informed game result) %
-static const STATE a_wait_remote_play_again_answer[] =
+static const STATE_BEHAVIOUR_LIST a_wait_remote_play_again_answer_list[] =
 {
-	{ REMOTE_PA,a_wait_remote_play_again_answer____remote_pa,a_wait_local_play_again_answer },
-	{ REMOTE_GO,a_wait_remote_play_again_answer____remote_go,end_state },				//break
-	{ LOCAL_PA,a_wait_remote_play_again_answer____local_pa,a_wait_remote_play_again_answer_local_pa },
-	{ LOCAL_GO,a_wait_remote_play_again_answer____local_go,local_player_quit },		//wait ack and break
+	{ REMOTE_PA,a_wait_remote_play_again_answer____remote_pa,&a_wait_local_play_again_answer },
+	{ REMOTE_GO,a_wait_remote_play_again_answer____remote_go,&end_state },				//break
+	{ LOCAL_PA,a_wait_remote_play_again_answer____local_pa,&a_wait_remote_play_again_answer_local_pa },
+	{ LOCAL_GO,a_wait_remote_play_again_answer____local_go,&local_player_quit },		//wait ack and break
 	{ GND,nullptr,nullptr }
 };
-static const STATE a_wait_remote_play_again_answer_local_pa[] =
+static const STATE a_wait_remote_play_again_answer = {"a_wait_remote_play_again_answer",a_wait_remote_play_again_answer_list};
+//====
+static const STATE_BEHAVIOUR_LIST a_wait_remote_play_again_answer_local_pa_list[] =
 {
-	{ REMOTE_PA,a_wait_remote_play_again_answer_local_pa____remote_pa,wait_start_info_ack },
-	{ REMOTE_GO,a_wait_remote_play_again_answer_local_pa____remote_go,end_state },	//break
+	{ REMOTE_PA,a_wait_remote_play_again_answer_local_pa____remote_pa,&wait_start_info_ack },
+	{ REMOTE_GO,a_wait_remote_play_again_answer_local_pa____remote_go,&end_state },	//break
 };
-static const STATE a_wait_local_play_again_answer[] =
+static const STATE a_wait_remote_play_again_answer_local_pa = {"a_wait_remote_play_again_answer_local_pa",a_wait_remote_play_again_answer_local_pa_list};
+//====
+static const STATE_BEHAVIOUR_LIST a_wait_local_play_again_answer_list[] =
 {
-	{ LOCAL_PA,a_wait_local_play_again_answer____local_pa,wait_start_info_ack },		//  -->> GO TO INITIALIZATION
-	{ LOCAL_GO,a_wait_local_play_again_answer____local_go,local_player_quit },		//wait ack and break
+	{ LOCAL_PA,a_wait_local_play_again_answer____local_pa,&wait_start_info_ack },		//  -->> GO TO INITIALIZATION
+	{ LOCAL_GO,a_wait_local_play_again_answer____local_go,&local_player_quit },		//wait ack and break
 	{ GND,nullptr,nullptr }
 };
+static const STATE a_wait_local_play_again_answer = {"a_wait_local_play_again_answer",a_wait_local_play_again_answer_list};
+//====
 
 //$ Action group: END OF GAME, branch: B:INFORMED (The one who received information about game result) $
 static void b_wait_local_play_again_answer____local_pa(game_data& data, Package_hanabi* package)
@@ -2092,18 +2148,22 @@ static void b_wait_remote_play_again_answer____remote_go(game_data& data, Packag
 	common____quit(data, package);
 }
 //% State group: END OF GAME, branch: B:INFORMED (The one who received information about game result) %
-static const STATE b_wait_local_play_again_answer[] =
+static const STATE_BEHAVIOUR_LIST b_wait_local_play_again_answer_list[] =
 {
-	{ LOCAL_PA,b_wait_local_play_again_answer____local_pa,b_wait_remote_play_again_answer },
-	{ LOCAL_GO,b_wait_local_play_again_answer____local_go,local_player_quit}, //break
+	{ LOCAL_PA,b_wait_local_play_again_answer____local_pa,&b_wait_remote_play_again_answer },
+	{ LOCAL_GO,b_wait_local_play_again_answer____local_go,&local_player_quit}, //break
 	{ GND,nullptr,nullptr }
 };
-static const STATE b_wait_remote_play_again_answer[] =
+static const STATE b_wait_local_play_again_answer = {"b_wait_local_play_again_answer",b_wait_local_play_again_answer_list};
+//====
+static const STATE_BEHAVIOUR_LIST b_wait_remote_play_again_answer_list[] =
 {
-	{ START_INFO,b_wait_remote_play_again_answer____start_info,wait_who },		//  --> GO TO INITIALIZATION
-	{ REMOTE_GO,b_wait_remote_play_again_answer____remote_go,end_state }, //break
+	{ START_INFO,b_wait_remote_play_again_answer____start_info,&wait_who },		//  --> GO TO INITIALIZATION
+	{ REMOTE_GO,b_wait_remote_play_again_answer____remote_go,&end_state }, //break
 	{ GND,nullptr,nullptr }
 };
+static const STATE b_wait_remote_play_again_answer = {"b_wait_remote_play_again_answer",b_wait_remote_play_again_answer_list};
+//====
 
 //<-- While in game -->       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -2366,27 +2426,33 @@ static void wait_sw_draw____sw_draw_last(game_data& data, Package_hanabi* packag
 	wait_sw_draw____sw_draw_next(data, package);	//Same as draw next
 }
 //% State group: IN GAME, branch: LOCAL_PLAYER %
-static const STATE local_player_turn[] =
+static const STATE_BEHAVIOUR_LIST local_player_turn_list[] =
 {
-	{ LOCAL_GIVE_CLUE,local_player_turn____local_give_clue,remote_player_turn },
-	{ LOCAL_PLAY,local_player_turn____local_play,wait_remote_player_response },
-	{ LOCAL_DISCARD,local_player_turn____local_discard,wait_remote_player_response },
+	{ LOCAL_GIVE_CLUE,local_player_turn____local_give_clue,&remote_player_turn },
+	{ LOCAL_PLAY,local_player_turn____local_play,&wait_remote_player_response },
+	{ LOCAL_DISCARD,local_player_turn____local_discard,&wait_remote_player_response },
 	{ GND,nullptr,nullptr },
 };
-static const STATE wait_remote_player_response[] =
+static const STATE local_player_turn = {"local_player_turn",local_player_turn_list};
+//====
+static const STATE_BEHAVIOUR_LIST wait_remote_player_response_list[] =
 {
-	{ ACK,wait_remote_player_response____ack,wait_sw_draw },
-	{ REMOTE_WE_WON,wait_remote_player_response____remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
-	{ REMOTE_WE_LOST,wait_remote_player_response____remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
-	{ TIMEOUT,wait_remote_player_response____timeout,end_state },											//  break
+	{ ACK,wait_remote_player_response____ack,&wait_sw_draw },
+	{ REMOTE_WE_WON,wait_remote_player_response____remote_we_won,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_WE_LOST,wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ TIMEOUT,wait_remote_player_response____timeout,&end_state },											//  break
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_sw_draw[] =
+static const STATE wait_remote_player_response = {"wait_remote_player_response",wait_remote_player_response_list};
+//====
+static const STATE_BEHAVIOUR_LIST wait_sw_draw_list[] =
 {
-	{ SW_DRAW_NEXT,wait_sw_draw____sw_draw_next,remote_player_turn },
-	{ SW_DRAW_LAST,wait_sw_draw____sw_draw_last,sc_1_remote_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 1
+	{ SW_DRAW_NEXT,wait_sw_draw____sw_draw_next,&remote_player_turn },
+	{ SW_DRAW_LAST,wait_sw_draw____sw_draw_last,&sc_1_remote_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 1
 	{ GND,nullptr,nullptr }
 };
+static const STATE wait_sw_draw = {"wait_sw_draw",wait_sw_draw_list};
+//====
 
 //$ Action group: IN GAME, branch: REMOTE_PLAYER $
 static void remote_player_turn____remote_give_clue(game_data& data, Package_hanabi* package)
@@ -2713,22 +2779,26 @@ static void wait_draw____timeout(game_data& data, Package_hanabi* package)
 	timeout(data, package);
 }
 //% State group: IN GAME, branch: REMOTE_PLAYER %
-static const STATE remote_player_turn[] =
+static const STATE_BEHAVIOUR_LIST remote_player_turn_list[] =
 {
-	{ REMOTE_GIVE_CLUE,remote_player_turn____remote_give_clue,local_player_turn },
-	{ REMOTE_PLAY,remote_player_turn____remote_play,wait_draw },
-	{ REMOTE_DISCARD,remote_player_turn____remote_discard,wait_draw },
-	{ REMOTE_PLAY_WON,remote_player_turn____remote_play_won,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
-	{ REMOTE_PLAY_LOST,remote_player_turn____remote_play_lost,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_GIVE_CLUE,remote_player_turn____remote_give_clue,&local_player_turn },
+	{ REMOTE_PLAY,remote_player_turn____remote_play,&wait_draw },
+	{ REMOTE_DISCARD,remote_player_turn____remote_discard,&wait_draw },
+	{ REMOTE_PLAY_WON,remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_PLAY_LOST,remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_draw[] =
+static const STATE remote_player_turn = {"remote_player_turn",remote_player_turn_list};
+//====
+static const STATE_BEHAVIOUR_LIST wait_draw_list[] =
 {
-	{ DRAW_NEXT,wait_draw____draw_next,local_player_turn },
-	{ DRAW_LAST,wait_draw____draw_last,sc_2_local_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 2
-	{ TIMEOUT, wait_draw____timeout, end_state},					//break
+	{ DRAW_NEXT,wait_draw____draw_next,&local_player_turn },
+	{ DRAW_LAST,wait_draw____draw_last,&sc_2_local_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 2
+	{ TIMEOUT, wait_draw____timeout, &end_state},					//break
 	{ GND,nullptr,nullptr }
 };
+static const STATE wait_draw = {"wait_draw",wait_draw_list};
+//====
 
 //$ Action group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FIRST), branch: REMOTE_PLAYER $
 static void sc_1_remote_player_turn____remote_give_clue(game_data& data, Package_hanabi* package)
@@ -2772,19 +2842,23 @@ static void sc_1_wait_draw____timeout(game_data& data, Package_hanabi* package)
 	timeout(data, package);
 }
 //% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FIRST), branch: REMOTE_PLAYER %
-static const STATE sc_1_remote_player_turn[] =
+static const STATE_BEHAVIOUR_LIST sc_1_remote_player_turn_list[] =
 {
-	{ REMOTE_GIVE_CLUE,sc_1_remote_player_turn____remote_give_clue,sc_1_local_player_turn },
-	{ REMOTE_PLAY,sc_1_remote_player_turn____remote_play,sc_1_wait_draw },
-	{ REMOTE_DISCARD,sc_1_remote_player_turn____remote_discard,sc_1_wait_draw },
-	{ REMOTE_PLAY_WON,sc_1_remote_player_turn____remote_play_won,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
-	{ REMOTE_PLAY_LOST,sc_1_remote_player_turn____remote_play_lost,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_GIVE_CLUE,sc_1_remote_player_turn____remote_give_clue,&sc_1_local_player_turn },
+	{ REMOTE_PLAY,sc_1_remote_player_turn____remote_play,&sc_1_wait_draw },
+	{ REMOTE_DISCARD,sc_1_remote_player_turn____remote_discard,&sc_1_wait_draw },
+	{ REMOTE_PLAY_WON,sc_1_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_PLAY_LOST,sc_1_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 };
-static const STATE sc_1_wait_draw[] =
+static const STATE sc_1_remote_player_turn = {"sc_1_remote_player_turn",sc_1_remote_player_turn_list};
+//====
+static const STATE_BEHAVIOUR_LIST sc_1_wait_draw_list[] =
 {
-	{ DRAW_FAKE,sc_1_wait_draw____draw_fake,sc_1_local_player_turn },
-	{ TIMEOUT,sc_1_wait_draw____timeout,end_state },		//break
+	{ DRAW_FAKE,sc_1_wait_draw____draw_fake,&sc_1_local_player_turn },
+	{ TIMEOUT,sc_1_wait_draw____timeout,&end_state },		//break
 };
+static const STATE sc_1_wait_draw = {"sc_1_wait_draw",sc_1_wait_draw_list};
+//====
 
 //$ Action group: FINISHING SCENARIO 1, (LAST 2 TURNS, REMOTE FIRST) branch: LOCAL_PLAYER $
 static void sc_1_local_player_turn____local_give_clue(game_data& data, Package_hanabi* package)
@@ -2856,19 +2930,23 @@ static void sc_1_wait_remote_palyer_response____timeout(game_data& data, Package
 	timeout(data, package);
 }
 //% State group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FISRT), branch: LOCAL_PLAYER %
-static const STATE sc_1_local_player_turn[] =
+static const STATE_BEHAVIOUR_LIST sc_1_local_player_turn_list[] =
 {
-	{ LOCAL_GIVE_CLUE,sc_1_local_player_turn____local_give_clue,sc_1_wait_remote_player_response },
-	{ LOCAL_PLAY,sc_1_local_player_turn____local_play,sc_1_wait_remote_player_response },
-	{ LOCAL_DISCARD,sc_1_local_player_turn____local_discard,sc_1_wait_remote_player_response },
+	{ LOCAL_GIVE_CLUE,sc_1_local_player_turn____local_give_clue,&sc_1_wait_remote_player_response },
+	{ LOCAL_PLAY,sc_1_local_player_turn____local_play,&sc_1_wait_remote_player_response },
+	{ LOCAL_DISCARD,sc_1_local_player_turn____local_discard,&sc_1_wait_remote_player_response },
 };
-static const STATE sc_1_wait_remote_player_response[] =
+static const STATE sc_1_local_player_turn = {"sc_1_local_player_turn",sc_1_local_player_turn_list};
+//====
+static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_player_response_list[] =
 {
-	{ REMOTE_WE_WON,sc_1_wait_remote_player_response____remote_we_won,b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
-	{ REMOTE_WE_LOST,sc_1_wait_remote_player_response____remote_we_lost,b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
-	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_player_response____remote_match_is_over,b_wait_local_play_again_answer },	//  --> GO TO END OF GAME
-	{ TIMEOUT,sc_1_wait_remote_palyer_response____timeout,end_state },	//break
+	{ REMOTE_WE_WON,sc_1_wait_remote_player_response____remote_we_won,&b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
+	{ REMOTE_WE_LOST,sc_1_wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
+	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_player_response____remote_match_is_over,&b_wait_local_play_again_answer },	//  --> GO TO END OF GAME
+	{ TIMEOUT,sc_1_wait_remote_palyer_response____timeout,&end_state },	//break
 };
+static const STATE sc_1_wait_remote_player_response = {"sc_1_wait_remote_player_response",sc_1_wait_remote_player_response_list};
+//====
 
 //$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER $
 static void sc_2_local_player_turn____local_give_clue(game_data& data, Package_hanabi* package)
@@ -2922,19 +3000,23 @@ static void sc_2_wait_remote_player_response____timeout(game_data& data, Package
 	timeout(data, package);
 }
 //% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER %
-static const STATE sc_2_local_player_turn[] =
+static const STATE_BEHAVIOUR_LIST sc_2_local_player_turn_list[] =
 {
-	{ LOCAL_GIVE_CLUE,sc_2_local_player_turn____local_give_clue,sc_2_remote_player_turn },
-	{ LOCAL_PLAY,sc_2_local_player_turn____local_play,sc_2_wait_remote_player_response },
-	{ LOCAL_DISCARD,sc_2_local_player_turn____local_discard,sc_2_wait_remote_player_response },
+	{ LOCAL_GIVE_CLUE,sc_2_local_player_turn____local_give_clue,&sc_2_remote_player_turn },
+	{ LOCAL_PLAY,sc_2_local_player_turn____local_play,&sc_2_wait_remote_player_response },
+	{ LOCAL_DISCARD,sc_2_local_player_turn____local_discard,&sc_2_wait_remote_player_response },
 };
-static const STATE sc_2_wait_remote_player_response[] =
+static const STATE sc_2_local_player_turn = {"sc_2_local_player_turn",sc_2_local_player_turn_list};
+//====
+static const STATE_BEHAVIOUR_LIST sc_2_wait_remote_player_response_list[] =
 {
-	{ ACK,sc_2_wait_remote_player_response____ack,sc_2_remote_player_turn },
-	{ REMOTE_WE_WON,sc_2_wait_remote_player_response____remote_we_won,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
-	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response____remote_we_lost,b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
-	{ TIMEOUT,sc_2_wait_remote_player_response____timeout,end_state },										//break
+	{ ACK,sc_2_wait_remote_player_response____ack,&sc_2_remote_player_turn },
+	{ REMOTE_WE_WON,sc_2_wait_remote_player_response____remote_we_won,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
+	{ TIMEOUT,sc_2_wait_remote_player_response____timeout,&end_state },										//break
 };
+static const STATE sc_2_wait_remote_player_response = {"sc_2_wait_remote_player_response",sc_2_wait_remote_player_response_list};
+//====
 
 //$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER $
 static void sc_2_remote_player_turn____remote_give_clue(game_data& data, Package_hanabi* package)
@@ -3069,14 +3151,17 @@ static void sc_2_remote_player_turn____remote_play_lost(game_data& data, Package
 	remote_player_turn____remote_play_lost(data, package);
 }
 //% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER %
-static const STATE sc_2_remote_player_turn[] =
+static const STATE_BEHAVIOUR_LIST sc_2_remote_player_turn_list[] =
 {
-	{ REMOTE_GIVE_CLUE,sc_2_remote_player_turn____remote_give_clue,a_wait_remote_play_again_answer },		//	--> GO TO END OF GAME
-	{ REMOTE_DISCARD,sc_2_remote_player_turn____remote_discard,a_wait_remote_play_again_answer },			//	--> GO TO END OF GAME	
-	{ REMOTE_PLAY,sc_2_remote_player_turn____remote_play,a_wait_remote_play_again_answer },				//	--> GO TO END OF GAME
-	{ REMOTE_PLAY_WON,sc_2_remote_player_turn____remote_play_won,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
-	{ REMOTE_PLAY_LOST,sc_2_remote_player_turn____remote_play_lost,a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_GIVE_CLUE,sc_2_remote_player_turn____remote_give_clue,&a_wait_remote_play_again_answer },		//	--> GO TO END OF GAME
+	{ REMOTE_DISCARD,sc_2_remote_player_turn____remote_discard,&a_wait_remote_play_again_answer },			//	--> GO TO END OF GAME	
+	{ REMOTE_PLAY,sc_2_remote_player_turn____remote_play,&a_wait_remote_play_again_answer },				//	--> GO TO END OF GAME
+	{ REMOTE_PLAY_WON,sc_2_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ REMOTE_PLAY_LOST,sc_2_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 };
+static const STATE sc_2_remote_player_turn = {"sc_2_remote_player_turn",sc_2_remote_player_turn_list};
+//====
+
 //$ Action group: LOCAL PLAYER QUIT $
 static void local_player_quit____ack(game_data& data, Package_hanabi* package)
 {
@@ -3093,12 +3178,14 @@ static void local_player_quit____timeout(game_data& data, Package_hanabi* packag
 	timeout(data, package);
 }
 //% State group: LOCAL PLAYER QUIT %
-static const STATE local_player_quit[] =
+static const STATE_BEHAVIOUR_LIST local_player_quit_list[] =
 {
-	{ ACK,local_player_quit____ack,end_state },			//break
-	{ TIMEOUT,local_player_quit____timeout,end_state },	//break
+	{ ACK,local_player_quit____ack,&end_state },			//break
+	{ TIMEOUT,local_player_quit____timeout,&end_state },	//break
 	{ GND, nullptr, nullptr}
 };
+static const STATE local_player_quit = {"local_player_quit",local_player_quit_list};
+//====
 
 //$ Action group: END $
 static void end_state____end_game(game_data& data, Package_hanabi* package)
@@ -3111,11 +3198,13 @@ static void end_state____end_game(game_data& data, Package_hanabi* package)
 	data.feedback_event = FB_NO_EVENT;
 }
 //% State group: END %
-static const STATE end_state[] =
+static const STATE_BEHAVIOUR_LIST end_state_list[] =
 {
-	{EXIT_GAME,end_state____end_game,nullptr},	//EXIT!
-	{GND,nullptr,nullptr}
+	{ EXIT_GAME,end_state____end_game,&end_state },	//EXIT!
+	{ GND,nullptr,nullptr },	//EXIT!
 };
+static const STATE end_state = {"end_state",end_state_list};
+//====
 
 //# Actions common to all states! #
 static void common____timeout(game_data& data, Package_hanabi* package)
@@ -3222,12 +3311,14 @@ static void common____local_quit(game_data& data, Package_hanabi* package)
 //This state is actually part of all states.
 
 //nullptr means stay in same state
-static const STATE common[] =
+static const STATE_BEHAVIOUR_LIST common_list[] =
 {
-	{ TIMEOUT, common____timeout, end_state},
-	{ ERROR_EV,common____error_ev,end_state },				//break
-	{ BAD,common____bad,end_state },							//break
-	{ QUIT,common____quit,end_state },						//break
-	{ LOCAL_QUIT,common____local_quit,local_player_quit },	//wait ack and break
-	{ GND,common____bad,end_state }							//Any other event will execute common____bad and change state to end_state
+	{ TIMEOUT, common____timeout, &end_state},
+	{ ERROR_EV,common____error_ev,&end_state },					//break
+	{ BAD,common____bad,&end_state },							//break
+	{ QUIT,common____quit,&end_state },							//break
+	{ LOCAL_QUIT,common____local_quit,&local_player_quit },		//wait ack and break
+	{ GND,common____bad,&end_state }							//Any other event will execute common____bad and change state to end_state
 };
+static const STATE common = {"common",common_list};
+//====
