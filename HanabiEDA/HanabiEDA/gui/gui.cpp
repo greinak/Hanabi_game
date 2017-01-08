@@ -25,6 +25,7 @@ typedef struct my_XML_element
 
 //This class is defined here since this class is defined just por parsing
 //And extra files for this are not needed
+
 class XML_parser_object
 {
 public:
@@ -126,15 +127,18 @@ Gui::Gui(istream &xml)
 	this->gui_height = this->gui_width = 0;
 	this->initialized = false;
 
+	//Create objects
 	XML_Parser parser = XML_ParserCreate(nullptr);
 	XML_parser_object data(&parser);
+	//Setup parser
 	XML_SetUserData(parser, &data);
 	XML_SetElementHandler(parser, startElement, endElement);
-	XML_SetCharacterDataHandler(parser, charData);
-
+	XML_SetCharacterDataHandler(parser, charData);	
 	char buf[BUFSIZ];
 	bool done = false;
+
 	cout << "[GUI][INFO] : Reading GUI XML data..." << endl;
+
 	xml.read(buf, 1);	//This is a workaround for readsome not reading any data
 	if (!xml.fail())
 	{
@@ -143,56 +147,68 @@ Gui::Gui(istream &xml)
 		{
 			do
 			{
-				streamsize len = xml.readsome(buf, BUFSIZ);
+				streamsize len = xml.readsome(buf, BUFSIZ);		//Read some data
 				if (xml.fail())
 					break;
 				done = (xml.peek() == EOF);
-				if (XML_Parse(parser, buf, (size_t)len, done) == XML_STATUS_ERROR)
+				if (XML_Parse(parser, buf, (size_t)len, done) == XML_STATUS_ERROR)	//Parse some data
 					break;
 			} while (!done);
 		}
 	}
-	XML_ParserFree(parser);	//Parsing finished
+	XML_ParserFree(parser);	//Parsing finished, can delete parser
+	
 	my_XML_element parsed_data = data.get_parsed_data();	//Get data
-	if (done && data.finished())	//is main element GuiMenu? 
-																			//has parsed finished? or was is stopped?
+	if (done && data.finished() && !parsed_data.name.compare("GuiMenu"))	//has parsed finished? or was is stopped?
+																			//is main element GuiMenu? 
+																			
 	{
-		cout << "[GUI][INFO] : Data loaded OK! parsing data and loading resources..." << endl;
-		if (!parsed_data.name.compare("GuiMenu") && handle_gui_menu_data(parsed_data))	//This will convert data to GUI data
+		//First, create display, before loading bitmaps
+		//At first, I didn't do this, and game was slow sometimes
+		//So, I had to do this....
+		if ((display = create_display(parsed_data)) != nullptr)
 		{
-			parsed_data.children.clear();	//No need to keep this info, we can free memory by clearing it...
-			cout << "[GUI][INFO] : Data parsed successfully! Opening GUI..." << endl;
-			//Now, create display in order to show menu
-			if ((display = al_create_display(gui_width*gui_sx, gui_height*gui_sy)) != nullptr)
+			cout << "[GUI][INFO] : GUI Display created successfully! parsing GUI data..." << endl;
+			if (handle_gui_menu_data(parsed_data))	//This will convert data to GUI data
 			{
-				cout << "[GUI][INFO] : GUI \"" << gui_title  <<"\" opened!..." << endl;
 				if (gui_title.size() != 0)
 					al_set_window_title(display, gui_title.c_str());
 				if (gui_icon != nullptr)
 					al_set_display_icon(display, gui_icon);
+				parsed_data.children.clear();	//No need to keep this info, we can free memory by clearing it...
+				cout << "[GUI][INFO] : Data parsed successfully! Opening GUI..." << endl;
+				cout << "[GUI][INFO] : GUI \"" << gui_title << "\" opened!..." << endl;
 				redraw();
 				this->initialized = true;		//Success!!
-				return;
 			}
 			else
-				cerr << "[GUI][ERROR] : Could not create display for GUI..." << endl;
+			{
+				cerr << "[GUI][ERROR] : Invalid XML GUI data..." << endl;
+				al_destroy_display(display);
+				display = nullptr;
+			}
+			//If parsing data failed, free memory
+			if (!initialized)
+			{
+				parsed_data.children.clear();
+				menu_element_list.clear();
+				submenus.clear();
+				images.clear();
+				texts.clear();
+				buttons.clear();
+				id_dictionary.clear();
+				al_destroy_bitmap(gui_background);
+				al_destroy_bitmap(gui_icon);
+				for (bitmap_dic_t::iterator it = bitmap_dictionary.begin(); it != bitmap_dictionary.end(); ++it)
+					al_destroy_bitmap(it->second);
+				bitmap_dictionary.clear();
+				for (font_dic_t::iterator it = font_dictionary.begin(); it != font_dictionary.end(); ++it)
+					al_destroy_font(it->second);
+				font_dictionary.clear();
+			}
 		}
 		else
-			cerr << "[GUI][ERROR] : Invalid XML GUI data..." << endl;
-		menu_element_list.clear();
-		submenus.clear();
-		images.clear();
-		texts.clear();
-		buttons.clear();
-		id_dictionary.clear();
-		al_destroy_bitmap(gui_background);
-		al_destroy_bitmap(gui_icon);
-		for (bitmap_dic_t::iterator it = bitmap_dictionary.begin(); it != bitmap_dictionary.end(); ++it)
-			al_destroy_bitmap(it->second);
-		bitmap_dictionary.clear();
-		for (font_dic_t::iterator it = font_dictionary.begin(); it != font_dictionary.end(); ++it)
-			al_destroy_font(it->second);
-		font_dictionary.clear();
+			cerr << "[GUI][ERROR] : Could not create display for GUI. Valid size and scale parameters?" << endl;
 	}
 	else
 		cerr << "[GUI][ERROR] : Could not load XML data... check XML file." << endl;
@@ -225,6 +241,64 @@ Gui::~Gui()
 
 //##########
 
+ALLEGRO_DISPLAY * Gui::create_display(const my_XML_element & data)
+{
+	ALLEGRO_DISPLAY* disp = nullptr;
+	bool data_ok = false;
+	//First, find size
+	list<my_XML_element>::const_iterator it;
+	for (it = data.children.cbegin(); it != data.children.cend(); ++it)
+		if (!it->name.compare("size"))
+			break;
+	if (it != data.children.end())
+	{
+		char c;	//To check if string is ONLY float
+		const char *(size_key[]) = { "width","height",nullptr };
+		string* (size_value[sizeof(size_key) / sizeof(size_key[0]) - 1]);
+		if (get_attributes_from_strings(it->attributes, size_key, (const string**)size_value))
+		{
+			unsigned int width, height;
+
+			if (size_value[0] != nullptr && size_value[1] != nullptr && 
+				sscanf(size_value[0]->c_str(), "%u%c", &width, &c) == 1 &&
+				sscanf(size_value[1]->c_str(), "%u%c", &height, &c) == 1)
+			{
+				gui_width = width;
+				gui_height = height;
+				//Now, look scale
+				for (it = data.children.cbegin(); it != data.children.cend(); ++it)
+					if (!it->name.compare("scale"))
+						break;
+				//Got scale?
+				gui_sx = gui_sy = 1; //Default scale
+				if (it != data.children.end())
+				{
+					const char *(scale_key[]) = { "sx","sy",nullptr };
+					string* (scale_value[sizeof(scale_key) / sizeof(scale_key[0]) - 1]);
+					if (get_attributes_from_strings(it->attributes, scale_key, (const string**)scale_value))
+					{
+						float sx, sy;
+						if (scale_value[0] != nullptr && scale_value[1] != nullptr &&
+							sscanf(scale_value[0]->c_str(), "%f%c", &sx, &c) == 1 &&
+							sscanf(scale_value[1]->c_str(), "%f%c", &sy, &c) == 1)
+						{
+							gui_sx = sx;
+							gui_sy = sy;
+							data_ok = true;
+						}
+					}
+				}
+				else
+					//No problem, use default 
+					data_ok = true;
+			}
+		}
+	}
+	if(data_ok)
+		disp = al_create_display(gui_width*gui_sx, gui_height*gui_sy);
+	return disp;
+}
+
 bool Gui::handle_gui_menu_data(const my_XML_element & element)
 {
 	//Menu containing all elements
@@ -241,40 +315,10 @@ bool Gui::handle_gui_menu_data(const my_XML_element & element)
 		{
 			if (it->attributes.size() != 0)		//Has it got attributes?
 			{
-				if(!strcmp(name,"size"))
-				{
-					const char *(key[]) = { "width","height",nullptr };
-					string* (value[sizeof(key) / sizeof(key[0])-1]);
-					ret_val = false; //true condition is easier to do
-					if (get_attributes_from_strings(it->attributes, key, (const string**) value))
-					{
-						unsigned int width, height;
-						char c;	//To check if string is ONLY float
-						if (value[0] != nullptr && value[1] != nullptr && sscanf(value[0]->c_str(), "%u%c", &width, &c) == 1 && sscanf(value[1]->c_str(), "%u%c", &height, &c) == 1)
-						{
-							gui_width = width;
-							gui_height = height;
-							ret_val = true;
-						}
-					}
-				}
+				if (!strcmp(name, "size"))
+					ret_val = true;	//Already parsed for display!
 				else if (!strcmp(name, "scale"))
-				{
-					const char *(key[]) = { "sx","sy",nullptr};
-					string* (value[sizeof(key) / sizeof(key[0]) - 1]);
-					ret_val = false; //true condition is easier to do
-					if (get_attributes_from_strings(it->attributes, key, (const string**) value))
-					{
-						float sx, sy;
-						char c;	//To check if string is ONLY float
-						if (value[0] != nullptr && value[1] != nullptr && sscanf(value[0]->c_str(), "%f%c", &sx, &c) == 1 && sscanf(value[1]->c_str(), "%f%c", &sy, &c) == 1)
-						{
-							gui_sx = sx;
-							gui_sy = sy;
-							ret_val = true;	
-						}
-					}
-				}
+					ret_val = true;	//Aready parsed for display!
 				else 
 					ret_val = false;
 			}
@@ -374,7 +418,9 @@ bool Gui::handle_gui_submenu_data(const my_XML_element & element, GuiElement** c
 						float b_radius = 0;
 						char c;
 						ALLEGRO_COLOR color = al_map_rgb(0,0,0);
-						if (value[0] != nullptr && value[1] != nullptr && (sscanf(value[0]->c_str(), "%u%c", &width,&c) == 1 && sscanf(value[1]->c_str(), "%u%c", &height,&c) == 1))
+						if (value[0] != nullptr && value[1] != nullptr &&
+							(sscanf(value[0]->c_str(), "%u%c", &width,&c) == 1 &&
+								sscanf(value[1]->c_str(), "%u%c", &height,&c) == 1))
 						{
 							if (value[2] == nullptr || sscanf(value[2]->c_str(), "%f%c", &b_radius, &c) == 1)
 							{
@@ -627,7 +673,7 @@ bool Gui::handle_gui_button_data(const my_XML_element & element, GuiElement** cr
 			{
 				ALLEGRO_BITMAP *bitmap;
 				if (get_bitmap_from_string(it->text.c_str(), &bitmap))
-					button.SetTopBitmap(bitmap);
+					button.SetAuxBitmap(bitmap);
 				else
 					ret_val = false;
 			}
@@ -733,7 +779,9 @@ bool Gui::handle_gui_text_data(const my_XML_element & element, GuiElement** crea
 					unsigned int size;
 					ALLEGRO_FONT* font;
 					char c;
-					if ((value[0] != nullptr) && (value[1] != nullptr) && (sscanf(value[0]->c_str(), "%u%c", &size,&c) == 1) && get_font_from_string(*value[1],size,&font))
+					if ((value[0] != nullptr) && (value[1] != nullptr) &&
+						(sscanf(value[0]->c_str(), "%u%c", &size,&c) == 1) &&
+						get_font_from_string(*value[1],size,&font))
 					{
 						text.SetFont(font);
 						ret_val = true;
@@ -797,7 +845,8 @@ bool Gui::handle_elements(const my_XML_element& element, list<GuiElement*>* list
 	{
 		attr_t::const_iterator id;
 		//If no id or id given and it is not repeated
-		if (it2->attributes.size() != 1 || ((id = it2->attributes.find("id")) != it2->attributes.end() && id_dictionary.find(id->second) == id_dictionary.end()))
+		if (it2->attributes.size() != 1 || ((id = it2->attributes.find("id")) != it2->attributes.end() &&
+			id_dictionary.find(id->second) == id_dictionary.end()))
 		{
 			const char* name = it2->name.c_str();
 			GuiElement* el_2_add = nullptr;

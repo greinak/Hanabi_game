@@ -23,11 +23,13 @@ int main(int argc, char* argv[])
 		bool exit = false;
 		while (!exit)
 		{
-			ifstream menu_gui_data;	//Gui menu UI file
+			//First, open connect menu, so open connect menu UI file
+			ifstream menu_gui_data;
 			Gui* menu = nullptr;
 			menu_gui_data.open("menu_data/connect_menu.xml", std::ifstream::in);	//Open it
 			cout << "[HANABI_MAIN][INFO] : Opening connect menu..." << endl;
-			if (menu_gui_data.is_open() && (menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())	//Parse it
+			//Parse it
+			if (menu_gui_data.is_open() && (menu = new Gui(menu_gui_data)) != nullptr && menu->initialized_successfully())	
 			{
 				//Menu should be open now
 				menu_gui_data.close();
@@ -37,13 +39,16 @@ int main(int argc, char* argv[])
 				//Handle menu
 				if (handle_menu(menu, &name, &net, &is_server))
 				{
-					delete menu;
+					delete menu;	//Delete will close menu
 					menu = nullptr;
+					//Now, should open game
 					Gui* game_ui = nullptr;
 					cout << "[HANABI_MAIN][INFO] : Opening game..." << endl;
-					ifstream game_ui_data;	//Game UI file
+					//So open Game UI file
+					ifstream game_ui_data;
 					game_ui_data.open("menu_data/hanabi_game_ui.xml", std::ifstream::in);	//Open it
-					if (game_ui_data.is_open() && (game_ui = new Gui(game_ui_data)) != nullptr && game_ui->initialized_successfully())	//Parse it
+					//Parse it
+					if (game_ui_data.is_open() && (game_ui = new Gui(game_ui_data)) != nullptr && game_ui->initialized_successfully())	
 					{
 						//Game UI should be open now
 						game_ui_data.close();

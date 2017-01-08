@@ -44,6 +44,9 @@ public:
 	~Gui();
 private:
 	bool initialized;
+	//Because how allegro works, display must be initialized before creating bitmaps
+	//This function is for that
+	ALLEGRO_DISPLAY*	create_display(const my_XML_element& element);
 	//Functions used in parsing:
 	//Returns true if success. Adds elements to GUI list
 	bool handle_gui_menu_data(const my_XML_element& element);

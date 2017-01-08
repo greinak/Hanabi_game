@@ -22,8 +22,8 @@ public:
 	void SetBitmap(ALLEGRO_BITMAP* bitmap);						//Button bitmap, if nullptr button is disabled
 	void SetHoverBitmap(ALLEGRO_BITMAP* bitmap);				//Bitmap to show when hovering element
 	void SetClickBitmap(ALLEGRO_BITMAP* bitmap);				//Bitmap to show when clicking element
-	void SetTopBitmap(ALLEGRO_BITMAP* bitmap);					//Optional bitmap to be drawn above button
-	void SetUseTopBitmap(bool use_top_bitmap);					//Use optional bitmap?
+	void SetAuxBitmap(ALLEGRO_BITMAP* bitmap);					//Optional bitmap to be drawn above button
+	void SetUseAuxBitmap(bool use_top_bitmap);					//Use optional bitmap?
 	void SetUserData(void* user_data);	//Set user data for callbacks
 	void SetAuxData(unsigned int aux_data);						//Set aux data for callbacks
 	void SetCheckBitmapAlpha(bool check_bitmap_alpha);			//if bitmap is transparent in mouse, ignore
@@ -48,8 +48,8 @@ public:
 	virtual bool FeedMouseState(const ALLEGRO_MOUSE_STATE& st, bool *close_contaner, bool* redraw);	//This is where the magic happens
 
 private:
-	ALLEGRO_BITMAP* base_bitmap, *hover_bitmap, *click_bitmap, *top_bitmap;
-	bool use_top_bitmap;	//Default false
+	ALLEGRO_BITMAP* base_bitmap, *hover_bitmap, *click_bitmap, *aux_bitmap;
+	bool use_aux_bitmap;	//Default false
 	void* user_data;
 	bool check_bitmap_alpha;	//Default false
 	GUI_button_callback* on_click_down;

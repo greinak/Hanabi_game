@@ -2,14 +2,14 @@
 
 GuiButton::GuiButton()
 {
-	this->base_bitmap = this->hover_bitmap = this->click_bitmap = this->top_bitmap = nullptr;
+	this->base_bitmap = this->hover_bitmap = this->click_bitmap = this->aux_bitmap = nullptr;
 	this->on_click_down = nullptr;
 	this->on_click_movement = nullptr;
 	this->on_click_up = nullptr;
 	this->on_hover_enter = nullptr;
 	this->on_hover_movement = nullptr;
 	this->on_hover_exit = nullptr;
-	this->use_top_bitmap = false;
+	this->use_aux_bitmap = false;
 	this->user_data = nullptr;
 	this->check_bitmap_alpha = false;
 	this->is_being_hovered = this->is_being_clicked = false;
@@ -31,14 +31,14 @@ void GuiButton::SetClickBitmap(ALLEGRO_BITMAP * bitmap)
 	this->click_bitmap = bitmap;
 }
 
-void GuiButton::SetTopBitmap(ALLEGRO_BITMAP * bitmap)
+void GuiButton::SetAuxBitmap(ALLEGRO_BITMAP * bitmap)
 {
-	this->top_bitmap = bitmap;
+	this->aux_bitmap = bitmap;
 }
 
-void GuiButton::SetUseTopBitmap(bool use_top_bitmap)
+void GuiButton::SetUseAuxBitmap(bool use_top_bitmap)
 {
-	this->use_top_bitmap = use_top_bitmap;
+	this->use_aux_bitmap = use_top_bitmap;
 }
 
 void GuiButton::SetUserData(void * user_data)
@@ -295,12 +295,12 @@ void GuiButton::Draw()
 		TransformToPosition();
 		if (base_bitmap != nullptr)
 			al_draw_bitmap(base_bitmap, -offset_x, -offset_y, 0);
+		if(use_aux_bitmap && aux_bitmap != nullptr)
+			al_draw_bitmap(aux_bitmap, -offset_x, -offset_y, 0);
 		if (is_being_clicked && click_bitmap != nullptr)
 			al_draw_bitmap(click_bitmap, -offset_x, -offset_y, 0);
 		else if (is_being_hovered && hover_bitmap != nullptr)
 			al_draw_bitmap(hover_bitmap, -offset_x, -offset_y, 0);
-		if (use_top_bitmap && top_bitmap != nullptr)
-			al_draw_bitmap(top_bitmap, -offset_x, -offset_y, 0);
 		al_use_transform(&backup);								//Restore transformation!!
 	}
 }

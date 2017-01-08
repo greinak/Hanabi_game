@@ -19,7 +19,7 @@
 //To decrease %CPU. See code
 #define	PROGRAM_BREATH_FREQUENCY	60
 //Define CHEAT_SHOW_LOCAL_CARDS to show local player cards!
-//#define CHEAT_SHOW_LOCAL_CARDS
+#define CHEAT_SHOW_LOCAL_CARDS
 
 //Timeout
 #define HANABI_TIMEOUT	5	//ONE MINUTE TIMEOUT
@@ -986,7 +986,7 @@ bool bean_callback(GuiButton* source, bool forced, bool mouse_over_element, void
 	if (mouse_over_element && !forced)
 	{
 		source->SetAuxData(!aux_data);
-		source->SetUseTopBitmap(!aux_data);
+		source->SetUseAuxBitmap(!aux_data);
 	}
 	return false;
 }
@@ -1005,7 +1005,7 @@ bool discard_card_button_callback(GuiButton* source, bool forced, bool mouse_ove
 	if (mouse_over_element && !forced)
 	{
 		((game_data*)user_data)->discard_mode_enabled = !((game_data*)user_data)->discard_mode_enabled;
-		source->SetUseTopBitmap(((game_data*)user_data)->discard_mode_enabled);
+		source->SetUseAuxBitmap(((game_data*)user_data)->discard_mode_enabled);
 		(*redraw) = true;
 	}
 	return false;
@@ -1034,15 +1034,15 @@ bool give_clue_color_button_callback(GuiButton* source, bool forced, bool mouse_
 		data->got_clue = true;
 		//Deselect ALL clue color buttons
 		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
-			data->elements.give_clue_menu.color_button[i]->SetUseTopBitmap(false);
+			data->elements.give_clue_menu.color_button[i]->SetUseAuxBitmap(false);
 		//Deselect ALL clue number buttons
 		for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
-			data->elements.give_clue_menu.number_button[i]->SetUseTopBitmap(false);
+			data->elements.give_clue_menu.number_button[i]->SetUseAuxBitmap(false);
 		//Clue is color
 		data->local_event_clue_is_color = true;
 		data->local_event_clue_id = aux_data;
 		//Select current button
-		source->SetUseTopBitmap(true);
+		source->SetUseAuxBitmap(true);
 		//Redraw
 		(*redraw) = true;
 	}
@@ -1057,15 +1057,15 @@ bool give_clue_number_button_callback(GuiButton* source, bool forced, bool mouse
 		data->got_clue = true;
 		//Deselect ALL clue color buttons
 		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
-			data->elements.give_clue_menu.color_button[i]->SetUseTopBitmap(false);
+			data->elements.give_clue_menu.color_button[i]->SetUseAuxBitmap(false);
 		//Deselect ALL clue number buttons
 		for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
-			data->elements.give_clue_menu.number_button[i]->SetUseTopBitmap(false);
+			data->elements.give_clue_menu.number_button[i]->SetUseAuxBitmap(false);
 		//Clue is not color, it is number
 		data->local_event_clue_is_color = false;
 		data->local_event_clue_id = aux_data;
 		//Select current button
-		source->SetUseTopBitmap(true);
+		source->SetUseAuxBitmap(true);
 		//Redraw
 		(*redraw) = true;
 	}
@@ -1356,7 +1356,7 @@ static void game_finished(game_data& data)
 	data.elements.discarded_cards.menu->SetIsVisible(false);
 	data.elements.discarded_cards.menu->SetIsActive(false);
 	//Show no card in discarded cards top
-	data.elements.discarded_cards.open_button->SetUseTopBitmap(false);
+	data.elements.discarded_cards.open_button->SetUseAuxBitmap(false);
 	//Remove discarded cards
 	for (unsigned int i = 0; i < HANABI_TOTAL_CARDS; i++)
 		data.elements.discarded_cards.cards[i]->SetUseSecondBitmap(false);
@@ -1368,10 +1368,10 @@ static void game_finished(game_data& data)
 	data.elements.deck->SetUseSecondBitmap(false);
 	//Enable all clue indicators
 	for (unsigned int i = 0; i < HANABI_TOTAL_CLUE_INDICATORS; i++)
-		data.elements.indicators.clue_indicators[i]->SetUseTopBitmap(false);
+		data.elements.indicators.clue_indicators[i]->SetUseAuxBitmap(false);
 	//Disable all lightning indicators
 	for (unsigned int i = 0; i < HANABI_TOTAL_LIGHTNING_INDICATORS; i++)
-		data.elements.indicators.lightning_indicators[i]->SetUseTopBitmap(false);
+		data.elements.indicators.lightning_indicators[i]->SetUseAuxBitmap(false);
 	//Hide messages
 	data.elements.message->SetIsVisible(false);
 	data.elements.message2->SetIsVisible(false);
@@ -1415,10 +1415,10 @@ static void local_player_turn_starts(game_data& data)
 	data.got_clue = false;
 	//Deselect ALL clue color buttons
 	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
-		data.elements.give_clue_menu.color_button[i]->SetUseTopBitmap(false);
+		data.elements.give_clue_menu.color_button[i]->SetUseAuxBitmap(false);
 	//Deselect ALL clue number buttons
 	for (unsigned int i = 0; i < HANABI_TOTAL_NUMBERS; i++)
-		data.elements.give_clue_menu.number_button[i]->SetUseTopBitmap(false);
+		data.elements.give_clue_menu.number_button[i]->SetUseAuxBitmap(false);
 	//Redraw
 	data.redraw = true;
 }
@@ -1435,7 +1435,7 @@ static void local_player_turn_ends(game_data& data)
 	//Hide discard card button
 	data.elements.discard_card_button->SetIsVisible(false);
 	data.elements.discard_card_button->SetIsActive(false);
-	data.elements.discard_card_button->SetUseTopBitmap(false);
+	data.elements.discard_card_button->SetUseAuxBitmap(false);
 	data.discard_mode_enabled = false;
 	//Remove text
 	data.elements.message->SetText("");
@@ -1548,8 +1548,8 @@ static void match_is_over_message(game_data& data)
 static void discard_card(const card& c, game_data& data)
 {
 	cout << "[GAME_HANDLER][LOG] : Discarded [" << c.get_short_name() << "]" << endl;
-	data.elements.discarded_cards.open_button->SetTopBitmap(data.skin.get_bitmap(c));
-	data.elements.discarded_cards.open_button->SetUseTopBitmap(true);
+	data.elements.discarded_cards.open_button->SetAuxBitmap(data.skin.get_bitmap(c));
+	data.elements.discarded_cards.open_button->SetUseAuxBitmap(true);
 	data.elements.discarded_cards.cards[data.discard_count]->SetSecondBitmap(data.skin.get_bitmap(c));
 	data.elements.discarded_cards.cards[data.discard_count++]->SetUseSecondBitmap(true);
 	data.redraw = true;
@@ -1562,7 +1562,7 @@ static bool play_card(const card& c, game_data& data)
 	if (data.color_stack[c.get_color()] == c.get_number())
 	{
 		if ((++data.color_stack[c.get_color()]) == HANABI_TOTAL_NUMBERS && data.clues != HANABI_TOTAL_CLUE_INDICATORS)
-			data.elements.indicators.clue_indicators[data.clues++]->SetUseTopBitmap(false);
+			data.elements.indicators.clue_indicators[data.clues++]->SetUseAuxBitmap(false);
 		data.elements.center_cards[c.get_color()][c.get_number()]->SetDefaultBitmap(data.skin.get_bitmap(c));
 		data.elements.center_cards[c.get_color()][c.get_number()]->SetIsVisible(true);
 		data.redraw = true;
@@ -1574,7 +1574,7 @@ static bool play_card(const card& c, game_data& data)
 		cout << ", It's not very effective..." << endl;
 		discard_card(c, data);
 		if(data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
-			data.elements.indicators.lightning_indicators[data.lightnings++]->SetUseTopBitmap(true);
+			data.elements.indicators.lightning_indicators[data.lightnings++]->SetUseAuxBitmap(true);
 		data.redraw = true;
 		success = false;
 	}
@@ -2145,7 +2145,7 @@ static void local_player_turn____local_give_clue(game_data& data, Package_hanabi
 
 
 		//Don't forget: USE CLUE
-		data.elements.indicators.clue_indicators[--data.clues]->SetUseTopBitmap(true);
+		data.elements.indicators.clue_indicators[--data.clues]->SetUseAuxBitmap(true);
 		data.redraw = true;
 
 
@@ -2404,7 +2404,7 @@ static void remote_player_turn____remote_give_clue(game_data& data, Package_hana
 			string message;
 			string clue;
 			//Don't forget: USE CLUE
-			data.elements.indicators.clue_indicators[--data.clues]->SetUseTopBitmap(true);
+			data.elements.indicators.clue_indicators[--data.clues]->SetUseAuxBitmap(true);
 			//Remote player turn finished
 			remote_player_turn_ends(data);
 			//And now is local turn
