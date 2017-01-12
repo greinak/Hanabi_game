@@ -13,6 +13,17 @@
 
 //Everything is prepared to be read like that! 
 
+//Some notes:
+
+//Experiencing timeouts, and program freezing? check this
+//http://superuser.com/questions/555160/windows-command-prompt-freezing-on-focus
+//Disable quick edit in console. It prevents cout from writing, and cout will wait
+//	until it can write. It took me a while to realize that...
+//And do not select text in command window!
+
+//I know this file is too large, but half of the file is the game FSM!
+//I didn't want to put that in another file
+
 #define HANABI_TOTAL_LIGHTNING_INDICATORS	3
 #define HANABI_TOTAL_CLUE_INDICATORS		8
 
@@ -22,7 +33,8 @@
 #define CHEAT_SHOW_LOCAL_CARDS
 
 //Timeout
-#define HANABI_TIMEOUT	5	//ONE MINUTE TIMEOUT
+#define HANABI_TIMEOUT	5	//FIVE SECONDS MINUTE TIMEOUT
+//#define HANABI_TIMEOUT	60	//ONE MINUTE TIMEOUT
 
 using namespace std;
 
@@ -145,52 +157,51 @@ typedef enum	//Any event may arrive at any state!!
 	SW_WHO_YOU,		//Software decides remote starts
 	I_START,		//Remote says it starts
 	YOU_START,		//Remote says local starts
-	//<--States expected while in end of game -->
-	LOCAL_PA,		//Local player decides to play again
-	LOCAL_GO,		//Local player does not want to play again
-	REMOTE_PA,		//Remote player decides to play again
-	REMOTE_GO,		//Remote player does not want to play again
-	//<--States expected while in game-->
-	LOCAL_GIVE_CLUE,		//Local player gives clue
-	LOCAL_PLAY,				//Local player plays a card
-	LOCAL_DISCARD,			//Local player discards a card
-	SW_DRAW_NEXT,			//Draw next card (software tells us this card is not the last one)
-	SW_DRAW_LAST,			//Draw next card, (software tells us this card is the last one)
-	REMOTE_WE_WON,			//Remote player informs we won
-	REMOTE_WE_LOST,			//Remote player informs we lost
-	REMOTE_MATCH_IS_OVER,	//Remote player informs match is over
-	REMOTE_GIVE_CLUE,		//Local player gives clue
-	REMOTE_PLAY,			//Local player plays a card
-	REMOTE_DISCARD,			//Local player discards a card
-	REMOTE_PLAY_WON,		//Local player plays a card, and we won
-	REMOTE_PLAY_LOST,		//Local player plays a card, and we lost
-	DRAW_NEXT,				//Received draw next card
-	DRAW_LAST,				//Received draw next card, this is the last one
-	DRAW_FAKE,				//Received empty draw
-	//<--Other events-->
-	BAD,			//Inform communication error to remote machine
-	ERROR_EV,		//Remote machine informed a communication error		
-	QUIT,			//Remote left the game
-	LOCAL_QUIT,		//Local left the game
-	TIMEOUT,		//Timer timeout
-	//<--Control events-->
-	ACK,			//ACK
-	EXIT_GAME,		//Break event loop
-	//<--Initial events-->
-	SERVER,			//Start FSM as server
-	CLIENT,			//Start FSM as client
-	//<--FSM behaviour related events-->
-	GND,					//Identifier of end of common event state blocks list. Not a real event.
+					//<--States expected while in end of game -->
+					LOCAL_PA,		//Local player decides to play again
+					LOCAL_GO,		//Local player does not want to play again
+					REMOTE_PA,		//Remote player decides to play again
+					REMOTE_GO,		//Remote player does not want to play again
+									//<--States expected while in game-->
+									LOCAL_GIVE_CLUE,		//Local player gives clue
+									LOCAL_PLAY,				//Local player plays a card
+									LOCAL_DISCARD,			//Local player discards a card
+									SW_DRAW_NEXT,			//Draw next card (software tells us this card is not the last one)
+									SW_DRAW_LAST,			//Draw next card, (software tells us this card is the last one)
+									REMOTE_WE_WON,			//Remote player informs we won
+									REMOTE_WE_LOST,			//Remote player informs we lost
+									REMOTE_MATCH_IS_OVER,	//Remote player informs match is over
+									REMOTE_GIVE_CLUE,		//Local player gives clue
+									REMOTE_PLAY,			//Local player plays a card
+									REMOTE_DISCARD,			//Local player discards a card
+									REMOTE_PLAY_WON,		//Local player plays a card, and we won
+									REMOTE_PLAY_LOST,		//Local player plays a card, and we lost
+									DRAW_NEXT,				//Received draw next card
+									DRAW_LAST,				//Received draw next card, this is the last one
+									DRAW_FAKE,				//Received empty draw
+															//<--Other events-->
+															BAD,			//Inform communication error to remote machine
+															ERROR_EV,		//Remote machine informed a communication error		
+															QUIT,			//Remote left the game
+															LOCAL_QUIT,		//Local left the game
+															TIMEOUT,		//Timer timeout
+																			//<--Control events-->
+																			ACK,			//ACK
+																			EXIT_GAME,		//Break event loop
+																							//<--Initial events-->
+																							SERVER,			//Start FSM as server
+																							CLIENT,			//Start FSM as client
+																											//<--FSM behaviour related events-->
+																											GND,					//Identifier of end of common event state blocks list. Not a real event.
 }fsm_event_T;
 
 const char* fsm_event_name[] =
 {
-
-"NAME","NAMEIS","START_INFO","SW_WHO_I","SW_WHO_YOU","I_START","YOU_START","LOCAL_PA","LOCAL_GO","REMOTE_PA",
-"REMOTE_GO","LOCAL_GIVE_CLUE","LOCAL_PLAY","LOCAL_DISCARD","SW_DRAW_NEXT","SW_DRAW_LAST","REMOTE_WE_WON",
-"REMOTE_WE_LOST","REMOTE_MATCH_IS_OVER","REMOTE_GIVE_CLUE","REMOTE_PLAY","REMOTE_DISCARD","REMOTE_PLAY_WON",
-"REMOTE_PLAY_LOST","DRAW_NEXT","DRAW_LAST","DRAW_FAKE","BAD","ERROR_EV","QUIT","LOCAL_QUIT","TIMEOUT", "ACK",
-"EXIT_GAME","SERVER","CLIENT","GND"
+	"NAME","NAMEIS","START_INFO","SW_WHO_I","SW_WHO_YOU","I_START","YOU_START","LOCAL_PA","LOCAL_GO","REMOTE_PA",
+	"REMOTE_GO","LOCAL_GIVE_CLUE","LOCAL_PLAY","LOCAL_DISCARD","SW_DRAW_NEXT","SW_DRAW_LAST","REMOTE_WE_WON",
+	"REMOTE_WE_LOST","REMOTE_MATCH_IS_OVER","REMOTE_GIVE_CLUE","REMOTE_PLAY","REMOTE_DISCARD","REMOTE_PLAY_WON",
+	"REMOTE_PLAY_LOST","DRAW_NEXT","DRAW_LAST","DRAW_FAKE","BAD","ERROR_EV","QUIT","LOCAL_QUIT","TIMEOUT", "ACK",
+	"EXIT_GAME","SERVER","CLIENT","GND"
 };
 
 //Game data
@@ -231,7 +242,7 @@ typedef struct
 	queue<local_user_event_T> local_event_queue;
 }game_data;
 //Event ID
-typedef enum {MOUSE,DISPLAY_CLOSE,FSM} event_id;
+typedef enum { MOUSE, DISPLAY_CLOSE, FSM } event_id;
 //Game event type
 typedef struct
 {
@@ -241,31 +252,28 @@ typedef struct
 }game_event_t;
 //FSM action
 typedef void(*action)(game_data& data, Package_hanabi* package);
-//FSM state block
-struct state_block;
+
+//FSM STATE definition
 typedef struct state_block STATE_BEHAVIOUR_LIST;
 typedef struct
 {
-	char* name;
-	const STATE_BEHAVIOUR_LIST* list;
-}STATE;
-typedef struct state_block
+	char* name;							//Name of state
+	const STATE_BEHAVIOUR_LIST* list;	//pointer to state behaviour list
+}STATE;	//This is a state
+typedef struct state_block				//each state block of state behaviour list:
 {
-	fsm_event_T	block_ev;
-	action action;
-	const STATE* next_state;
+	fsm_event_T	block_ev;					//Event that trigger this action
+	action action;							//The action
+	const STATE* next_state;				//Pointer to next state
 }state_block;
 //FSM STATE!
-
-
-
 
 //FSM HANDLER
 static const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, game_data& data, Package_hanabi* package);
 //FSM initial state
 extern const STATE fsm_start_point;	//Here is where all starts
 
-//# Some functions prototypes #
+									//# Some functions prototypes #
 static void initialize_deck(deck& card_deck);
 static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui);
 static void attach_callbacks_to_elements(hanabi_gui_elements_t &elements, game_data& data);
@@ -300,7 +308,7 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 		if (data.ev_q != nullptr)
 		{
 			data.timer = al_create_timer(HANABI_TIMEOUT);
-			if(data.timer != nullptr)
+			if (data.timer != nullptr)
 			{
 				al_register_event_source(data.ev_q, al_get_mouse_event_source());
 				al_register_event_source(data.ev_q, al_get_display_event_source(data.game_ui->get_display()));
@@ -348,7 +356,7 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 				}
 				else
 					cerr << "[GAME_HANDLER][ERROR] : Error identifying menu elements." << endl;
-				al_unregister_event_source(data.ev_q,al_get_timer_event_source(data.timer));
+				al_unregister_event_source(data.ev_q, al_get_timer_event_source(data.timer));
 				al_destroy_timer(data.timer);
 			}
 			else
@@ -365,7 +373,7 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 //# Other functions #
 
 //Wait for an event
-static void wait_for_event(game_event_t* ret_event,game_data& g_data)
+static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 {
 	//Got event flag. While false, keep waiting for events
 	bool got_event = false;
@@ -388,7 +396,7 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 			case FB_WHO:	//This means we should decide who starts.
 			{
 				ret_event->ev_id = FSM;
-				ret_event->fsm_event = (rand() %2)?SW_WHO_I:SW_WHO_YOU;	//Pseudorandomly select who starts.
+				ret_event->fsm_event = (rand() % 2) ? SW_WHO_I : SW_WHO_YOU;	//Pseudorandomly select who starts.
 				ret_event->package = nullptr;		//If no data, always to nullptr
 				got_event = true;
 				break;
@@ -420,7 +428,7 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 			ret_event->ev_id = FSM;		//This event is for FSM
 			local_user_event_T ev = g_data.local_event_queue.front();	//Get event
 			g_data.local_event_queue.pop();								//Remove it from queue
-			switch(ev)
+			switch (ev)
 			{
 				//This is just obvious...
 			case USER_PLAY_CARD:
@@ -451,39 +459,39 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 		}
 		//Allegro mouse and display events
 		if (!got_event && !al_is_event_queue_empty(g_data.ev_q))
+		{
+			ALLEGRO_EVENT ev;
+			al_wait_for_event(g_data.ev_q, &ev);
+			if (ev.any.source == al_get_mouse_event_source())
 			{
-				ALLEGRO_EVENT ev;
-				al_wait_for_event(g_data.ev_q, &ev);
-				if (ev.any.source == al_get_mouse_event_source())
+				if (ev.mouse.display == g_data.game_ui->get_display())
 				{
-					if (ev.mouse.display == g_data.game_ui->get_display())
-					{
-						//A note about this event:
-						//Actually, mouse events are not necesary
-						//They are just used as a trigger to send mouse state to gui
-						//only when mouse state changes
-						ret_event->ev_id = MOUSE;
-						got_event = true;
-					}
-				}
-				else if (ev.any.source == al_get_display_event_source(g_data.game_ui->get_display()))
-				{
-					//Window close button!
-					if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE && g_data.quit_button_enabled)
-					{
-						ret_event->ev_id = DISPLAY_CLOSE;
-						got_event = true;
-					}
-				}
-				else if (ev.timer.type == ALLEGRO_EVENT_TIMER)
-				{
-					//This mean we had a timeout...
-					ret_event->ev_id = FSM;
-					ret_event->fsm_event = TIMEOUT;
-					ret_event->package = nullptr;
+					//A note about this event:
+					//Actually, mouse events are not necesary
+					//They are just used as a trigger to send mouse state to gui
+					//only when mouse state changes
+					ret_event->ev_id = MOUSE;
 					got_event = true;
 				}
 			}
+			else if (ev.any.source == al_get_display_event_source(g_data.game_ui->get_display()))
+			{
+				//Window close button!
+				if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE && g_data.quit_button_enabled)
+				{
+					ret_event->ev_id = DISPLAY_CLOSE;
+					got_event = true;
+				}
+			}
+			else if (ev.timer.type == ALLEGRO_EVENT_TIMER)
+			{
+				//This mean we had a timeout...
+				ret_event->ev_id = FSM;
+				ret_event->fsm_event = TIMEOUT;
+				ret_event->package = nullptr;
+				got_event = true;
+			}
+		}
 		//Connection events
 		if (!got_event && g_data.connection->get_state() == CONNECTED)
 		{
@@ -503,237 +511,237 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 						//What have we got here?
 						//remember there is an importan data verification in load_raw_data
 						//If that function returns true, that means that received package at least makes sense!
-						case ACK_P:
-						{
-							Package_ack* package = new Package_ack;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = ACK;	//ACK!!
-							else
-								data_ok = false;
-							break;
-						}
-						case NAME_P:
-						{
-							Package_name* package = new Package_name;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = NAME;	//This is a name request
-							else
-								data_ok = false;
-							break;
-						}
-						case NAME_IS_P:
-						{
-							Package_name_is* package = new Package_name_is;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = NAMEIS;	//Name is!! (Again, remember, verification in load_raw_data!)
-							else
-								data_ok = false;
-							break;
-						}
-						case START_INFO_P:
-						{
-							Package_start_info* package = new Package_start_info;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-							{
-								//Package struct at least makes sense.
-								//Are cards given valid for an initial state?
-								bool start_info_ok = true;	//Let's assume yes
-								card hand_1[HANABI_HAND_SIZE];
-								card hand_2[HANABI_HAND_SIZE];
-								deck start_info_deck;				//Create deck in order to check if start info is valid.
-								package->get_info(hand_1, hand_2);	//Load cards to temp hands
-								initialize_deck(start_info_deck);	//Initialize deck
-								for (unsigned int i = 0; i < HANABI_HAND_SIZE && start_info_ok; i++)
-								{
-									start_info_ok &= start_info_deck.remove_card(hand_1[i]);
-									start_info_ok &= start_info_deck.remove_card(hand_2[i]);
-								}//remove card will return true if card was in deck. This will prevent, for example, two FIVEs of the same color
-								if (start_info_ok)
-									ret_event->fsm_event = START_INFO;	//Ok, data is perfect! fsm will check if context is addecuate for this package
-								else
-									data_ok = false;
-							}
-							else
-								data_ok = false;
-							break;
-						}
-						case YOU_START_P:
-						{
-							Package_you_start* package = new Package_you_start;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = YOU_START;	//You start
-							else
-								data_ok = false;
-							break;
-						}
-						case I_START_P:
-						{
-							Package_i_start* package = new Package_i_start;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = I_START;		//I start
-							else
-								data_ok = false;
-							break;
-						}
-						case PLAY_P:
-						{
- 							Package_play* package = new Package_play;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-							{
-								//Play package... this may trigger different events
-								unsigned int i;
-								card c;
-								//Get card offset
-								package->get_card_id(&i);	
-								//Load card
-								c = g_data.remote_player_card[i];
-								//Now c is the played card
-								if (g_data.color_stack[c.get_color()] != c.get_number())	//This will be true if card will be discarded if in game
-								{
-									if (g_data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)	//Can we afford that?
-										ret_event->fsm_event = REMOTE_PLAY_LOST;
-									else
-										ret_event->fsm_event = REMOTE_PLAY;
-								}
-								else
-								{
-									//Card wont be discarded (assuming we are in game).
-									unsigned int played_cards = 0;
-									if (c.get_number() == HANABI_TOTAL_NUMBERS - 1)	//Is it a top card?
-									{
-										//If yes, how many cards are there in center stacks?
-										for (unsigned int j = 0; j < HANABI_TOTAL_COLORS; j++)
-											played_cards += g_data.color_stack[j];
-										//Is it almost full, but missing one?
-										if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS - 1)
-											ret_event->fsm_event = REMOTE_PLAY_WON;	//Then we won
-										else
-											ret_event->fsm_event = REMOTE_PLAY;		//Else, just play it
-									}
-									else
-										ret_event->fsm_event = REMOTE_PLAY;		//No top card. just play it
-								}
-							}
-							else
-								data_ok = false;
-							break;
-						}
-						case DISCARD_P:
-						{
-							Package_discard* package = new Package_discard;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = REMOTE_DISCARD;	//Discard
-							else
-								data_ok = false;
-							break;
-						}
-						case YOU_HAVE_P:
-						{
-							Package_you_have* package = new Package_you_have;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-							{
-								//Two possibilities
-								if(g_data.clues != 0)
-									ret_event->fsm_event = REMOTE_GIVE_CLUE; //to be
-								else
-									ret_event->fsm_event = BAD;	//or not to be
-							}
-							else
-								data_ok = false;
-							break;
-						}
-						case DRAW_P:
-						{
-							Package_draw* package = new Package_draw;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-							{
-								//This may trigger different events...
-								card c;
-								package->get_card(&c);
-								if (g_data.card_deck.size() == 0 && c == card(NO_COLOR,NO_NUMBER))
-									ret_event->fsm_event = DRAW_FAKE;	//No cards left in deck, this is the draw fake card event
-								else if (g_data.card_deck.count_cards(c) != 0)	//Else, are there samples of this card in card deck?
-								{
-									if (g_data.card_deck.size() > 1)
-										ret_event->fsm_event = DRAW_NEXT;	//If yes, and this card is not the only one, just draw it
-									else
-										ret_event->fsm_event = DRAW_LAST;	//If yes, but this card is last one, draw last card!
-								}
-								else
-									data_ok = false;		
-							}
-							else
-								data_ok = false;
-							break;
-						}
-						case WE_WON_P:
-						{
-							Package_we_won* package = new Package_we_won;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = REMOTE_WE_WON;	//We won. FSM will take care of checking this
-							else
-								data_ok = false;
-							break;
-						}
-						case WE_LOST_P:
-						{
-							Package_we_lost* package = new Package_we_lost;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = REMOTE_WE_LOST;	//We lost. FSM will take care of checking this
-							else
-								data_ok = false;
-							break;
-						}
-						case MATCH_IS_OVER_P:
-						{
-							Package_match_is_over* package = new Package_match_is_over;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = REMOTE_MATCH_IS_OVER;	//Match is over. FSM will take care of checking this
-							else
-								data_ok = false;
-							break;
-						}
-						case PLAY_AGAIN_P:
-						{
-							Package_play_again* package = new Package_play_again;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = REMOTE_PA;	//Remote player wants to play again
-							else
-								data_ok = false;
-							break;
-						}
-						case GAME_OVER_P:
-						{
-							Package_game_over* package = new Package_game_over;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = REMOTE_GO;	//Remote player does not want to keep on playing
-							else
-								data_ok = false;
-							break;
-						}
-						case QUIT_P:
-						{
-							Package_quit* package = new Package_quit;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = QUIT;		//Remote player wants to quit game
-							else
-								data_ok = false;
-							break;
-						}
-						case ERROR_P:
-						{
-							Package_error* package = new Package_error;
-							if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
-								ret_event->fsm_event = ERROR_EV;	//Remote program detected an error.
-							else
-								data_ok = false;
-							break;
-						}
-						default:
-						{
+					case ACK_P:
+					{
+						Package_ack* package = new Package_ack;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = ACK;	//ACK!!
+						else
 							data_ok = false;
-							break;
+						break;
+					}
+					case NAME_P:
+					{
+						Package_name* package = new Package_name;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = NAME;	//This is a name request
+						else
+							data_ok = false;
+						break;
+					}
+					case NAME_IS_P:
+					{
+						Package_name_is* package = new Package_name_is;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = NAMEIS;	//Name is!! (Again, remember, verification in load_raw_data!)
+						else
+							data_ok = false;
+						break;
+					}
+					case START_INFO_P:
+					{
+						Package_start_info* package = new Package_start_info;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+						{
+							//Package struct at least makes sense.
+							//Are cards given valid for an initial state?
+							bool start_info_ok = true;	//Let's assume yes
+							card hand_1[HANABI_HAND_SIZE];
+							card hand_2[HANABI_HAND_SIZE];
+							deck start_info_deck;				//Create deck in order to check if start info is valid.
+							package->get_info(hand_1, hand_2);	//Load cards to temp hands
+							initialize_deck(start_info_deck);	//Initialize deck
+							for (unsigned int i = 0; i < HANABI_HAND_SIZE && start_info_ok; i++)
+							{
+								start_info_ok &= start_info_deck.remove_card(hand_1[i]);
+								start_info_ok &= start_info_deck.remove_card(hand_2[i]);
+							}//remove card will return true if card was in deck. This will prevent, for example, two FIVEs of the same color
+							if (start_info_ok)
+								ret_event->fsm_event = START_INFO;	//Ok, data is perfect! fsm will check if context is addecuate for this package
+							else
+								data_ok = false;
 						}
+						else
+							data_ok = false;
+						break;
+					}
+					case YOU_START_P:
+					{
+						Package_you_start* package = new Package_you_start;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = YOU_START;	//You start
+						else
+							data_ok = false;
+						break;
+					}
+					case I_START_P:
+					{
+						Package_i_start* package = new Package_i_start;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = I_START;		//I start
+						else
+							data_ok = false;
+						break;
+					}
+					case PLAY_P:
+					{
+						Package_play* package = new Package_play;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+						{
+							//Play package... this may trigger different events
+							unsigned int i;
+							card c;
+							//Get card offset
+							package->get_card_id(&i);
+							//Load card
+							c = g_data.remote_player_card[i];
+							//Now c is the played card
+							if (g_data.color_stack[c.get_color()] != c.get_number())	//This will be true if card will be discarded if in game
+							{
+								if (g_data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)	//Can we afford that?
+									ret_event->fsm_event = REMOTE_PLAY_LOST;
+								else
+									ret_event->fsm_event = REMOTE_PLAY;
+							}
+							else
+							{
+								//Card wont be discarded (assuming we are in game).
+								unsigned int played_cards = 0;
+								if (c.get_number() == HANABI_TOTAL_NUMBERS - 1)	//Is it a top card?
+								{
+									//If yes, how many cards are there in center stacks?
+									for (unsigned int j = 0; j < HANABI_TOTAL_COLORS; j++)
+										played_cards += g_data.color_stack[j];
+									//Is it almost full, but missing one?
+									if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS - 1)
+										ret_event->fsm_event = REMOTE_PLAY_WON;	//Then we won
+									else
+										ret_event->fsm_event = REMOTE_PLAY;		//Else, just play it
+								}
+								else
+									ret_event->fsm_event = REMOTE_PLAY;		//No top card. just play it
+							}
+						}
+						else
+							data_ok = false;
+						break;
+					}
+					case DISCARD_P:
+					{
+						Package_discard* package = new Package_discard;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = REMOTE_DISCARD;	//Discard
+						else
+							data_ok = false;
+						break;
+					}
+					case YOU_HAVE_P:
+					{
+						Package_you_have* package = new Package_you_have;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+						{
+							//Two possibilities
+							if (g_data.clues != 0)
+								ret_event->fsm_event = REMOTE_GIVE_CLUE; //to be
+							else
+								ret_event->fsm_event = BAD;	//or not to be
+						}
+						else
+							data_ok = false;
+						break;
+					}
+					case DRAW_P:
+					{
+						Package_draw* package = new Package_draw;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+						{
+							//This may trigger different events...
+							card c;
+							package->get_card(&c);
+							if (g_data.card_deck.size() == 0 && c == card(NO_COLOR, NO_NUMBER))
+								ret_event->fsm_event = DRAW_FAKE;	//No cards left in deck, this is the draw fake card event
+							else if (g_data.card_deck.count_cards(c) != 0)	//Else, are there samples of this card in card deck?
+							{
+								if (g_data.card_deck.size() > 1)
+									ret_event->fsm_event = DRAW_NEXT;	//If yes, and this card is not the only one, just draw it
+								else
+									ret_event->fsm_event = DRAW_LAST;	//If yes, but this card is last one, draw last card!
+							}
+							else
+								data_ok = false;
+						}
+						else
+							data_ok = false;
+						break;
+					}
+					case WE_WON_P:
+					{
+						Package_we_won* package = new Package_we_won;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = REMOTE_WE_WON;	//We won. FSM will take care of checking this
+						else
+							data_ok = false;
+						break;
+					}
+					case WE_LOST_P:
+					{
+						Package_we_lost* package = new Package_we_lost;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = REMOTE_WE_LOST;	//We lost. FSM will take care of checking this
+						else
+							data_ok = false;
+						break;
+					}
+					case MATCH_IS_OVER_P:
+					{
+						Package_match_is_over* package = new Package_match_is_over;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = REMOTE_MATCH_IS_OVER;	//Match is over. FSM will take care of checking this
+						else
+							data_ok = false;
+						break;
+					}
+					case PLAY_AGAIN_P:
+					{
+						Package_play_again* package = new Package_play_again;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = REMOTE_PA;	//Remote player wants to play again
+						else
+							data_ok = false;
+						break;
+					}
+					case GAME_OVER_P:
+					{
+						Package_game_over* package = new Package_game_over;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = REMOTE_GO;	//Remote player does not want to keep on playing
+						else
+							data_ok = false;
+						break;
+					}
+					case QUIT_P:
+					{
+						Package_quit* package = new Package_quit;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = QUIT;		//Remote player wants to quit game
+						else
+							data_ok = false;
+						break;
+					}
+					case ERROR_P:
+					{
+						Package_error* package = new Package_error;
+						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
+							ret_event->fsm_event = ERROR_EV;	//Remote program detected an error.
+						else
+							data_ok = false;
+						break;
+					}
+					default:
+					{
+						data_ok = false;
+						break;
+					}
 					}
 					if (!data_ok)
 					{
@@ -760,7 +768,7 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 			}
 		}
 		//Decrease %CPU
-		if(!got_event)	al_rest(1.0 / PROGRAM_BREATH_FREQUENCY);	
+		if (!got_event)	al_rest(1.0 / PROGRAM_BREATH_FREQUENCY);
 		//That will define the frecuency at which program will look for events
 		//About 0% CPU usage when IDLE in my PC!
 	}
@@ -776,7 +784,7 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 
 	bool success = true;	//True while we can load stuff
 
-	//Deck
+							//Deck
 	success &= (elements.deck = dynamic_cast<GuiImage*>(game_ui->get_element_from_id("deck"))) != nullptr;
 
 	//Center cards
@@ -792,13 +800,13 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 	}
 
 	//discard_card_button
-	if(success) success &= (elements.discard_card_button = dynamic_cast<GuiButton*>(game_ui->get_element_from_id("disc_card_button"))) != nullptr;
+	if (success) success &= (elements.discard_card_button = dynamic_cast<GuiButton*>(game_ui->get_element_from_id("disc_card_button"))) != nullptr;
 
 	//message
 	if (success) success &= (elements.message = dynamic_cast<GuiText*>(game_ui->get_element_from_id("message"))) != nullptr;
 	//message2
 	if (success) success &= (elements.message2 = dynamic_cast<GuiText*>(game_ui->get_element_from_id("message2"))) != nullptr;
-	
+
 	//Clue indicators
 	for (unsigned int n = 0; n < HANABI_TOTAL_CLUE_INDICATORS && success; n++)
 	{
@@ -831,7 +839,7 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 		string id = string("clue_button_") + c;
 		success &= (elements.give_clue_menu.number_button[n] = dynamic_cast<GuiButton*>(game_ui->get_element_from_id(id.c_str()))) != nullptr;
 	}
-	
+
 	//Local player name
 	if (success) success &= (elements.player.local.name = dynamic_cast<GuiText*>(game_ui->get_element_from_id("local_player_name"))) != nullptr;
 	//Local player cards menu
@@ -875,7 +883,7 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 	}
 	//Clue OK Button
 	if (success) success &= (elements.clue.clue_button = dynamic_cast<GuiButton*>(game_ui->get_element_from_id("clue_ok"))) != nullptr;
-	
+
 	//Discarded cards menu
 	if (success) success &= (elements.discarded_cards.menu = dynamic_cast<GuiSubmenu*>(game_ui->get_element_from_id("discarded_cards_menu"))) != nullptr;
 	//Open discarded cards menu button
@@ -884,7 +892,7 @@ static bool attach_menu_elements(hanabi_gui_elements_t &elements, Gui* game_ui)
 	for (unsigned int n = 0; n < HANABI_TOTAL_CARDS && success; n++)
 	{
 		char number[3];
-		itoa(n + 1, number,10);
+		itoa(n + 1, number, 10);
 		string id = string("disc_card_") + number;
 		success &= (elements.discarded_cards.cards[n] = dynamic_cast<GuiImage*>(game_ui->get_element_from_id(id.c_str()))) != nullptr;
 	}
@@ -1045,7 +1053,7 @@ bool local_user_card_callback(GuiButton* source, bool forced, bool mouse_over_el
 	}
 	return false;
 }
-bool give_clue_color_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw) 
+bool give_clue_color_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
 {
 	if (mouse_over_element && !forced)
 	{
@@ -1066,7 +1074,7 @@ bool give_clue_color_button_callback(GuiButton* source, bool forced, bool mouse_
 		//Redraw
 		(*redraw) = true;
 	}
-	return false; 
+	return false;
 }
 bool give_clue_number_button_callback(GuiButton* source, bool forced, bool mouse_over_element, void* user_data, unsigned int aux_data, bool* redraw)
 {
@@ -1161,9 +1169,6 @@ bool game_over_button_callback(GuiButton* source, bool forced, bool mouse_over_e
 static void do_nothing(game_data& data, Package_hanabi* package) { return; }
 //And, common fake event
 extern const STATE common;
-//And end state
-extern const STATE end_state;
-
 //This is the golden function
 static const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, game_data& data, Package_hanabi* package)
 {
@@ -1280,9 +1285,9 @@ static void common____bad(game_data& data, Package_hanabi* package);												
 static void common____quit(game_data& data, Package_hanabi* package);													//Done!
 static void common____local_quit(game_data& data, Package_hanabi* package);												//Done!
 
-//# States prototypes #
+																														//# States prototypes #
 
-//extern const STATE fsm_start_point;	//Defined above
+																														//extern const STATE fsm_start_point;	//Defined above
 extern const STATE s_wait_nameis;
 extern const STATE s_wait_name;
 extern const STATE s_wait_nameis_ack;
@@ -1312,7 +1317,7 @@ extern const STATE sc_2_local_player_turn;
 extern const STATE sc_2_wait_remote_player_response;
 extern const STATE sc_2_remote_player_turn;
 extern const STATE local_player_quit;
-//extern const STATE end_state;	//Defined above
+extern const STATE end_state;
 
 //# Useful functions for FSM actions #
 
@@ -1346,7 +1351,7 @@ static void new_game(game_data& data)
 	//No card discarded
 	data.discard_count = 0;
 	for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
-		data.color_stack[i] = 0;		
+		data.color_stack[i] = 0;
 	//Show card deck full
 	data.elements.deck->SetUseSecondBitmap(true);
 	//Enable discarded cards button
@@ -1599,7 +1604,7 @@ static bool play_card(const card& c, game_data& data)
 	{
 		cout << ", It's not very effective..." << endl;
 		discard_card(c, data);
-		if(data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
+		if (data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
 			data.elements.indicators.lightning_indicators[data.lightnings++]->SetUseAuxBitmap(true);
 		data.redraw = true;
 		success = false;
@@ -1645,12 +1650,12 @@ static void fsm_start_point____server(game_data& data, Package_hanabi* package)
 {
 	//Server must break the ice. A good way to start is asking for her name.
 	Package_name p;
-	if(send_package(p,data.connection))
+	if (send_package(p, data.connection))
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	//Should not enable timeout here
-	//For compatibility with other implementations
+										//Should not enable timeout here
+										//For compatibility with other implementations
 }
 static void fsm_start_point____client(game_data& data, Package_hanabi* package)
 {
@@ -1664,7 +1669,7 @@ static const STATE_BEHAVIOUR_LIST fsm_start_point_list[] =
 	{ CLIENT,fsm_start_point____client,&c_wait_name },
 	{ GND,nullptr,nullptr }
 };
-static const STATE fsm_start_point = {"fsm_start_point",fsm_start_point_list};
+static const STATE fsm_start_point = { "fsm_start_point",fsm_start_point_list };
 //=====
 
 //$ Action group: HANDSHAKE, branch: Server $
@@ -1728,7 +1733,7 @@ static void s_wait_nameis_ack____ack(game_data& data, Package_hanabi* package)
 #ifdef CHEAT_SHOW_LOCAL_CARDS
 		data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(data.local_player_card[i]));
 #else
-		data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(card(NO_COLOR,NO_NUMBER)));
+		data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(card(NO_COLOR, NO_NUMBER)));
 #endif
 	}
 	data.elements.player.local.cards_menu->SetIsVisible(true);
@@ -1753,24 +1758,24 @@ static void s_wait_nameis_ack____timeout(game_data& data, Package_hanabi* packag
 static const STATE_BEHAVIOUR_LIST s_wait_nameis_list[] =
 {
 	{ NAMEIS,s_wait_nameis____nameis,&s_wait_name },
-	{ GND,nullptr,nullptr}
+	{ GND,nullptr,nullptr }
 };
-static const STATE s_wait_nameis = {"s_wait_nameis",s_wait_nameis_list};
+static const STATE s_wait_nameis = { "s_wait_nameis",s_wait_nameis_list };
 //====
 static const STATE_BEHAVIOUR_LIST s_wait_name_list[] =
 {
 	{ NAME,s_wait_name____name,&s_wait_nameis_ack },
-	{ GND,nullptr,nullptr}
+	{ GND,nullptr,nullptr }
 };
-static const STATE s_wait_name = {"s_wait_name",s_wait_name_list};
+static const STATE s_wait_name = { "s_wait_name",s_wait_name_list };
 //====
 static const STATE_BEHAVIOUR_LIST s_wait_nameis_ack_list[] =
 {
-	{ TIMEOUT, s_wait_nameis_ack____timeout, &end_state},		//break
+	{ TIMEOUT, s_wait_nameis_ack____timeout, &end_state },		//break
 	{ ACK,s_wait_nameis_ack____ack,&wait_start_info_ack },		// --> GO TO INITIALIZATION
 	{ GND,nullptr,nullptr }
 };
-static const STATE s_wait_nameis_ack = {"s_wait_nameis_ack",s_wait_nameis_ack_list};
+static const STATE s_wait_nameis_ack = { "s_wait_nameis_ack",s_wait_nameis_ack_list };
 //====
 
 //$ Action group: HANDSHAKE, branch: Client $
@@ -1791,8 +1796,8 @@ static void c_wait_nameis_ack____timeout(game_data& data, Package_hanabi* packag
 static void c_wait_nameis____nameis(game_data& data, Package_hanabi* package)
 {
 	s_wait_nameis____nameis(data, package);	//Same as server
-	//Will not start timer for start info
-	//For compatibility with other implementations
+											//Will not start timer for start info
+											//For compatibility with other implementations
 }
 static void c_wait_start_info____start_info(game_data& data, Package_hanabi* package)
 {
@@ -1814,7 +1819,7 @@ static void c_wait_start_info____start_info(game_data& data, Package_hanabi* pac
 #ifdef CHEAT_SHOW_LOCAL_CARDS
 			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(data.local_player_card[i]));
 #else
-			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(card(NO_COLOR,NO_NUMBER)));
+			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(card(NO_COLOR, NO_NUMBER)));
 #endif
 			data.card_deck.remove_card(data.local_player_card[i]);
 			data.card_deck.remove_card(data.remote_player_card[i]);
@@ -1842,7 +1847,7 @@ static const STATE_BEHAVIOUR_LIST c_wait_name_list[] =
 	{ NAME,c_wait_name____name,&c_wait_nameis_ack },
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_name = {"c_wait_name",c_wait_name_list};
+static const STATE c_wait_name = { "c_wait_name",c_wait_name_list };
 //====
 static const STATE_BEHAVIOUR_LIST c_wait_nameis_ack_list[] =
 {
@@ -1850,21 +1855,21 @@ static const STATE_BEHAVIOUR_LIST c_wait_nameis_ack_list[] =
 	{ TIMEOUT,c_wait_nameis_ack____timeout,&end_state },		//Break
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_nameis_ack = {"c_wait_nameis_ack", c_wait_nameis_ack_list};
+static const STATE c_wait_nameis_ack = { "c_wait_nameis_ack", c_wait_nameis_ack_list };
 //====
 static const STATE_BEHAVIOUR_LIST c_wait_nameis_list[] =
 {
 	{ NAMEIS,c_wait_nameis____nameis,&c_wait_start_info },
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_nameis = {"c_wait_nameis",c_wait_nameis_list};
+static const STATE c_wait_nameis = { "c_wait_nameis",c_wait_nameis_list };
 //====
 static const STATE_BEHAVIOUR_LIST c_wait_start_info_list[] =
 {
 	{ START_INFO,c_wait_start_info____start_info,&wait_who },	// --> GO TO INITIALIZATION
 	{ GND,nullptr,nullptr }
 };
-static const STATE c_wait_start_info = {"c_wait_start_info",c_wait_start_info_list};
+static const STATE c_wait_start_info = { "c_wait_start_info",c_wait_start_info_list };
 //====
 
 //$ Action group: INITIALIZATION, branch: MACHINE_A $
@@ -1925,7 +1930,7 @@ static const STATE_BEHAVIOUR_LIST wait_start_info_ack_list[] =
 	{ TIMEOUT,wait_start_info_ack____timeout,&end_state },		//Break
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_start_info_ack = {"wait_start_info_ack",wait_start_info_ack_list};
+static const STATE wait_start_info_ack = { "wait_start_info_ack",wait_start_info_ack_list };
 //====
 static const STATE_BEHAVIOUR_LIST wait_software_who_list[] =
 {
@@ -1933,20 +1938,20 @@ static const STATE_BEHAVIOUR_LIST wait_software_who_list[] =
 	{ SW_WHO_YOU,wait_software_who____sw_who_you,&remote_player_turn },	//  --> GO TO GAME
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_software_who = {"wait_software_who",wait_software_who_list};
+static const STATE wait_software_who = { "wait_software_who",wait_software_who_list };
 //====
 static const STATE_BEHAVIOUR_LIST wait_i_start_ack_list[] =
 {
 	{ ACK,wait_i_start_ack____ack,&local_player_turn },	// --> GO TO GAME
-	{ TIMEOUT, wait_i_start_ack____timeout,&end_state},		//break
+	{ TIMEOUT, wait_i_start_ack____timeout,&end_state },		//break
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_i_start_ack = {"wait_i_start_ack",wait_i_start_ack_list};
+static const STATE wait_i_start_ack = { "wait_i_start_ack",wait_i_start_ack_list };
 //====
 
 //$ Action group: INITIALIZATION, branch: MACHINE_B $
 static void wait_who____i_start(game_data& data, Package_hanabi* package)
-{	
+{
 	//Remote player turn starts
 	//Remember remote says who, and he told me "I start"
 	Package_ack p;
@@ -1957,7 +1962,7 @@ static void wait_who____i_start(game_data& data, Package_hanabi* package)
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	//Remote turn
+										//Remote turn
 	cout << "[GAME_HANDLER][LOG] : Game started!" << endl;
 	remote_player_turn_starts(data);
 }
@@ -1978,7 +1983,7 @@ static const STATE_BEHAVIOUR_LIST wait_who_list[] =
 	{ YOU_START,wait_who____you_start,&local_player_turn },	// --> GO TO GAME
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_who = {"wait_who",wait_who_list};
+static const STATE wait_who = { "wait_who",wait_who_list };
 //====
 
 //$ Action group: END OF GAME, branch: A:INFORMER (The one who informed game result) $
@@ -1992,7 +1997,7 @@ static void a_wait_remote_play_again_answer____remote_go(game_data& data, Packag
 	//Same as quit
 	common____quit(data, package);
 }
-static void a_wait_remote_play_again_answer____local_pa(game_data& data, Package_hanabi* package) 
+static void a_wait_remote_play_again_answer____local_pa(game_data& data, Package_hanabi* package)
 {
 	game_finished(data);
 	data.elements.message->SetText("Asking remote player if he wants to play again...");
@@ -2004,7 +2009,7 @@ static void a_wait_remote_play_again_answer____local_pa(game_data& data, Package
 	//Wait for remote...
 	data.feedback_event = FB_NO_EVENT;
 }
-static void a_wait_remote_play_again_answer____local_go(game_data& data, Package_hanabi* package) 
+static void a_wait_remote_play_again_answer____local_go(game_data& data, Package_hanabi* package)
 {
 	game_finished(data);
 	//I am waiting for remote player... but I do not want to play again!!
@@ -2056,7 +2061,7 @@ static void a_wait_local_play_again_answer____local_go(game_data& data, Package_
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	//Now must wait ack...
+										//Now must wait ack...
 }
 //% State group: END OF GAME, branch: A:INFORMER (The one who informed game result) %
 static const STATE_BEHAVIOUR_LIST a_wait_remote_play_again_answer_list[] =
@@ -2067,14 +2072,14 @@ static const STATE_BEHAVIOUR_LIST a_wait_remote_play_again_answer_list[] =
 	{ LOCAL_GO,a_wait_remote_play_again_answer____local_go,&local_player_quit },		//wait ack and break
 	{ GND,nullptr,nullptr }
 };
-static const STATE a_wait_remote_play_again_answer = {"a_wait_remote_play_again_answer",a_wait_remote_play_again_answer_list};
+static const STATE a_wait_remote_play_again_answer = { "a_wait_remote_play_again_answer",a_wait_remote_play_again_answer_list };
 //====
 static const STATE_BEHAVIOUR_LIST a_wait_remote_play_again_answer_local_pa_list[] =
 {
 	{ REMOTE_PA,a_wait_remote_play_again_answer_local_pa____remote_pa,&wait_start_info_ack },
 	{ REMOTE_GO,a_wait_remote_play_again_answer_local_pa____remote_go,&end_state },	//break
 };
-static const STATE a_wait_remote_play_again_answer_local_pa = {"a_wait_remote_play_again_answer_local_pa",a_wait_remote_play_again_answer_local_pa_list};
+static const STATE a_wait_remote_play_again_answer_local_pa = { "a_wait_remote_play_again_answer_local_pa",a_wait_remote_play_again_answer_local_pa_list };
 //====
 static const STATE_BEHAVIOUR_LIST a_wait_local_play_again_answer_list[] =
 {
@@ -2082,7 +2087,7 @@ static const STATE_BEHAVIOUR_LIST a_wait_local_play_again_answer_list[] =
 	{ LOCAL_GO,a_wait_local_play_again_answer____local_go,&local_player_quit },		//wait ack and break
 	{ GND,nullptr,nullptr }
 };
-static const STATE a_wait_local_play_again_answer = {"a_wait_local_play_again_answer",a_wait_local_play_again_answer_list};
+static const STATE a_wait_local_play_again_answer = { "a_wait_local_play_again_answer",a_wait_local_play_again_answer_list };
 //====
 
 //$ Action group: END OF GAME, branch: B:INFORMED (The one who received information about game result) $
@@ -2106,8 +2111,8 @@ static void b_wait_local_play_again_answer____local_pa(game_data& data, Package_
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	//Now must wait other player...
-	//Menu with option quit will close, so...
+										//Now must wait other player...
+										//Menu with option quit will close, so...
 	data.quit_button_enabled = true;
 }
 static void b_wait_local_play_again_answer____local_go(game_data& data, Package_hanabi* package)
@@ -2130,7 +2135,7 @@ static void b_wait_local_play_again_answer____local_go(game_data& data, Package_
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	//Now must wait ack...
+										//Now must wait ack...
 }
 static void b_wait_remote_play_again_answer____start_info(game_data& data, Package_hanabi* package)
 {
@@ -2151,10 +2156,10 @@ static void b_wait_remote_play_again_answer____remote_go(game_data& data, Packag
 static const STATE_BEHAVIOUR_LIST b_wait_local_play_again_answer_list[] =
 {
 	{ LOCAL_PA,b_wait_local_play_again_answer____local_pa,&b_wait_remote_play_again_answer },
-	{ LOCAL_GO,b_wait_local_play_again_answer____local_go,&local_player_quit}, //break
+	{ LOCAL_GO,b_wait_local_play_again_answer____local_go,&local_player_quit }, //break
 	{ GND,nullptr,nullptr }
 };
-static const STATE b_wait_local_play_again_answer = {"b_wait_local_play_again_answer",b_wait_local_play_again_answer_list};
+static const STATE b_wait_local_play_again_answer = { "b_wait_local_play_again_answer",b_wait_local_play_again_answer_list };
 //====
 static const STATE_BEHAVIOUR_LIST b_wait_remote_play_again_answer_list[] =
 {
@@ -2162,7 +2167,7 @@ static const STATE_BEHAVIOUR_LIST b_wait_remote_play_again_answer_list[] =
 	{ REMOTE_GO,b_wait_remote_play_again_answer____remote_go,&end_state }, //break
 	{ GND,nullptr,nullptr }
 };
-static const STATE b_wait_remote_play_again_answer = {"b_wait_remote_play_again_answer",b_wait_remote_play_again_answer_list};
+static const STATE b_wait_remote_play_again_answer = { "b_wait_remote_play_again_answer",b_wait_remote_play_again_answer_list };
 //====
 
 //<-- While in game -->       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2246,7 +2251,7 @@ static void local_player_turn____local_play(game_data& data, Package_hanabi* pac
 	data.elements.message2->SetIsVisible(true);
 
 	//Leave blank space where card was
-	data.local_player_card[data.local_event_card_offset] = card(NO_COLOR,NO_NUMBER);
+	data.local_player_card[data.local_event_card_offset] = card(NO_COLOR, NO_NUMBER);
 	data.elements.player.local.player_card[data.local_event_card_offset]->SetIsVisible(false);
 	data.redraw = true;
 
@@ -2285,11 +2290,11 @@ static void local_player_turn____local_discard(game_data& data, Package_hanabi* 
 	data.elements.message2->SetIsVisible(true);
 
 	//Leave blank space where card was
-	data.local_player_card[data.local_event_card_offset] = card(NO_COLOR,NO_NUMBER);
+	data.local_player_card[data.local_event_card_offset] = card(NO_COLOR, NO_NUMBER);
 	data.elements.player.local.player_card[data.local_event_card_offset]->SetIsVisible(false);
 	data.redraw = true;
 	//Send discard package
-	
+
 	p.set_card_id(data.local_event_card_offset);
 	if (send_package(p, data.connection))
 	{
@@ -2384,14 +2389,14 @@ static void wait_remote_player_response____timeout(game_data& data, Package_hana
 static void wait_sw_draw____sw_draw_next(game_data& data, Package_hanabi* package)
 {
 	//We are here because local user wants to draw a card
-	
+
 	card c;
 	Package_draw p;
 
 	//Pick card
 	c = data.card_deck.pick_top();
 	cout << "[GAME_HANDLER][LOG] : Draw card: [" << c.get_short_name() << "]" << endl;
-	for(unsigned int i = 0 ; i < HANABI_HAND_SIZE ; i++)
+	for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
 		if (data.local_player_card[i] == card(NO_COLOR, NO_NUMBER))
 		{
 			//Put it in blank space
@@ -2400,7 +2405,7 @@ static void wait_sw_draw____sw_draw_next(game_data& data, Package_hanabi* packag
 #ifdef CHEAT_SHOW_LOCAL_CARDS
 			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(c));
 #else
-			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(card(NO_COLOR,NO_NUMBER)));
+			data.elements.player.local.player_card[i]->SetBitmap(data.skin.get_bitmap(card(NO_COLOR, NO_NUMBER)));
 #endif
 			data.elements.player.local.player_card[i]->SetIsVisible(true);
 			break;
@@ -2433,7 +2438,7 @@ static const STATE_BEHAVIOUR_LIST local_player_turn_list[] =
 	{ LOCAL_DISCARD,local_player_turn____local_discard,&wait_remote_player_response },
 	{ GND,nullptr,nullptr },
 };
-static const STATE local_player_turn = {"local_player_turn",local_player_turn_list};
+static const STATE local_player_turn = { "local_player_turn",local_player_turn_list };
 //====
 static const STATE_BEHAVIOUR_LIST wait_remote_player_response_list[] =
 {
@@ -2443,7 +2448,7 @@ static const STATE_BEHAVIOUR_LIST wait_remote_player_response_list[] =
 	{ TIMEOUT,wait_remote_player_response____timeout,&end_state },											//  break
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_remote_player_response = {"wait_remote_player_response",wait_remote_player_response_list};
+static const STATE wait_remote_player_response = { "wait_remote_player_response",wait_remote_player_response_list };
 //====
 static const STATE_BEHAVIOUR_LIST wait_sw_draw_list[] =
 {
@@ -2451,7 +2456,7 @@ static const STATE_BEHAVIOUR_LIST wait_sw_draw_list[] =
 	{ SW_DRAW_LAST,wait_sw_draw____sw_draw_last,&sc_1_remote_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 1
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_sw_draw = {"wait_sw_draw",wait_sw_draw_list};
+static const STATE wait_sw_draw = { "wait_sw_draw",wait_sw_draw_list };
 //====
 
 //$ Action group: IN GAME, branch: REMOTE_PLAYER $
@@ -2559,7 +2564,7 @@ static void remote_player_turn____remote_play(game_data& data, Package_hanabi* p
 		data.elements.message2->SetText(message.c_str());
 		data.elements.message2->SetIsVisible(true);
 		//Leave black sapce where played card was
-		data.remote_player_card[card_id] = card(NO_COLOR,NO_NUMBER);
+		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
 		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
 		data.redraw = true;
 		//Send ack package
@@ -2605,7 +2610,7 @@ static void remote_player_turn____remote_discard(game_data& data, Package_hanabi
 		data.elements.message2->SetIsVisible(true);
 
 		//Leave a blank space where card was
-		data.remote_player_card[card_id] = card(NO_COLOR,NO_NUMBER);
+		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
 		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
 		data.redraw = true;
 
@@ -2746,7 +2751,7 @@ static void wait_draw____draw_next(game_data& data, Package_hanabi* package)
 		card c;
 		rec_p->get_card(&c);				//Get his card
 		data.card_deck.remove_card(c);		//If he has this card, then remove it from card deck.
-		cout << "[GAME_HANDLER][LOG] : Draw card: [" << c.get_short_name() << "]"  << endl;
+		cout << "[GAME_HANDLER][LOG] : Draw card: [" << c.get_short_name() << "]" << endl;
 		for (unsigned int i = 0; i < HANABI_HAND_SIZE; i++)
 			if (data.remote_player_card[i] == card(NO_COLOR, NO_NUMBER))
 			{
@@ -2788,16 +2793,16 @@ static const STATE_BEHAVIOUR_LIST remote_player_turn_list[] =
 	{ REMOTE_PLAY_LOST,remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ GND,nullptr,nullptr }
 };
-static const STATE remote_player_turn = {"remote_player_turn",remote_player_turn_list};
+static const STATE remote_player_turn = { "remote_player_turn",remote_player_turn_list };
 //====
 static const STATE_BEHAVIOUR_LIST wait_draw_list[] =
 {
 	{ DRAW_NEXT,wait_draw____draw_next,&local_player_turn },
 	{ DRAW_LAST,wait_draw____draw_last,&sc_2_local_player_turn },	//	--> GO TO GAME FINISHING SCENARIO 2
-	{ TIMEOUT, wait_draw____timeout, &end_state},					//break
+	{ TIMEOUT, wait_draw____timeout, &end_state },					//break
 	{ GND,nullptr,nullptr }
 };
-static const STATE wait_draw = {"wait_draw",wait_draw_list};
+static const STATE wait_draw = { "wait_draw",wait_draw_list };
 //====
 
 //$ Action group: FINISHING SCENARIO 1 (LAST 2 TURNS, REMOTE FIRST), branch: REMOTE_PLAYER $
@@ -2850,14 +2855,14 @@ static const STATE_BEHAVIOUR_LIST sc_1_remote_player_turn_list[] =
 	{ REMOTE_PLAY_WON,sc_1_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_PLAY_LOST,sc_1_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 };
-static const STATE sc_1_remote_player_turn = {"sc_1_remote_player_turn",sc_1_remote_player_turn_list};
+static const STATE sc_1_remote_player_turn = { "sc_1_remote_player_turn",sc_1_remote_player_turn_list };
 //====
 static const STATE_BEHAVIOUR_LIST sc_1_wait_draw_list[] =
 {
 	{ DRAW_FAKE,sc_1_wait_draw____draw_fake,&sc_1_local_player_turn },
 	{ TIMEOUT,sc_1_wait_draw____timeout,&end_state },		//break
 };
-static const STATE sc_1_wait_draw = {"sc_1_wait_draw",sc_1_wait_draw_list};
+static const STATE sc_1_wait_draw = { "sc_1_wait_draw",sc_1_wait_draw_list };
 //====
 
 //$ Action group: FINISHING SCENARIO 1, (LAST 2 TURNS, REMOTE FIRST) branch: LOCAL_PLAYER $
@@ -2936,7 +2941,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_local_player_turn_list[] =
 	{ LOCAL_PLAY,sc_1_local_player_turn____local_play,&sc_1_wait_remote_player_response },
 	{ LOCAL_DISCARD,sc_1_local_player_turn____local_discard,&sc_1_wait_remote_player_response },
 };
-static const STATE sc_1_local_player_turn = {"sc_1_local_player_turn",sc_1_local_player_turn_list};
+static const STATE sc_1_local_player_turn = { "sc_1_local_player_turn",sc_1_local_player_turn_list };
 //====
 static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_player_response_list[] =
 {
@@ -2945,7 +2950,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_player_response_list[] =
 	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_player_response____remote_match_is_over,&b_wait_local_play_again_answer },	//  --> GO TO END OF GAME
 	{ TIMEOUT,sc_1_wait_remote_palyer_response____timeout,&end_state },	//break
 };
-static const STATE sc_1_wait_remote_player_response = {"sc_1_wait_remote_player_response",sc_1_wait_remote_player_response_list};
+static const STATE sc_1_wait_remote_player_response = { "sc_1_wait_remote_player_response",sc_1_wait_remote_player_response_list };
 //====
 
 //$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER $
@@ -2972,7 +2977,7 @@ static void sc_2_wait_remote_player_response____ack(game_data& data, Package_han
 	if (data.feedback_event == FB_DRAW)
 	{
 		//Send draw card here, no need for an extra state!
-		card c(NO_COLOR,NO_NUMBER);
+		card c(NO_COLOR, NO_NUMBER);
 		Package_draw p;
 		p.set_card(c);
 		if (send_package(p, data.connection))
@@ -3006,7 +3011,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_local_player_turn_list[] =
 	{ LOCAL_PLAY,sc_2_local_player_turn____local_play,&sc_2_wait_remote_player_response },
 	{ LOCAL_DISCARD,sc_2_local_player_turn____local_discard,&sc_2_wait_remote_player_response },
 };
-static const STATE sc_2_local_player_turn = {"sc_2_local_player_turn",sc_2_local_player_turn_list};
+static const STATE sc_2_local_player_turn = { "sc_2_local_player_turn",sc_2_local_player_turn_list };
 //====
 static const STATE_BEHAVIOUR_LIST sc_2_wait_remote_player_response_list[] =
 {
@@ -3015,7 +3020,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_wait_remote_player_response_list[] =
 	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 	{ TIMEOUT,sc_2_wait_remote_player_response____timeout,&end_state },										//break
 };
-static const STATE sc_2_wait_remote_player_response = {"sc_2_wait_remote_player_response",sc_2_wait_remote_player_response_list};
+static const STATE sc_2_wait_remote_player_response = { "sc_2_wait_remote_player_response",sc_2_wait_remote_player_response_list };
 //====
 
 //$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER $
@@ -3159,7 +3164,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_remote_player_turn_list[] =
 	{ REMOTE_PLAY_WON,sc_2_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_PLAY_LOST,sc_2_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 };
-static const STATE sc_2_remote_player_turn = {"sc_2_remote_player_turn",sc_2_remote_player_turn_list};
+static const STATE sc_2_remote_player_turn = { "sc_2_remote_player_turn",sc_2_remote_player_turn_list };
 //====
 
 //$ Action group: LOCAL PLAYER QUIT $
@@ -3182,9 +3187,9 @@ static const STATE_BEHAVIOUR_LIST local_player_quit_list[] =
 {
 	{ ACK,local_player_quit____ack,&end_state },			//break
 	{ TIMEOUT,local_player_quit____timeout,&end_state },	//break
-	{ GND, nullptr, nullptr}
+	{ GND, nullptr, nullptr }
 };
-static const STATE local_player_quit = {"local_player_quit",local_player_quit_list};
+static const STATE local_player_quit = { "local_player_quit",local_player_quit_list };
 //====
 
 //$ Action group: END $
@@ -3203,7 +3208,7 @@ static const STATE_BEHAVIOUR_LIST end_state_list[] =
 	{ EXIT_GAME,end_state____end_game,&end_state },	//EXIT!
 	{ GND,nullptr,nullptr },	//EXIT!
 };
-static const STATE end_state = {"end_state",end_state_list};
+static const STATE end_state = { "end_state",end_state_list };
 //====
 
 //# Actions common to all states! #
@@ -3213,7 +3218,7 @@ static void common____timeout(game_data& data, Package_hanabi* package)
 }
 static void common____error_ev(game_data& data, Package_hanabi* package)
 {
-	cerr << "[GAME_HANDLER][ERROR] : COMUNICATION ERROR" <<  endl;
+	cerr << "[GAME_HANDLER][ERROR] : COMUNICATION ERROR" << endl;
 	//Dissable timer, just in case
 	abort_timeout_count(data);
 	//Error event.
@@ -3251,7 +3256,7 @@ static void common____bad(game_data& data, Package_hanabi* package)
 	//Send error;
 	send_package(p, data.connection);
 	data.feedback_event = FB_NO_EVENT; //Don't care about errors here. We are over.
-	//After an error, disconect.
+									   //After an error, disconect.
 	data.connection->disconnect();
 };
 static void common____quit(game_data& data, Package_hanabi* package)
@@ -3259,7 +3264,7 @@ static void common____quit(game_data& data, Package_hanabi* package)
 	//We are here because remote player left the game.
 	Package_ack p;
 
-	cout << "[GAME_HANDLER][INFO] : Remote player left..."  << endl;
+	cout << "[GAME_HANDLER][INFO] : Remote player left..." << endl;
 
 	//Dissable timer
 	abort_timeout_count(data);
@@ -3305,7 +3310,7 @@ static void common____local_quit(game_data& data, Package_hanabi* package)
 	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	//Now must wait ack...
+										//Now must wait ack...
 };
 
 //This state is actually part of all states.
@@ -3313,12 +3318,12 @@ static void common____local_quit(game_data& data, Package_hanabi* package)
 //nullptr means stay in same state
 static const STATE_BEHAVIOUR_LIST common_list[] =
 {
-	{ TIMEOUT, common____timeout, &end_state},
+	{ TIMEOUT, common____timeout, &end_state },
 	{ ERROR_EV,common____error_ev,&end_state },					//break
 	{ BAD,common____bad,&end_state },							//break
 	{ QUIT,common____quit,&end_state },							//break
 	{ LOCAL_QUIT,common____local_quit,&local_player_quit },		//wait ack and break
 	{ GND,common____bad,&end_state }							//Any other event will execute common____bad and change state to end_state
 };
-static const STATE common = {"common",common_list};
+static const STATE common = { "common",common_list };
 //====
