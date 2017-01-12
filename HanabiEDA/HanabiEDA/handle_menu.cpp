@@ -181,7 +181,7 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 			unsigned int wait_as_server = CONNECTION_TIMEOUT - wait_as_client;
 			cout << "[MENU_HANDLER][INFO] : Attempting connection to: " << data->remote_host_text->GetText() << endl;
 			//As client...
-			if ((cl = new Client) != nullptr)
+			if ((cl = new Client) != nullptr && cl->get_state() == READY)
 			{
 				if (cl->connect_to_server(data->remote_host_text->GetText(), CONNECTION_PORT, wait_as_client))
 				{
@@ -194,6 +194,7 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 			}
 			else
 			{
+				delete cl;
 				data->exit = true;
 				cerr << "[MENU_HANDLER][ERROR] : Error creating client connection object" << endl;
 			}
@@ -203,9 +204,9 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 				data->message->SetText("Trying as server...");
 				data->ip_menu->SetIsVisible(false);
 				data->gui->redraw();
-				if ((sv = new Server(CONNECTION_PORT)) != nullptr)
+				if ((sv = new Server(CONNECTION_PORT)) != nullptr && sv->get_state() == READY)
 				{
-					if (sv->listen_for_connection(data->remote_host_text->GetText(),wait_as_server))
+					if (sv->listen_for_connection(wait_as_server))
 					{
 						data->connected = true;
 						data->net = sv;
@@ -216,6 +217,7 @@ static bool connect_button_callback(GuiButton* source, bool forced, bool mouse_o
 				}
 				else
 				{
+					delete sv;
 					data->exit = true;
 					cerr << "[MENU_HANDLER][ERROR] : Error creating server connection object" << endl;
 				}

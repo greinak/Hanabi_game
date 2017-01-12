@@ -485,7 +485,7 @@ static void wait_for_event(game_event_t* ret_event,game_data& g_data)
 				}
 			}
 		//Connection events
-		if (!got_event && g_data.connection->is_connected())
+		if (!got_event && g_data.connection->get_state() == CONNECTED)
 		{
 			//This function should return false if remote player disconnected
 			connection_ok = g_data.connection->receive_data(raw_data, MAX_PACKAGE_SIZE, &data_size);

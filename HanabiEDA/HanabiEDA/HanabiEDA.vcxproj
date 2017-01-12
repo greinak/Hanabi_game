@@ -110,6 +110,7 @@
     <Allegro_AddonVideo>true</Allegro_AddonVideo>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <Allegro_LibraryType>StaticMonolithRelease</Allegro_LibraryType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release 2|Win32'">
     <LinkIncremental>true</LinkIncremental>

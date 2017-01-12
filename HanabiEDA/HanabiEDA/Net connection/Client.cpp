@@ -4,13 +4,15 @@ using namespace std;
 
 Client::Client()
 {
-	cout << "[NET_CONNECTION][INFO] : Initializing client." << endl;
+	if(state == READY)
+		cout << "[NET_CONNECTION][INFO] : Client ready." << endl;
 }
 bool Client::connect_to_server(string server, unsigned int port, unsigned int timeout_ms)
 {
 	unsigned int start_time = clock();
 	unsigned int elapsed_time;
-	if (!connected && init_succ)
+	bool success = false;
+	if (state == READY)
 	{
 		cout << "[NET_CONNECTION][INFO] : Attempting connection to server: ";
 		cout << server << ":" << port << ", timeout:" << timeout_ms << "ms." << endl;
@@ -19,49 +21,39 @@ bool Client::connect_to_server(string server, unsigned int port, unsigned int ti
 		{
 			if (apr_socket_create(&sock, APR_UNSPEC, SOCK_STREAM, APR_PROTO_TCP, mp) == APR_SUCCESS)
 			{
-				apr_interval_time_t timeout;
+				bool timed_out = false;
 				apr_socket_opt_set(sock, APR_SO_NONBLOCK, 1);
-				while (!connected && (elapsed_time = (unsigned int)(((float)(clock()-start_time)/(float)CLOCKS_PER_SEC)*1000)) < timeout_ms)
+				apr_socket_timeout_set(sock, 0);	//t == 0 – read and write calls never block
+				state = CONNECTING;
+				while (state == CONNECTING && !(timed_out = (elapsed_time = (unsigned int)(((float)(clock()-start_time)/(float)CLOCKS_PER_SEC)*1000)) >= timeout_ms))
 				{
-					timeout = timeout_ms - elapsed_time;
-					if (timeout <= 0)
-						timeout = 1;
-					apr_socket_timeout_set(sock, timeout);	//1us to get APR_SUCCESS if connection is successful
 					apr_status_t rv = apr_socket_connect(sock, sa);
 					if (rv == APR_SUCCESS)
 					{
-						//See next comment
-						connected = true;
-						apr_socket_timeout_set(sock, 0);
+						state = CONNECTED;
+						success = true;
 						cout << "[NET_CONNECTION][INFO] : Connected to server!" << endl;
-						return true;
 					}
 				}
-				apr_socket_close(sock);
-				sock = NULL;
+				if (state != CONNECTED)
+				{
+					apr_socket_close(sock);
+					sock = NULL;
+					if(timed_out)
+						cout << "[NET_CONNECTION][INFO] : Timeout after " << elapsed_time << "ms." << endl;
+				}
 			}
-			//Checked apr source code. when source code uses sockaddr, it does not free it
-			//I suppose apr pool manages this
 		}
-		cout << "[NET_CONNECTION][INFO] : Could not connect to server."  << endl;
+		if(state != CONNECTED)
+			cout << "[NET_CONNECTION][INFO] : Could not connect to server."  << endl;
 	}
-	return false;
-}
-
-
-void Client::disconnect()
-{
-	if (connected)
-	{
-		cout << "[NET_CONNECTION][INFO] : Disconnecting client." << endl;
-		connected = false;
-		apr_socket_close(sock);
-		sock = NULL;
-	}
+	else
+		cerr << "[NET_CONNECTION][ERROR] : Bad call to connect to server." << endl;
+	return success;
 }
 
 Client::~Client()
 {
-	disconnect();
-	cout << "[NET_CONNECTION][INFO] : Client closed." << endl;
+	if (state != FATAL_ERROR)
+		cout << "[NET_CONNECTION][INFO] : Closing client..." << endl;
 }
