@@ -487,6 +487,7 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 			{
 				//This mean we had a timeout...
 				ret_event->ev_id = FSM;
+
 				ret_event->fsm_event = TIMEOUT;
 				ret_event->package = nullptr;
 				got_event = true;
@@ -1206,9 +1207,11 @@ static void fsm_start_point____server(game_data& data, Package_hanabi* package);
 static void fsm_start_point____client(game_data& data, Package_hanabi* package);										//Done!
 static void s_wait_nameis____nameis(game_data& data, Package_hanabi* package);											//Done!
 static void s_wait_name____name(game_data& data, Package_hanabi* package);												//Done!
+static void s_wait_name____timeout(game_data& data, Package_hanabi* package);											//Done!
 static void s_wait_nameis_ack____ack(game_data& data, Package_hanabi* package);											//Done!
 static void s_wait_nameis_ack____timeout(game_data& data, Package_hanabi* package);										//Done!
 static void c_wait_name____name(game_data& data, Package_hanabi* package);												//Done!
+static void c_wait_name____timeout(game_data& data, Package_hanabi* package);											//Done!
 static void c_wait_nameis_ack____ack(game_data& data, Package_hanabi* package);											//Done!
 static void c_wait_nameis_ack____timeout(game_data& data, Package_hanabi* package);										//Done!				
 static void c_wait_nameis____nameis(game_data& data, Package_hanabi* package);											//Done!
@@ -1646,6 +1649,8 @@ static bool send_package(Package_hanabi& package, Net_connection* connection)
 //NOTE THAT THERE ARE ACTION AND STATE GROUPS!
 
 //$ Action group: START $
+
+
 static void fsm_start_point____server(game_data& data, Package_hanabi* package)
 {
 	//Server must break the ice. A good way to start is asking for her name.
@@ -1659,7 +1664,9 @@ static void fsm_start_point____server(game_data& data, Package_hanabi* package)
 }
 static void fsm_start_point____client(game_data& data, Package_hanabi* package)
 {
-	//DO NOTHING.
+	//Waiting for remote name request
+	//Enable timeout timer
+	start_timeout_count(data);
 	data.feedback_event = FB_NO_EVENT;
 }
 //% State group: START %
@@ -1689,7 +1696,12 @@ static void s_wait_nameis____nameis(game_data& data, Package_hanabi* package)
 		data.elements.player.remote.name->SetIsVisible(true);
 		//Send ACK
 		if (send_package(p, data.connection))
+		{
 			data.feedback_event = FB_NO_EVENT;
+			//Now, we will wait for remote name request
+			//Enable timeout timer
+			start_timeout_count(data);
+		}
 		else
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
 	}
@@ -1698,7 +1710,10 @@ static void s_wait_nameis____nameis(game_data& data, Package_hanabi* package)
 }
 static void s_wait_name____name(game_data& data, Package_hanabi* package)
 {
-	//Received name request! send name_is with my name
+	//Received name request! 
+	//Disable timer
+	abort_timeout_count(data);
+	//send name_is with my name
 	Package_name_is p;
 	//Add name to package
 	p.set_name(data.user_name);
@@ -1712,6 +1727,10 @@ static void s_wait_name____name(game_data& data, Package_hanabi* package)
 	}
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
+}
+static void s_wait_name____timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 static void s_wait_nameis_ack____ack(game_data& data, Package_hanabi* package)
 {
@@ -1765,6 +1784,7 @@ static const STATE s_wait_nameis = { "s_wait_nameis",s_wait_nameis_list };
 static const STATE_BEHAVIOUR_LIST s_wait_name_list[] =
 {
 	{ NAME,s_wait_name____name,&s_wait_nameis_ack },
+	{ TIMEOUT,s_wait_name____timeout,&end_state },
 	{ GND,nullptr,nullptr }
 };
 static const STATE s_wait_name = { "s_wait_name",s_wait_name_list };
@@ -1781,7 +1801,13 @@ static const STATE s_wait_nameis_ack = { "s_wait_nameis_ack",s_wait_nameis_ack_l
 //$ Action group: HANDSHAKE, branch: Client $
 static void c_wait_name____name(game_data& data, Package_hanabi* package)
 {
+	//Got name request, dissable timer
+	abort_timeout_count(data);
 	s_wait_name____name(data, package);	//Same as server
+}
+static void c_wait_name____timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
 }
 static void c_wait_nameis_ack____ack(game_data& data, Package_hanabi* package)
 {
@@ -1845,6 +1871,7 @@ static void c_wait_start_info____start_info(game_data& data, Package_hanabi* pac
 static const STATE_BEHAVIOUR_LIST c_wait_name_list[] =
 {
 	{ NAME,c_wait_name____name,&c_wait_nameis_ack },
+	{ TIMEOUT,c_wait_name____timeout,&end_state },
 	{ GND,nullptr,nullptr }
 };
 static const STATE c_wait_name = { "c_wait_name",c_wait_name_list };
