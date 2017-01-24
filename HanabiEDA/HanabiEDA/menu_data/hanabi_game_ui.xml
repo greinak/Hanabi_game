@@ -1,7 +1,7 @@
 <GuiMenu>
   <!--GUI configuraton-->
   <size width="3200" height = "1800"/>
-  <scale sx="0.7" sy="0.7"/>
+  <scale sx="0.35" sy="0.35"/>
   <backgBitmap>Hanabi_textures/background.png</backgBitmap>
   <iconBitmap>Hanabi_textures/Fireworks/Blue.png</iconBitmap>
   <title>Hanabi Game</title>

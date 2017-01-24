@@ -1267,8 +1267,10 @@ static void sc_1_local_player_turn____local_play(game_data& data, Package_hanabi
 static void sc_1_local_player_turn____local_discard(game_data& data, Package_hanabi* package);							//Done!
 static void sc_1_wait_remote_player_response____remote_we_won(game_data& data, Package_hanabi* package);				//Done!
 static void sc_1_wait_remote_player_response____remote_we_lost(game_data& data, Package_hanabi* package);				//Done!
-static void sc_1_wait_remote_player_response____remote_match_is_over(game_data& data, Package_hanabi* package);			//Done!
+static void sc_1_wait_remote_player_response____remote_ack(game_data& data, Package_hanabi* package);					//Done!
 static void sc_1_wait_remote_palyer_response____timeout(game_data& data, Package_hanabi* package);						//Done!
+static void sc_1_wait_remote_match_is_over____remote_match_is_over(game_data& data, Package_hanabi* package);			//Done!
+static void sc_1_wait_remote_match_is_over____timeout(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_local_player_turn____local_give_clue(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_local_player_turn____local_play(game_data& data, Package_hanabi* package);								//Done!
 static void sc_2_local_player_turn____local_discard(game_data& data, Package_hanabi* package);							//Done!
@@ -1281,6 +1283,8 @@ static void sc_2_remote_player_turn____remote_discard(game_data& data, Package_h
 static void sc_2_remote_player_turn____remote_play(game_data& data, Package_hanabi* package);							//Done!
 static void sc_2_remote_player_turn____remote_play_won(game_data& data, Package_hanabi* package);						//Done!
 static void sc_2_remote_player_turn____remote_play_lost(game_data& data, Package_hanabi* package);						//Done!
+static void sc_2_wait_draw____draw_fake(game_data& data, Package_hanabi* package);										//Done!
+static void sc_2_wait_draw____timeout(game_data& data, Package_hanabi* package);										//Done!
 static void local_player_quit____ack(game_data& data, Package_hanabi* package);											//Done!
 static void end_state____end_game(game_data& data, Package_hanabi* package);											//Done!
 static void common____error_ev(game_data& data, Package_hanabi* package);												//Done!
@@ -1316,9 +1320,11 @@ extern const STATE sc_1_remote_player_turn;
 extern const STATE sc_1_wait_draw;
 extern const STATE sc_1_local_player_turn;
 extern const STATE sc_1_wait_remote_player_response;
+extern const STATE sc_1_wait_remote_match_is_over;
 extern const STATE sc_2_local_player_turn;
 extern const STATE sc_2_wait_remote_player_response;
 extern const STATE sc_2_remote_player_turn;
+extern const STATE sc_2_wait_draw;
 extern const STATE local_player_quit;
 extern const STATE end_state;
 
@@ -2243,7 +2249,10 @@ static void local_player_turn____local_give_clue(game_data& data, Package_hanabi
 
 		//Send clue!
 		if (send_package(p, data.connection))
+		{
 			data.feedback_event = FB_NO_EVENT;
+			remote_player_turn_starts(data);
+		}
 		else
 			data.feedback_event = FB_ERROR;	//FATAL ERROR
 	}
@@ -2505,8 +2514,6 @@ static void remote_player_turn____remote_give_clue(game_data& data, Package_hana
 			data.elements.indicators.clue_indicators[--data.clues]->SetUseAuxBitmap(true);
 			//Remote player turn finished
 			remote_player_turn_ends(data);
-			//And now is local turn
-			local_player_turn_starts(data);
 
 			//Read clue
 			rec_p->get_clue(&c);
@@ -2539,6 +2546,8 @@ static void remote_player_turn____remote_give_clue(game_data& data, Package_hana
 			}
 
 			cout << "[GAME_HANDLER][LOG] : CLUE: " << clue << endl;
+			//And now is local turn
+			local_player_turn_starts(data);
 			//Show message.
 			data.elements.message2->SetText(message.c_str());
 			data.elements.message2->SetIsVisible(true);
@@ -2920,44 +2929,50 @@ static void sc_1_wait_remote_player_response____remote_we_lost(game_data& data, 
 	//Same as normal
 	wait_remote_player_response____remote_we_lost(data, package);
 }
-static void sc_1_wait_remote_player_response____remote_match_is_over(game_data& data, Package_hanabi* package)
+static void sc_1_wait_remote_player_response____remote_ack(game_data& data, Package_hanabi* package)
 {
-	//@@TO_DO: CHECK THIS AFTER AGUSTIN ANSWERS MAIL!
-	//Remote player says we match is over. But, didn't we win? lose?
-	//Check lightning indicators
-	//Got match is over! disable timeout
-	abort_timeout_count(data);
-	if (data.lightnings != HANABI_TOTAL_LIGHTNING_INDICATORS)
+	//Almost Same as normal
+	wait_remote_player_response____ack(data, package);
+	//But should not draw a card, must draw fake card
+	//INTERCEPT FEEDBACK EVENT!
+	if (data.feedback_event == FB_DRAW)
 	{
-		//Ok, we didn't lose
-		//Did we win?
-		unsigned int card_count = 0;
-		//count cards in stacks
-		for (unsigned int i = 0; i < HANABI_TOTAL_COLORS; i++)
-			card_count += data.color_stack[i];
-		if (card_count != HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS)
+		//Send draw card here, no need for an extra state!
+		card c(NO_COLOR, NO_NUMBER);
+		Package_draw p;
+		p.set_card(c);
+		if (send_package(p, data.connection))
 		{
-			//If open, colapse discarded cards menu
-			data.elements.discarded_cards.menu->SetIsActive(false);
-			data.elements.discarded_cards.menu->SetIsVisible(false);
-			//If user was about to exit game... prevent that
-			data.elements.exit_menu.menu->SetIsActive(false);
-			data.elements.exit_menu.menu->SetIsVisible(false);
-			//Ok, match is over
-			match_is_over_message(data);
-			//Show local cards
-			reveal_local_cards(data);
 			data.feedback_event = FB_NO_EVENT;
+			//Match is over package is expected, so enable timeout
+			start_timeout_count(data);
 		}
 		else
-			//WE WON! WE GOT AN ERROR HERE
-			data.feedback_event = FB_ERROR;
+			data.feedback_event = FB_ERROR;	//FATAL ERROR
+		data.feedback_event = FB_NO_EVENT;
 	}
-	else
-		//WE LOST! WE GOT AN ERROR HERE
-		data.feedback_event = FB_ERROR;
 }
 static void sc_1_wait_remote_palyer_response____timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
+}
+static void sc_1_wait_remote_match_is_over____remote_match_is_over(game_data& data, Package_hanabi* package)
+{
+	//Got match is over! abort timeout timer
+	abort_timeout_count(data);
+	//If open, colapse discarded cards menu
+	data.elements.discarded_cards.menu->SetIsActive(false);
+	data.elements.discarded_cards.menu->SetIsVisible(false);
+	//If user was about to exit game... prevent that
+	data.elements.exit_menu.menu->SetIsActive(false);
+	data.elements.exit_menu.menu->SetIsVisible(false);
+	//Ok, match is over
+	match_is_over_message(data);
+	//Show local cards
+	reveal_local_cards(data);
+	data.feedback_event = FB_NO_EVENT;
+}
+static void sc_1_wait_remote_match_is_over____timeout(game_data& data, Package_hanabi* package)
 {
 	timeout(data, package);
 }
@@ -2974,10 +2989,17 @@ static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_player_response_list[] =
 {
 	{ REMOTE_WE_WON,sc_1_wait_remote_player_response____remote_we_won,&b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
 	{ REMOTE_WE_LOST,sc_1_wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
-	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_player_response____remote_match_is_over,&b_wait_local_play_again_answer },	//  --> GO TO END OF GAME
-	{ TIMEOUT,sc_1_wait_remote_palyer_response____timeout,&end_state },	//break
+	{ ACK,sc_1_wait_remote_player_response____remote_ack,&sc_1_wait_remote_match_is_over },								
+	{ TIMEOUT,sc_1_wait_remote_palyer_response____timeout,&end_state },													//break
 };
 static const STATE sc_1_wait_remote_player_response = { "sc_1_wait_remote_player_response",sc_1_wait_remote_player_response_list };
+//====
+static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_match_is_over_list[] =
+{
+	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_match_is_over____remote_match_is_over,&b_wait_local_play_again_answer},					//  --> GO TO END OF GAME
+	{ TIMEOUT,sc_1_wait_remote_match_is_over____timeout,&end_state },																//Break
+};
+static const STATE sc_1_wait_remote_match_is_over = { "sc_1_wait_remote_match_is_over",sc_1_wait_remote_match_is_over_list };
 //====
 
 //$ Action group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: LOCAL_PLAYER $
@@ -3059,118 +3081,13 @@ static void sc_2_remote_player_turn____remote_give_clue(game_data& data, Package
 }
 static void sc_2_remote_player_turn____remote_discard(game_data& data, Package_hanabi* package)
 {
-	//@@TO_DO: CHECK THIS AFTER AGUSTIN ANSWERS MAIL!
-	//IF WE ARE HERE IS BECAUSE MATCH IS OVER!!!
-	//We are here because remote player discarded a card
-	//Let's process data
-	Package_discard *rec_p;
-	//We know remote user turn finished
-	remote_player_turn_ends(data);
-	if ((rec_p = dynamic_cast<Package_discard*>(package)) != nullptr)
-	{
-		unsigned int card_id;
-		card c;
-		string card_name, message;
-		Package_match_is_over p;
-
-		//Card discarded?
-		rec_p->get_card_id(&card_id);
-		c = data.remote_player_card[card_id];
-		discard_card(c, data);
-
-		//Compute card string
-		card_name = c.get_name();
-
-		//Prepare message to show
-		message = string("Friend discarded ") + card_name;
-
-		//Show message.
-		data.elements.message2->SetText(message.c_str());
-		data.elements.message2->SetIsVisible(true);
-
-		//Leave a blank space where card was
-		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
-		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
-		data.redraw = true;
-
-		//If open, colapse discarded cards menu
-		data.elements.discarded_cards.menu->SetIsActive(false);
-		data.elements.discarded_cards.menu->SetIsVisible(false);
-		//If user was about to exit game... prevent that
-		data.elements.exit_menu.menu->SetIsActive(false);
-		data.elements.exit_menu.menu->SetIsVisible(false);
-		//Match is over
-		match_is_over_message(data);
-		//Show local cards
-		reveal_local_cards(data);
-
-		//Send match is over package
-		if (send_package(p, data.connection))
-			data.feedback_event = FB_NO_EVENT;
-		else
-			data.feedback_event = FB_ERROR;	//FATAL ERROR
-	}
-	else
-		data.feedback_event = FB_ERROR;	//FATAL ERROR
+	//Same as normal
+	remote_player_turn____remote_discard(data, package);
 }
 static void sc_2_remote_player_turn____remote_play(game_data& data, Package_hanabi* package)
 {
-	//@@TO_DO: CHECK THIS AFTER AGUSTIN ANSWERS MAIL!
-	//IF WE ARE HERE IS BECAUSE MATCH IS OVER!!!
-	//We are here because remote player played a card.
-	//Let's process data
-	Package_play *rec_p;
-	//We know remote user turn finished
-	remote_player_turn_ends(data);
-	if ((rec_p = dynamic_cast<Package_play*>(package)) != nullptr)
-	{
-		unsigned int card_id;
-		card c;
-		string card_name, message;
-		Package_match_is_over p;
-
-		//Card played?
-		rec_p->get_card_id(&card_id);
-		c = data.remote_player_card[card_id];
-
-		//Compute card string
-		card_name = c.get_name();
-
-		//Prepare string..
-		message = string("Friend played ") + card_name;
-
-		//Play card and finish string
-		if (play_card(c, data))
-			message += " - SUCCESS!";
-		else
-			message += " - Card discarded :(";
-		//Show message
-		data.elements.message2->SetText(message.c_str());
-		data.elements.message2->SetIsVisible(true);
-		//Leave black sapce where played card was
-		data.remote_player_card[card_id] = card(NO_COLOR, NO_NUMBER);
-		data.elements.player.remote.player_card[card_id]->SetIsVisible(false);
-		data.redraw = true;
-
-		//If open, colapse discarded cards menu
-		data.elements.discarded_cards.menu->SetIsActive(false);
-		data.elements.discarded_cards.menu->SetIsVisible(false);
-		//If user was about to exit game... prevent that
-		data.elements.exit_menu.menu->SetIsActive(false);
-		data.elements.exit_menu.menu->SetIsVisible(false);
-		//Match is over
-		match_is_over_message(data);
-		//Show local cards
-		reveal_local_cards(data);
-		//Inform remote player match is over
-		if (send_package(p, data.connection))
-			data.feedback_event = FB_NO_EVENT;
-		else
-			data.feedback_event = FB_ERROR;	//FATAL ERROR
-	}
-	else
-		data.feedback_event = FB_ERROR;	//FATAL ERROR
-
+	//Same as normal
+	remote_player_turn____remote_play(data, package);
 }
 static void sc_2_remote_player_turn____remote_play_won(game_data& data, Package_hanabi* package)
 {
@@ -3182,17 +3099,54 @@ static void sc_2_remote_player_turn____remote_play_lost(game_data& data, Package
 	//Same as normal
 	remote_player_turn____remote_play_lost(data, package);
 }
+static void sc_2_wait_draw____draw_fake(game_data& data, Package_hanabi* package)
+{
+	Package_match_is_over p;
+	//Got draw! disable timeout
+	abort_timeout_count(data);
+	//We are here because remote draw a card, and he informed us his card. 
+	//This is the 'NO CARD' card
+	//Match is over...
+
+	//If open, colapse discarded cards menu
+	data.elements.discarded_cards.menu->SetIsActive(false);
+	data.elements.discarded_cards.menu->SetIsVisible(false);
+	//If user was about to exit game... prevent that
+	data.elements.exit_menu.menu->SetIsActive(false);
+	data.elements.exit_menu.menu->SetIsVisible(false);
+	//Match is over
+	match_is_over_message(data);
+	//Show local cards
+	reveal_local_cards(data);
+	//Inform remote player match is over
+	if (send_package(p, data.connection))
+		data.feedback_event = FB_NO_EVENT;
+	else
+		data.feedback_event = FB_ERROR;	//FATAL ERROR
+}
+static void sc_2_wait_draw____timeout(game_data& data, Package_hanabi* package)
+{
+	timeout(data, package);
+}
 //% State group: FINISHING SCENARIO 2 (LAST 2 TURNS, LOCAL FIRST), branch: REMOTE_PLAYER %
 static const STATE_BEHAVIOUR_LIST sc_2_remote_player_turn_list[] =
 {
 	{ REMOTE_GIVE_CLUE,sc_2_remote_player_turn____remote_give_clue,&a_wait_remote_play_again_answer },		//	--> GO TO END OF GAME
-	{ REMOTE_DISCARD,sc_2_remote_player_turn____remote_discard,&a_wait_remote_play_again_answer },			//	--> GO TO END OF GAME	
-	{ REMOTE_PLAY,sc_2_remote_player_turn____remote_play,&a_wait_remote_play_again_answer },				//	--> GO TO END OF GAME
+	{ REMOTE_DISCARD,sc_2_remote_player_turn____remote_discard,&sc_2_wait_draw },
+	{ REMOTE_PLAY,sc_2_remote_player_turn____remote_play,&sc_2_wait_draw },
 	{ REMOTE_PLAY_WON,sc_2_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_PLAY_LOST,sc_2_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 };
 static const STATE sc_2_remote_player_turn = { "sc_2_remote_player_turn",sc_2_remote_player_turn_list };
 //====
+static const STATE_BEHAVIOUR_LIST sc_2_wait_draw_list[] =
+{
+	{ DRAW_FAKE,sc_2_wait_draw____draw_fake,&a_wait_remote_play_again_answer},			//	--> GO TO END OF GAME
+	{ TIMEOUT,sc_2_wait_draw____timeout,&end_state},									//Break	
+};
+static const STATE sc_2_wait_draw = { "sc_2_wait_draw",sc_2_wait_draw_list };
+//====
+
 
 //$ Action group: LOCAL PLAYER QUIT $
 static void local_player_quit____ack(game_data& data, Package_hanabi* package)
