@@ -1200,7 +1200,7 @@ static const STATE* fsm_handler(const STATE * current_state, fsm_event_T ev, gam
 	return next_state;
 }
 
-//# Actions prototypes #
+//# Actions definitions #
 
 //Notation: state____event ; HERE WE HAVE ALL ACTIONS!
 static void fsm_start_point____server(game_data& data, Package_hanabi* package);										//Done!
@@ -1292,7 +1292,7 @@ static void common____bad(game_data& data, Package_hanabi* package);												
 static void common____quit(game_data& data, Package_hanabi* package);													//Done!
 static void common____local_quit(game_data& data, Package_hanabi* package);												//Done!
 
-																														//# States prototypes #
+//# States definitions #
 
 																														//extern const STATE fsm_start_point;	//Defined above
 extern const STATE s_wait_nameis;
@@ -2114,6 +2114,7 @@ static const STATE_BEHAVIOUR_LIST a_wait_remote_play_again_answer_local_pa_list[
 {
 	{ REMOTE_PA,a_wait_remote_play_again_answer_local_pa____remote_pa,&wait_start_info_ack },
 	{ REMOTE_GO,a_wait_remote_play_again_answer_local_pa____remote_go,&end_state },	//break
+	{ GND,nullptr,nullptr }
 };
 static const STATE a_wait_remote_play_again_answer_local_pa = { "a_wait_remote_play_again_answer_local_pa",a_wait_remote_play_again_answer_local_pa_list };
 //====
@@ -2893,6 +2894,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_remote_player_turn_list[] =
 	{ REMOTE_DISCARD,sc_1_remote_player_turn____remote_discard,&sc_1_wait_draw },
 	{ REMOTE_PLAY_WON,sc_1_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_PLAY_LOST,sc_1_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_1_remote_player_turn = { "sc_1_remote_player_turn",sc_1_remote_player_turn_list };
 //====
@@ -2900,6 +2902,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_wait_draw_list[] =
 {
 	{ DRAW_FAKE,sc_1_wait_draw____draw_fake,&sc_1_local_player_turn },
 	{ TIMEOUT,sc_1_wait_draw____timeout,&end_state },		//break
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_1_wait_draw = { "sc_1_wait_draw",sc_1_wait_draw_list };
 //====
@@ -2985,6 +2988,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_local_player_turn_list[] =
 	{ LOCAL_GIVE_CLUE,sc_1_local_player_turn____local_give_clue,&sc_1_wait_remote_match_is_over },
 	{ LOCAL_PLAY,sc_1_local_player_turn____local_play,&sc_1_wait_remote_player_response },
 	{ LOCAL_DISCARD,sc_1_local_player_turn____local_discard,&sc_1_wait_remote_player_response },
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_1_local_player_turn = { "sc_1_local_player_turn",sc_1_local_player_turn_list };
 //====
@@ -2994,6 +2998,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_player_response_list[] =
 	{ REMOTE_WE_LOST,sc_1_wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },				//  --> GO TO END OF GAME
 	{ ACK,sc_1_wait_remote_player_response____remote_ack,&sc_1_wait_remote_match_is_over },								
 	{ TIMEOUT,sc_1_wait_remote_palyer_response____timeout,&end_state },													//break
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_1_wait_remote_player_response = { "sc_1_wait_remote_player_response",sc_1_wait_remote_player_response_list };
 //====
@@ -3001,6 +3006,7 @@ static const STATE_BEHAVIOUR_LIST sc_1_wait_remote_match_is_over_list[] =
 {
 	{ REMOTE_MATCH_IS_OVER,sc_1_wait_remote_match_is_over____remote_match_is_over,&b_wait_local_play_again_answer},					//  --> GO TO END OF GAME
 	{ TIMEOUT,sc_1_wait_remote_match_is_over____timeout,&end_state },																//Break
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_1_wait_remote_match_is_over = { "sc_1_wait_remote_match_is_over",sc_1_wait_remote_match_is_over_list };
 //====
@@ -3062,6 +3068,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_local_player_turn_list[] =
 	{ LOCAL_GIVE_CLUE,sc_2_local_player_turn____local_give_clue,&sc_2_remote_player_turn },
 	{ LOCAL_PLAY,sc_2_local_player_turn____local_play,&sc_2_wait_remote_player_response },
 	{ LOCAL_DISCARD,sc_2_local_player_turn____local_discard,&sc_2_wait_remote_player_response },
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_2_local_player_turn = { "sc_2_local_player_turn",sc_2_local_player_turn_list };
 //====
@@ -3071,6 +3078,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_wait_remote_player_response_list[] =
 	{ REMOTE_WE_WON,sc_2_wait_remote_player_response____remote_we_won,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_WE_LOST,sc_2_wait_remote_player_response____remote_we_lost,&b_wait_local_play_again_answer },		//  --> GO TO END OF GAME
 	{ TIMEOUT,sc_2_wait_remote_player_response____timeout,&end_state },										//break
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_2_wait_remote_player_response = { "sc_2_wait_remote_player_response",sc_2_wait_remote_player_response_list };
 //====
@@ -3157,6 +3165,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_remote_player_turn_list[] =
 	{ REMOTE_PLAY,sc_2_remote_player_turn____remote_play,&sc_2_wait_draw },
 	{ REMOTE_PLAY_WON,sc_2_remote_player_turn____remote_play_won,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
 	{ REMOTE_PLAY_LOST,sc_2_remote_player_turn____remote_play_lost,&a_wait_remote_play_again_answer },		//  --> GO TO END OF GAME
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_2_remote_player_turn = { "sc_2_remote_player_turn",sc_2_remote_player_turn_list };
 //====
@@ -3164,6 +3173,7 @@ static const STATE_BEHAVIOUR_LIST sc_2_wait_draw_list[] =
 {
 	{ DRAW_FAKE,sc_2_wait_draw____draw_fake,&a_wait_remote_play_again_answer},			//	--> GO TO END OF GAME
 	{ TIMEOUT,sc_2_wait_draw____timeout,&end_state},									//Break	
+	{ GND,nullptr,nullptr }
 };
 static const STATE sc_2_wait_draw = { "sc_2_wait_draw",sc_2_wait_draw_list };
 //====
