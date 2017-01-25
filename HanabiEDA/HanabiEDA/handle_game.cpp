@@ -240,6 +240,9 @@ typedef struct
 	unsigned int local_event_card_offset;
 	//Local event queue
 	queue<local_user_event_T> local_event_queue;
+	//Other game data
+	unsigned int game_number;
+	bool local_started_first;
 }game_data;
 //Event ID
 typedef enum { MOUSE, DISPLAY_CLOSE, FSM } event_id;
@@ -322,6 +325,7 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 					data.elements.message->SetIsVisible(true);
 					data.game_ui->redraw();
 					data.quit_button_enabled = true;
+					data.game_number = 0;
 					const STATE* state = &fsm_start_point;
 					if (is_server)
 						state = fsm_handler(state, SERVER, data, nullptr);
@@ -373,7 +377,7 @@ void handle_game(Gui* game_ui, string user_name, Net_connection* net, bool is_se
 //# Other functions #
 
 //Wait for an event
-static void wait_for_event(game_event_t* ret_event, game_data& g_data)
+static void wait_for_event(game_event_t* ret_event, game_data& data)
 {
 	//Got event flag. While false, keep waiting for events
 	bool got_event = false;
@@ -389,14 +393,20 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 	while (!got_event)
 	{
 		//Feedback events FIRST.
-		if (g_data.feedback_event != FB_NO_EVENT)
+		if (data.feedback_event != FB_NO_EVENT)
 		{
-			switch (g_data.feedback_event)
+			switch (data.feedback_event)
 			{
 			case FB_WHO:	//This means we should decide who starts.
 			{
 				ret_event->ev_id = FSM;
-				ret_event->fsm_event = (rand() % 2) ? SW_WHO_I : SW_WHO_YOU;	//Pseudorandomly select who starts.
+				if (data.game_number == 1)	//First game is game number one!
+				{
+					ret_event->fsm_event = (rand() % 2) ? SW_WHO_I : SW_WHO_YOU;	//Pseudorandomly select who starts.
+					data.local_started_first = ret_event->fsm_event == SW_WHO_I;
+				}
+				else
+					ret_event->fsm_event = (!(data.game_number % 2) != !data.local_started_first) ? SW_WHO_YOU : SW_WHO_I;	//Alternate turns.
 				ret_event->package = nullptr;		//If no data, always to nullptr
 				got_event = true;
 				break;
@@ -404,7 +414,7 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 			case FB_DRAW:	//This means we should draw a card
 			{
 				ret_event->ev_id = FSM;
-				if (g_data.card_deck.size() > 1)
+				if (data.card_deck.size() > 1)
 					ret_event->fsm_event = SW_DRAW_NEXT;	//This is not the last card in card deck
 				else
 					ret_event->fsm_event = SW_DRAW_LAST;	//This is last card in card deck
@@ -419,15 +429,15 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 				ret_event->fsm_event = ERROR_EV;	//FATAL ERROR.
 				ret_event->package = nullptr;		//If no data, always to nullptr
 			}
-			g_data.feedback_event = FB_NO_EVENT;	//Always set value to no event !
+			data.feedback_event = FB_NO_EVENT;	//Always set value to no event !
 		}
 		//Local events
-		if (!got_event && !g_data.local_event_queue.empty())
+		if (!got_event && !data.local_event_queue.empty())
 		{
 			got_event = true;			//If there is a local event, then we know we have an event!
 			ret_event->ev_id = FSM;		//This event is for FSM
-			local_user_event_T ev = g_data.local_event_queue.front();	//Get event
-			g_data.local_event_queue.pop();								//Remove it from queue
+			local_user_event_T ev = data.local_event_queue.front();	//Get event
+			data.local_event_queue.pop();								//Remove it from queue
 			switch (ev)
 			{
 				//This is just obvious...
@@ -458,13 +468,13 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 			}
 		}
 		//Allegro mouse and display events
-		if (!got_event && !al_is_event_queue_empty(g_data.ev_q))
+		if (!got_event && !al_is_event_queue_empty(data.ev_q))
 		{
 			ALLEGRO_EVENT ev;
-			al_wait_for_event(g_data.ev_q, &ev);
+			al_wait_for_event(data.ev_q, &ev);
 			if (ev.any.source == al_get_mouse_event_source())
 			{
-				if (ev.mouse.display == g_data.game_ui->get_display())
+				if (ev.mouse.display == data.game_ui->get_display())
 				{
 					//A note about this event:
 					//Actually, mouse events are not necesary
@@ -474,10 +484,10 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 					got_event = true;
 				}
 			}
-			else if (ev.any.source == al_get_display_event_source(g_data.game_ui->get_display()))
+			else if (ev.any.source == al_get_display_event_source(data.game_ui->get_display()))
 			{
 				//Window close button!
-				if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE && g_data.quit_button_enabled)
+				if (ev.display.type == ALLEGRO_EVENT_DISPLAY_CLOSE && data.quit_button_enabled)
 				{
 					ret_event->ev_id = DISPLAY_CLOSE;
 					got_event = true;
@@ -494,10 +504,10 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 			}
 		}
 		//Connection events
-		if (!got_event && g_data.connection->get_state() == CONNECTED)
+		if (!got_event && data.connection->get_state() == CONNECTED)
 		{
 			//This function should return false if remote player disconnected
-			connection_ok = g_data.connection->receive_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
+			connection_ok = data.connection->receive_data(raw_data, MAX_PACKAGE_SIZE, &data_size);
 			if (connection_ok)
 			{
 				//True does not mean we have data. It only means connection is ok! Have we got data?
@@ -595,11 +605,11 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 							//Get card offset
 							package->get_card_id(&i);
 							//Load card
-							c = g_data.remote_player_card[i];
+							c = data.remote_player_card[i];
 							//Now c is the played card
-							if (g_data.color_stack[c.get_color()] != c.get_number())	//This will be true if card will be discarded if in game
+							if (data.color_stack[c.get_color()] != c.get_number())	//This will be true if card will be discarded if in game
 							{
-								if (g_data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)	//Can we afford that?
+								if (data.lightnings == HANABI_TOTAL_LIGHTNING_INDICATORS - 1)	//Can we afford that?
 									ret_event->fsm_event = REMOTE_PLAY_LOST;
 								else
 									ret_event->fsm_event = REMOTE_PLAY;
@@ -612,7 +622,7 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 								{
 									//If yes, how many cards are there in center stacks?
 									for (unsigned int j = 0; j < HANABI_TOTAL_COLORS; j++)
-										played_cards += g_data.color_stack[j];
+										played_cards += data.color_stack[j];
 									//Is it almost full, but missing one?
 									if (played_cards == HANABI_TOTAL_COLORS*HANABI_TOTAL_NUMBERS - 1)
 										ret_event->fsm_event = REMOTE_PLAY_WON;	//Then we won
@@ -642,7 +652,7 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 						if ((ret_event->package = package) != nullptr && package->load_raw_data(raw_data, data_size))
 						{
 							//Two possibilities
-							if (g_data.clues != 0)
+							if (data.clues != 0)
 								ret_event->fsm_event = REMOTE_GIVE_CLUE; //to be
 							else
 								ret_event->fsm_event = BAD;	//or not to be
@@ -659,11 +669,11 @@ static void wait_for_event(game_event_t* ret_event, game_data& g_data)
 							//This may trigger different events...
 							card c;
 							package->get_card(&c);
-							if (g_data.card_deck.size() == 0 && c == card(NO_COLOR, NO_NUMBER))
+							if (data.card_deck.size() == 0 && c == card(NO_COLOR, NO_NUMBER))
 								ret_event->fsm_event = DRAW_FAKE;	//No cards left in deck, this is the draw fake card event
-							else if (g_data.card_deck.count_cards(c) != 0)	//Else, are there samples of this card in card deck?
+							else if (data.card_deck.count_cards(c) != 0)	//Else, are there samples of this card in card deck?
 							{
-								if (g_data.card_deck.size() > 1)
+								if (data.card_deck.size() > 1)
 									ret_event->fsm_event = DRAW_NEXT;	//If yes, and this card is not the only one, just draw it
 								else
 									ret_event->fsm_event = DRAW_LAST;	//If yes, but this card is last one, draw last card!
@@ -1351,6 +1361,7 @@ static bool send_package(Package_hanabi& package, Net_connection* connection);
 //Called every time a new game should start
 static void new_game(game_data& data)
 {
+	data.game_number++;	//Note that first game is game 1!
 	//Initialize card deck
 	initialize_deck(data.card_deck);
 	//Clues to maximum
@@ -1943,14 +1954,14 @@ static void wait_software_who____sw_who_you(game_data& data, Package_hanabi* pac
 		data.feedback_event = FB_NO_EVENT;
 	else
 		data.feedback_event = FB_ERROR;	//FATAL ERROR
-	cout << "[GAME_HANDLER][LOG] : Game started!" << endl;
+	cout << "[GAME_HANDLER][LOG] : Game started! Game number " << data.game_number << endl;
 	remote_player_turn_starts(data);
 }
 static void wait_i_start_ack____ack(game_data& data, Package_hanabi* package)
 {
 	//Got ack. disable timer
 	abort_timeout_count(data);
-	cout << "[GAME_HANDLER][LOG] : Game started!" << endl;
+	cout << "[GAME_HANDLER][LOG] : Game started! Game number " << data.game_number << endl;
 	//Local player turn!!
 	local_player_turn_starts(data);
 	data.feedback_event = FB_NO_EVENT;
@@ -1993,6 +2004,13 @@ static void wait_who____i_start(game_data& data, Package_hanabi* package)
 	Package_ack p;
 	//Got who!
 	abort_timeout_count(data);
+	if (data.game_number == 1)
+		data.local_started_first = false;
+	if (!(data.game_number % 2) == !data.local_started_first)
+	{
+		cout << "[GAME_HANDLER][WARNING] : Remote player starts, according to remote player, but local should start." << endl;
+		data.local_started_first = !data.local_started_first;	//Adjust to what remote says... so next turn local should start
+	}
 	//Send ack
 	if (send_package(p, data.connection))
 		data.feedback_event = FB_NO_EVENT;
@@ -2008,6 +2026,13 @@ static void wait_who____you_start(game_data& data, Package_hanabi* package)
 	//Remember remote says who, and he told me "YOU start"
 	//Got who!
 	abort_timeout_count(data);
+	if (data.game_number == 1)
+		data.local_started_first = true;
+	if (!(data.game_number % 2) != !data.local_started_first)
+	{
+		cout << "[GAME_HANDLER][WARNING] : Local player starts, according to remote player, but remote should start." << endl;
+		data.local_started_first = !data.local_started_first;	//Adjust to what remote says... so next turn remote should start
+	}
 	cout << "[GAME_HANDLER][LOG] : Game started!" << endl;
 	local_player_turn_starts(data);
 	data.feedback_event = FB_NO_EVENT;
